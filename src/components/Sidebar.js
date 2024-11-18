@@ -32,7 +32,7 @@ function Sidebar() {
         </div>
         <div className="menu-item">
           <FontAwesomeIcon icon={faComments} />
-          {!isCollapsed && <span>Payment Settings</span>}
+          {!isCollapsed && <span>Payments Settings</span>}
         </div>
         <div className="menu-item">
           <FontAwesomeIcon icon={faBook} />
