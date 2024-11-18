@@ -1,0 +1,63 @@
+/* Sidebar Base Styles */
+.sidebar {
+  width: 250px;
+  background-color: #1c1f2e; /* Dark navy blue */
+  color: white;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  height: 100vh;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+}
+
+/* Menu Header */
+.menu-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+  background-color: #272b3d; /* Slightly darker shade for header */
+}
+
+.toggle-button {
+  cursor: pointer;
+  color: white;
+  font-size: 20px;
+}
+
+/* Menu Items */
+.menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: 20px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  width: 100%;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.menu-item:hover {
+  background-color: #2c334a; /* Slightly lighter shade */
+}
+
+.menu-item span {
+  margin-left: 10px;
+  font-size: 14px;
+}
+
+.sidebar.collapsed .menu-item span {
+  display: none;
+}
+
+.sidebar.collapsed .menu-item {
+  justify-content: center;
+}
