@@ -53,7 +53,7 @@ const toggleNotifications = () => {
         </div>
         <div className="calendar-panel">
           <label>
-            CALENDAR
+            CALENDARs
           </label>
           <table bgcolor="lightgrey" align="center"
         cellspacing="21" cellpadding="21">
