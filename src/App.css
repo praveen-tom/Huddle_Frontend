@@ -1,72 +1,93 @@
-.app {
+/* Overall App Container */
+.app-container {
   display: flex;
-  height: 100vh;
+  height: 100vh; /* Full viewport height */
+  overflow: hidden;
 }
 
-/* Left Sidebar: 25% of the screen */
-.sidebar {
-  width: 25%;
-  background-color: #0f172e; /* Ink color */
+/* Sidebar */
+.sidebar-header {
+  width: 20%; /* Adjust sidebar width as needed */
+  background-color: #2c3e50; /* Dark background */
   color: white;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  box-sizing: border-box;
+}
+
+/* Main Content (Header + Panels) */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Fill remaining space after Sidebar */
+  background-color: #e6e6e6;
+  overflow-y: scroll;
+  scrollbar-width: none;
+}
+
+/* Top Panel (Header) */
+.top-panel {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   padding: 20px;
 }
 
-.sidebar-button {
-  background-color: white;
-  color: #4b0082;
-  border: none;
-  padding: 10px 20px;
-  margin: 10px 0;
-  cursor: pointer;
-  width: 100%;
-  text-align: center;
-}
-
-.sidebar-button:hover {
-  background-color: #ddd;
-}
-
-/* Right Content: 75% of the screen */
-.right-content {
-  width: 75%;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.component {
-  background-color: #f0f0f0;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background-color: #f0f0f0;
-}
-
-.header {
-  background-color: white;
-  padding: 20px;
-  border-bottom: 1px solid #e0e0e0;
-  text-align: center;
+.top-panel h1 {
   font-size: 24px;
   font-weight: bold;
-  color: #333;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  color: #2c3e50; /* Dark text */
+  margin: 0;
 }
 
-.content {
-  padding: 20px;
+.header-badge {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  gap: 15px;
+}
+
+.search-icon,
+.notification-icon {
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.profile-picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+/* Panels Section */
+.panels {
+  display: flex;
+  flex: 1; /* Take up remaining height */
+  overflow: auto;
+}
+
+/* Left Panel */
+.left-panel {
+  width: 25%; /* Add scroll if content overflows */
+  padding: 20px;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+/* Right Panel */
+.right-panel {
+  width: 75%; /* Adjust right panel width as needed */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.calendar-panel
+{
+
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  height:auto;
+  max-height: 50px;
 }

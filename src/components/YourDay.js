@@ -1,5 +1,5 @@
 import React from "react";
-import "./ToDo";
+import "./YourDay.css";
 
 function YourDay() {
   const schedule = [
@@ -10,16 +10,23 @@ function YourDay() {
     { title: "Planning session", time: "1 pm - 2 pm" },
     { title: "Session 6 with Florence", time: "2 pm - 4 pm" },
     { title: "Free", time: "4 pm - 5 pm" },
+    { title: "Session 6 with Florence", time: "2 pm - 4 pm" },
+    { title: "Free", time: "4 pm - 5 pm" },
+    { title: "Session 6 with Florence", time: "2 pm - 4 pm" },
+    { title: "Free", time: "4 pm - 5 pm" },
+    { title: "Session 6 with Florence", time: "2 pm - 4 pm" },
+    { title: "Free", time: "4 pm - 5 pm" },
+    
   ];
 
   return (
-    <div className="component">
-      <div className="header">YOUR DAY</div>
+    <div className="your-day">
+      <div className="header left">YOUR DAY</div>
       <ul className="list">
         {schedule.map((item, index) => (
           <li key={index} className="list-item">
-            <span className="title">{item.title}</span>
-            <span className="time">{item.time}</span>
+            <li className="title">{item.title}</li>
+            <li className="time">{item.time}</li>
           </li>
         ))}
       </ul>

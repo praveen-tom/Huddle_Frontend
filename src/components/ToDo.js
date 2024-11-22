@@ -7,15 +7,26 @@ function ToDo() {
     "Upload session review for Bella's session",
     "Upload resource",
     "Plan Diana's upcoming session",
+    "Upload session review for Bella's session",
+    "Upload resource",
+    "Plan Diana's upcoming session",
+    "Upload session review for Bella's session",
+    "Upload resource",
+    "Plan Diana's upcoming session",
+    "Upload session review for Bella's session",
+    "Upload resource",
+    "Plan Diana's upcoming session",
   ];
 
   return (
-    <div className="component">
+    <div className="to-do">
       <div className="header">TO DO</div>
-      <ul className="list">
+      <ul className="task-list">
         {tasks.map((task, index) => (
-          <li key={index} className="list-item">
-            {task}
+          <li key={index} className="task-item">
+            <span className="task-icon">📄</span>
+            <span className="task-text">{task}</span>
+            <span className="task-delete">❌</span>
           </li>
         ))}
       </ul>
