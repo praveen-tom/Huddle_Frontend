@@ -1,0 +1,135 @@
+/* General layout styles */
+.calendar-layout {
+    display: flex;
+    gap: 15px; /* Adds space between dashboard and panel */
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    padding:20px;
+  }
+   
+  /* Left Header */
+  .calendar-header-left {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    writing-mode: tb-rl;
+    text-align: center;
+    background-color: #473C5F;
+    border-radius: 6px 0px 0px 6px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+   
+  /* Main Content Section */
+  .calendar-main {
+    flex-grow: 1;
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 6px;
+    overflow: auto;
+    scrollbar-width: none;
+    position: sticky;
+  }
+   
+  /* FullCalendar Styling */
+  .fc {
+    width: 100%;
+    height: 100%;
+  }
+   
+  /* FullCalendar Toolbar */
+  .fc-toolbar {
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+   
+  .fc-toolbar button {
+    background-color: #473C5F;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+   
+  .fc-toolbar button:hover {
+    background-color: #5A4A6D;
+  }
+   
+  .fc-daygrid {
+    font-size: 14px;
+  }
+   
+  .fc-daygrid-day {
+    font-size: 14px;
+    padding: 10px;
+    text-align: center;
+    position: relative;
+  }
+   
+  /* Event styling */
+  .fc-event {
+    padding: 8px;
+    border-radius: 5px;
+    color: white;
+    font-size: 12px;
+    text-align: center;
+  }
+   
+  .fc-time-grid-event {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    font-size: 12px;
+  }
+   
+  /* Event Color Classes */
+  .fc-event.session {
+    background-color: #4A90E2; /* Blue */
+  }
+   
+  .fc-event.planning {
+    background-color: #E74C3C; /* Red */
+  }
+   
+  .fc-event.custom {
+    background-color: #9B59B6; /* Purple */
+  }
+   
+  /* FullCalendar day header */
+  .fc-day-header {
+    font-weight: bold;
+    font-size: 14px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    text-align: center;
+  }
+   
+  .fc-daygrid-day-number {
+    font-size: 18px;
+    font-weight: bold;
+  }
+   
+  /* Scrollbars */
+  .fc-scroller {
+    max-height: calc(100vh - 150px); /* For better calendar scrolling */
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+   
+  /* Media Query for Responsiveness */
+  @media (max-width: 768px) {
+    .calendar-layout {
+      flex-direction: column;
+    }
+   
+    .calendar-main {
+      flex-grow: 1;
+    }
+  }

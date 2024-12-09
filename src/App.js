@@ -5,14 +5,19 @@ import YourDay from "./components/YourDay";
 import ToDo from "./components/ToDo";
 import YourHuddle from "./components/YourHuddle";
 import Notification from "./components/Notification";
-
+import CoachProfile from "./components/CoachProfile";
+import Calendar from "./components/Calendar";
 
 //   const today = new Date();
 //  const dayName = today.toLocaleDateString("en-US", { weekday: "long" });
 export default function App() {
 const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+const [iCoachprofileOpen,setIsCoachprofileOpen] = useState(false);
 const toggleNotifications = () => {
   setIsNotificationOpen(!isNotificationOpen);
+};
+const toggleCoachprofile = () => {
+  setIsCoachprofileOpen(!iCoachprofileOpen);
 };
   return (
     <div className="app-container">
@@ -33,7 +38,7 @@ const toggleNotifications = () => {
             <img
               src="https://via.placeholder.com/40"
               alt="Profile"
-              className="profile-picture"
+              className="profile-picture" onClick={toggleCoachprofile}
             />
           </div>
         </header>
@@ -52,7 +57,7 @@ const toggleNotifications = () => {
           </div>
         </div>
         <div className="calendar-panel">
-          <label>
+          {/* <label>
             CALENDAR
           </label>
           <table bgcolor="lightgrey" align="center"
@@ -126,8 +131,13 @@ const toggleNotifications = () => {
                 <td>6</td>
             </tr>
         </tbody>
-    </table>
+    </table> */}
+    <Calendar/> 
         </div>
+        <CoachProfile 
+       isOpen={iCoachprofileOpen}
+       onClose={toggleCoachprofile}
+       />
       </div>
       <Notification
         isOpen={isNotificationOpen}

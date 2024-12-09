@@ -1,0 +1,212 @@
+/* Notification.css */
+
+.coachprofile-panel {
+    position: fixed;
+    top: 0;
+    right: -1200px; /* Start off-screen */
+    width: 1200px;
+    height: 100%;
+    background: white;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+    transition: right 0.3s ease; /* Smooth sliding effect */
+  }
+
+  .coachprofile-panel.open {
+    right: 0; /* Slide into view */
+  }
+
+  .coachprofile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .coachprofile-header h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .coachprofile-header .mark-read {
+    background: transparent;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .coachprofile-header .close-btn {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+  }
+  .coachprofile-content {
+    width: 100%; /* Add scroll if content overflows */
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex: 1; /* Take up remaining height */
+ 
+  }
+  .coachleft-panel
+  {
+    width: 50%; /* Add scroll if content overflows */
+    padding: 20px;
+    box-sizing: border-box;
+    height: 100%;
+  }
+  .coachright-panel
+  {
+    width: 50%; /* Add scroll if content overflows */
+    padding: 20px;
+    box-sizing: border-box;
+    height: 100%;
+  }
+/*Profile*/
+  .profile {
+    background-color: #f4f5f7;
+    border-radius: 6px;
+    padding: 0px;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    margin-bottom: 15px;
+    height: 300px;
+  }
+  
+  .profile .header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 0px;
+    writing-mode: tb-rl;
+    text-align: center;
+    background-color: #0D6A66;
+    border-radius: 6px 0px 0px 6px
+  }
+  
+ .profile .task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: -webkit-fill-available;
+    overflow-y: scroll;
+    scrollbar-width: none;
+  
+  }
+
+/*payment*/
+  .payment {
+    background-color: #f4f5f7;
+    border-radius: 6px;
+    padding: 0px;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    margin-bottom: 15px;
+    height: 300px;
+  }
+  
+  .payment .header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 0px;
+    writing-mode: tb-rl;
+    text-align: center;
+    background-color: #0D6A66;
+    border-radius: 6px 0px 0px 6px
+  }
+  
+ .payment .task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: -webkit-fill-available;
+    overflow-y: scroll;
+    scrollbar-width: none;
+  
+  }
+
+
+  /*information*/
+  .info {
+    background-color: #f4f5f7;
+    border-radius: 6px;
+    padding: 0px;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    margin-bottom: 15px;
+    height: 300px;
+  }
+  
+  .info .header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 0px;
+    writing-mode: tb-rl;
+    text-align: center;
+    background-color: #0D6A66;
+    border-radius: 6px 0px 0px 6px
+  }
+  
+ .info .task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: -webkit-fill-available;
+    overflow-y: scroll;
+    scrollbar-width: none;
+  
+  }
+
+  /*timeslots*/
+  .timeslots {
+    background-color: #f4f5f7;
+    border-radius: 6px;
+    padding: 0px;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    margin-bottom: 15px;
+    height: 300px;
+  }
+  
+  .timeslots .header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 0px;
+    writing-mode: tb-rl;
+    text-align: center;
+    background-color: #0D6A66;
+    border-radius: 6px 0px 0px 6px
+  }
+  
+ .timeslots .task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: -webkit-fill-available;
+    overflow-y: scroll;
+    scrollbar-width: none;
+  
+  }
+
+  .content
+  {
+    height:100%;
+    width: 100%;
+  }
+.sub-content
+{
+  text-align: center;
+}
+.empty-div
+{
+  height: 20%;
+}

@@ -3,6 +3,7 @@ import "./Sidebar.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faColumns, faUserFriends, faComments, faBook, faBars } from "@fortawesome/free-solid-svg-icons";
 
+
 function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -10,13 +11,21 @@ function Sidebar() {
     setIsCollapsed(!isCollapsed);
   };
 
+  // const [isPDFOpen, setIsUploadPDF] = useState(false);
+
+  // const toggleUploadPDF = () => {
+  //   setIsUploadPDF(!isPDFOpen);
+  // };
+
+  
+
   return (
     <div className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
       <div className="menu-header">
         <div className="toggle-button" onClick={toggleSidebar}>
           <FontAwesomeIcon icon={faBars} />
         </div>
-      </div>
+      </div>    
       <div className="menu">
         <div className="menu-item">
           <FontAwesomeIcon icon={faColumns} />
