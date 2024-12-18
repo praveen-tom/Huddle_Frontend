@@ -1,0 +1,93 @@
+/* Overall App Container */
+.app-container {
+    display: flex;
+    height: 100vh; /* Full viewport height */
+    overflow: hidden;
+  }
+  
+  /* Sidebar */
+  .sidebar-header {
+    width: 20%; /* Adjust sidebar width as needed */
+    background-color: #2c3e50; /* Dark background */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+  
+  /* Main Content (Header + Panels) */
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* Fill remaining space after Sidebar */
+    background-color: #e6e6e6;
+    overflow-y: scroll;
+    scrollbar-width: none;
+  }
+  
+  /* Top Panel (Header) */
+  .top-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .top-panel h1 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50; /* Dark text */
+    margin: 0;
+  }
+  
+  .header-badge {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .search-icon,
+  .notification-icon {
+    font-size: 20px;
+    cursor: pointer;
+  }
+  
+  .profile-picture {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+  }
+  
+  /* Panels Section */
+  .panels {
+    display: flex;
+    flex: 1; /* Take up remaining height */
+    overflow: auto;
+  }
+  
+  /* Left Panel */
+  .left-panel {
+    width: 25%; /* Add scroll if content overflows */
+    padding: 20px;
+    box-sizing: border-box;
+    height: 100%;
+  }
+  
+  /* Right Panel */
+  .right-panel {
+    width: 75%; /* Adjust right panel width as needed */
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  
+  .calendar-panel
+  {
+  
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    height:auto;
+    max-height: 50px;
+  }

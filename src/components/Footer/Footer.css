@@ -1,0 +1,13 @@
+/* Footer.css */
+.footer {
+    background-color: #473c5f; /* Match your theme */
+    color: #fff;
+    text-align: center;
+    padding: 15px 20px;
+    position: fixed; /* Make it stick to the bottom */
+    bottom: 0;
+    width: 100%;
+    font-size: 14px;
+    z-index: 10;
+  }
+  
