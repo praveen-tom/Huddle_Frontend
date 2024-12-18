@@ -1,0 +1,18 @@
+.main-container
+{
+  display: flex;
+  justify-content:center;
+  padding: 90px 0px 90px 0px;
+  text-align: center;
+}
+
+.content-body {
+    display:flex;
+    flex-direction:column;
+    justify-content: center;
+    height: 300px; /* Full viewport height */
+    width: 30%;
+    box-shadow: 10px 11px 12px 13px rgb(207, 207, 207);
+    padding-top:30px;
+    border-radius: 30px;
+  }

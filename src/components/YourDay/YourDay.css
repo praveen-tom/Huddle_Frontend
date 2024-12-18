@@ -1,0 +1,47 @@
+.your-day {
+  background-color: #f4f5f7;
+  border-radius: 6px;
+  padding: 0px;
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  height: 100%;
+}
+
+.your-day .header {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 0px;
+  writing-mode: tb-rl;
+  text-align: center;
+  background-color: #473C5F;
+  border-radius: 6px 0px 0px 6px
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  overflow-y: scroll;
+  height:100%;
+  scrollbar-width: none;
+}
+ul.list
+{
+  margin-top:0px;
+}
+
+.list-item {
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.list-item .title {
+  font-weight: bold;
+  color: #333;
+}
+
+.list-item .time {
+  color: #888;
+}

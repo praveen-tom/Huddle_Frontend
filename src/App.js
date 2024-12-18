@@ -1,26 +1,19 @@
 import React from "react";
-import "./App.css";
-import Sidebar from "./components/Sidebar";
-import YourDay from "./components/YourDay";
-import ToDo from "./components/ToDo";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Login from "./Login";
+import Home from "./Home"; // HomePage is the entry point for all other components.
 
 function App() {
-  const today = new Date();
-  const dayName = today.toLocaleDateString("en-US", { weekday: "long" });
-
   return (
-    <div className="app">
-      <Sidebar />
-      <div className="main-content">
-        <header className="header">
-          <h1>Happy {dayName}!</h1>
-        </header>
-        <div className="content">
-          <YourDay />
-          <ToDo />
-        </div>
-      </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        {/* Route for the Login page */}
+        <Route path="/" element={<Login />} />
+
+        {/* Route for the Main App content */}
+        <Route path="/App" element={<Home />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

@@ -31,6 +31,10 @@ function Sidebar() {
           {!isCollapsed && <span>Chats</span>}
         </div>
         <div className="menu-item">
+          <FontAwesomeIcon icon={faComments} />
+          {!isCollapsed && <span>Payments Settings</span>}
+        </div>
+        <div className="menu-item">
           <FontAwesomeIcon icon={faBook} />
           {!isCollapsed && <span>The Huddle Heap</span>}
         </div>
