@@ -108,7 +108,7 @@ console.log("notiication",notification);
                              // Edit Mode: Display Form
                              <form onSubmit={handleFormSubmit} className="edit-form">
                              <div>
-                                 <label>Name</label>
+                                 <label>Name :</label>
                                  <input
                                      type="text"
                                      name="name"
@@ -117,7 +117,7 @@ console.log("notiication",notification);
                                  />
                              </div>
                              <div>
-                                 <label>Qualification</label>
+                                 <label>Qualification :</label>
                                  <input
                                      type="text"
                                      name="qualification"
@@ -126,7 +126,7 @@ console.log("notiication",notification);
                                  />
                              </div>
                              <div>
-                                 <label>Mobile</label>
+                                 <label>Mobile :</label>
                                  <input
                                      type="text"
                                      name="mobile"
@@ -135,7 +135,7 @@ console.log("notiication",notification);
                                  />
                              </div>
                              <div>
-                                 <label>Email</label>
+                                 <label>Email :</label>
                                  <input
                                      type="email"
                                      name="email"
@@ -144,7 +144,7 @@ console.log("notiication",notification);
                                  />
                              </div>
                              <div>
-                                 <label>Age</label>
+                                 <label>Age :</label>
                                  <input
                                      type="number"
                                      name="age"
@@ -161,11 +161,11 @@ console.log("notiication",notification);
                         <ul className='noti-list'>
                         {notification ? (
                             <>
-                                <li><label>Name </label>{notification.name}</li>
-                                <li><label>Qualification</label> {notification.qualification}</li>
-                                <li><label>Mobile</label> {notification.mobile}</li>
-                                <li><label>Email</label> {notification.email}</li>
-                                <li><label>Age</label> {notification.age}</li>
+                                <li><label>Name : </label>{notification.name}</li>
+                                <li><label>Qualification :</label> {notification.qualification}</li>
+                                <li><label>Mobile :</label> {notification.mobile}</li>
+                                <li><label>Email :</label> {notification.email}</li>
+                                <li><label>Age :</label> {notification.age}</li>
                             </>
                         ) : (
                             <li>No notifications available</li>
