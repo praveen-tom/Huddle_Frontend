@@ -60,3 +60,104 @@
 .task-delete:hover {
   color: #be123c;
 }
+
+/* Styles for clickable link in task-item */
+.task-item.clickable .task-text {
+  color: #0d6efd; /* Bootstrap primary color */
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.task-item.clickable:hover .task-text {
+  text-decoration: none;
+  color: #0b5ed7; /* Darker shade for hover effect */
+}
+
+/* Modal container styling */
+.modal {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -20%);
+  width: 300px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  z-index: 1000;
+}
+
+/* Modal header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.modal-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #0D6A66;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #e11d48;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #be123c;
+}
+
+/* Modal form */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-input {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+}
+
+.modal-input:focus {
+  border-color: #0D6A66;
+  box-shadow: 0 0 5px rgba(13, 106, 102, 0.5);
+}
+
+/* Submit button */
+.modal-submit {
+  background-color: #047857;
+  color: white;
+  font-size: 1rem;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.modal-submit:hover {
+  background-color: #065f46;
+}
+
+/* Backdrop */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
