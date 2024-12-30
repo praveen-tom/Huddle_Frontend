@@ -36,7 +36,7 @@ function ToDo() {
     }
 
     const requestOptions = {
-      method: "POST",
+      method: "POST", // Explicitly specifying POST method
       headers: {
         "Content-Type": "application/json",
       },
@@ -45,10 +45,10 @@ function ToDo() {
 
     try {
       const response = await fetch("https://localhost:7046/api/Client", requestOptions);
+
       if (response.ok) {
         alert("Client invited successfully!");
-        setFormData({ name: "", mobile: "", email: "" });
-        setShowModal(false);
+        handleCloseModal(); // Reset modal and form state
       } else {
         const errorData = await response.json();
         alert(`Failed to send invite: ${errorData.message || 'Unknown error occurred'}`);
