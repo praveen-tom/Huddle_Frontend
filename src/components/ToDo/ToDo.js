@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./ToDo.css";
+import { toast } from "react-toastify";
 
 function ToDo() {
   const tasks = [
@@ -11,6 +12,8 @@ function ToDo() {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ name: "", mobile: "", email: "" });
   const [emailError, setEmailError] = useState("");
+  const [loading, setLoading] = useState(false); // State to track loading status
+  const [errorPopup, setErrorPopup] = useState(false); // State to show/hide error popup
 
   const handleOpenModal = () => setShowModal(true);
   const handleCloseModal = () => {
@@ -35,6 +38,8 @@ function ToDo() {
       return;
     }
 
+    setLoading(true); // Set loading to true when the request starts
+
     const requestOptions = {
       method: "POST", // Explicitly specifying POST method
       headers: {
@@ -47,17 +52,23 @@ function ToDo() {
       const response = await fetch("https://localhost:7046/api/Client", requestOptions);
 
       if (response.ok) {
-        alert("Client invited successfully!");
-        handleCloseModal(); // Reset modal and form state
+        toast.success("Client invited successfully!", { autoClose: 3000 });
+        handleCloseModal();
       } else {
         const errorData = await response.json();
-        alert(`Failed to send invite: ${errorData.message || 'Unknown error occurred'}`);
+        toast.error(`Failed to send invite: ${errorData.message || "Unknown error occurred"}`);
+        handleCloseModal(); // Close the client info form on error
+        setErrorPopup(true); // Show the error popup
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("An unexpected error occurred.");
+      handleCloseModal(); // Close the client info form on error
+      setErrorPopup(true); // Show the error popup
+    } finally {
+      setLoading(false); // Reset loading state when request completes
     }
   };
+
+  const handleErrorPopupClose = () => setErrorPopup(false); // Close the error popup
 
   return (
     <div className="to-do">
@@ -80,7 +91,7 @@ function ToDo() {
         ))}
       </ul>
 
-      {/* Modal */}
+      {/* Modal for Adding Client */}
       {showModal && (
         <>
           <div className="modal-backdrop" onClick={handleCloseModal}></div>
@@ -121,10 +132,33 @@ function ToDo() {
                 type="button"
                 className="modal-submit"
                 onClick={handleSendInvite}
+                disabled={loading} // Disable button while loading
               >
-                Send Invite
+                {loading ? (
+                  <span className="loading-spinner"></span>
+                ) : (
+                  "Send Invite"
+                )}
               </button>
             </form>
+          </div>
+        </>
+      )}
+
+      {/* Error Popup */}
+      {errorPopup && (
+        <>
+          <div className="modal-backdrop" onClick={handleErrorPopupClose}></div>
+          <div className="error-popup">
+            <button className="popup-close" onClick={handleErrorPopupClose}>
+              ❌
+            </button>
+            <div className="popup-content">
+              <span>
+                Something went wrong. Please try again later. If the issue
+                persists, please call support.
+              </span>
+            </div>
           </div>
         </>
       )}

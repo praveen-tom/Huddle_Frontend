@@ -1,16 +1,17 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify"; 
+import "react-toastify/dist/ReactToastify.css"; 
 import Login from "./Login";
-import Home from "./Home"; // HomePage is the entry point for all other components.
+import Home from "./Home"; 
 
 function App() {
   return (
     <BrowserRouter>
+      <ToastContainer />
       <Routes>
-        {/* Route for the Login page */}
         <Route path="/" element={<Login />} />
 
-        {/* Route for the Main App content */}
         <Route path="/App" element={<Home />} />
       </Routes>
     </BrowserRouter>
