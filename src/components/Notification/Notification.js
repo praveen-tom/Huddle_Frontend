@@ -1,34 +1,99 @@
-import React from 'react';
-import './Notification.css'; // Create this file for header-specific styling
+import React, { useEffect, useState } from "react";
+import "./Notification.css"; // Ensure this file exists for styling
+import axios from "axios";
+import { HubConnectionBuilder } from "@microsoft/signalr";
 
 export default function Notification({ isOpen, onClose }) {
-  const notification = [
-    { title: "Session 7 with Sarah", time: "9 am - 10 am" },
-    { title: "Free", time: "10 am - 11 am" },
-    { title: "Session 2 with Bella", time: "11 am - 12 pm" },
-    { title: "Free", time: "12 pm - 1 pm" },
-    { title: "Planning session", time: "1 pm - 2 pm" },
-    { title: "Session 6 with Florence", time: "2 pm - 4 pm" },
-    { title: "Free", time: "4 pm - 5 pm" },
+  const [notifications, setNotifications] = useState([]);
+  const [hubConnection, setHubConnection] = useState(null);
+  const userId = "123";  // Hardcoded user ID
 
-  ];
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!userId) return; 
+
+      try {
+        const response = await axios.get(
+          `https://localhost:7046/api/Notification/${userId}`
+        );
+        setNotifications(response.data);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    const setupSignalRConnection = async () => {
+      try {
+        const connection = new HubConnectionBuilder()
+          .withUrl("https://localhost:7046/notificationHub", {
+            withCredentials: true, 
+          })
+          .withAutomaticReconnect()
+          .build();
+
+        connection.on("ReceiveNotification", (notification) => {
+          setNotifications((prev) => [...prev, notification]);
+        });
+
+        await connection.start();
+        console.log("SignalR connection established");
+        setHubConnection(connection);
+      } catch (error) {
+        console.error("Error establishing SignalR connection:", error);
+      }
+    };
+
+    fetchNotifications();
+    setupSignalRConnection();
+
+    
+    return () => {
+      if (hubConnection) {
+        hubConnection.stop().then(() => {
+          console.log("SignalR connection stopped");
+        });
+      }
+    };
+  }, [userId, hubConnection]);
+
+  const markAllAsRead = async () => {
+    try {
+      await axios.post(`https://localhost:7046/api/Notification/mark-all-read`, {
+        userId,
+      });
+
+      setNotifications((prev) =>
+        prev.map((notif) => ({ ...notif, isRead: true }))
+      );
+    } catch (error) {
+      console.error("Error marking notifications as read:", error);
+    }
+  };
 
   return (
     <div className={`notification-panel ${isOpen ? "open" : ""}`}>
       <div className="notification-header">
         <h2>Notifications</h2>
-        <button className="mark-read">Mark all as read</button>
-        <button className="close-btn" onClick={onClose}>✖</button>
+        <button className="mark-read" onClick={markAllAsRead}>
+          Mark all as read
+        </button>
+        <button className="close-btn" onClick={onClose}>
+          ✖
+        </button>
       </div>
       <div className="notification-content">
-       <ul className='noti-list'>
-       {notification.map((item, index) => (
-          <li key={index} className="list-item">
-            <li className="title">{item.title}</li>
-            <li className="time">{item.time}</li>
-          </li>
-        ))}
-       </ul> 
+        <ul className="noti-list">
+          {notifications.map((item, index) => (
+            <li key={index} className={`list-item ${item.isRead ? "read" : ""}`}>
+              <div className="title">{item.message}</div>
+              <div className="time">
+                {item.createdAt
+                  ? new Date(item.createdAt).toLocaleString()
+                  : "Just now"}
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
