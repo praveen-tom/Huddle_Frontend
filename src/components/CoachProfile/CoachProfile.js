@@ -70,7 +70,7 @@ const handleTimeslotClick = (time) => {
     if (error) {
         return <div>Error: {error}</div>;
     }
-console.log("notiication",notification);
+//console.log("notiication",notification);
     return (
         <div className={`coachprofile-panel ${isOpen ? "open" : ""}`}>
             <div className="coachprofile-header">

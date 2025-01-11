@@ -1,18 +1,24 @@
 import React, { useState } from "react";
+import { Icon } from "@iconify/react";
 import "./ToDo.css";
 
 function ToDo() {
-  const tasks = [
-    { text: "Invite new client to Huddle", clickable: true },
-    { text: "Upload session review for Bella's session", clickable: false },
-    { text: "Upload resource", clickable: false },
-  ];
+  const [tasks, setTasks] = useState([
+    { id: 1, text: "Invite new client to Huddle", clickable: true },
+    { id: 2, text: "Upload session review for Bella's session", clickable: false },
+    { id: 3, text: "Upload resource", clickable: false },
+  ]);
 
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ name: "", mobile: "", email: "" });
   const [emailError, setEmailError] = useState("");
+  const [isInviteSent, setIsInviteSent] = useState(false);
 
-  const handleOpenModal = () => setShowModal(true);
+  const handleOpenModal = () => {
+    setShowModal(true);
+    setIsInviteSent(false); // Reset invite status on modal open
+  };
+
   const handleCloseModal = () => {
     setShowModal(false);
     setFormData({ name: "", mobile: "", email: "" });
@@ -26,7 +32,7 @@ function ToDo() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (e.target.name === "email" && emailError) setEmailError(""); // Clear email error
+    if (e.target.name === "email" && emailError) setEmailError("");
   };
 
   const handleSendInvite = async () => {
@@ -36,7 +42,7 @@ function ToDo() {
     }
 
     const requestOptions = {
-      method: "POST", // Explicitly specifying POST method
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
@@ -47,11 +53,10 @@ function ToDo() {
       const response = await fetch("https://localhost:7046/api/Client", requestOptions);
 
       if (response.ok) {
-        alert("Client invited successfully!");
-        handleCloseModal(); // Reset modal and form state
+        setIsInviteSent(true); // Set invite sent flag
       } else {
         const errorData = await response.json();
-        alert(`Failed to send invite: ${errorData.message || 'Unknown error occurred'}`);
+        alert(`Failed to send invite: ${errorData.message || "Unknown error occurred"}`);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -63,16 +68,10 @@ function ToDo() {
     <div className="to-do">
       <div className="header">TO DO</div>
       <ul className="task-list">
-        {tasks.map((task, index) => (
-          <li
-            key={index}
-            className={`task-item ${task.clickable ? "clickable" : ""}`}
-          >
+        {tasks.map((task) => (
+          <li key={task.id} className={`task-item ${task.clickable ? "clickable" : ""}`}>
             <span className="task-icon">📄</span>
-            <span
-              className="task-text"
-              onClick={task.clickable ? handleOpenModal : null}
-            >
+            <span className="task-text" onClick={task.clickable ? handleOpenModal : null}>
               {task.text}
             </span>
             <span className="task-delete">❌</span>
@@ -85,46 +84,67 @@ function ToDo() {
         <>
           <div className="modal-backdrop" onClick={handleCloseModal}></div>
           <div className="modal">
-            <div className="modal-header">
-              <span className="modal-title">Add a new client</span>
+            <div className="btn-close">
               <button className="modal-close" onClick={handleCloseModal}>
-                ❌
+                <Icon icon="mdi:close-thick" style={{ color: "white", fontSize: "1.6rem" }} />
               </button>
             </div>
-            <form className="modal-form" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="text"
-                name="name"
-                placeholder="Name"
-                value={formData.name}
-                onChange={handleChange}
-                className="modal-input"
-              />
-              <input
-                type="text"
-                name="mobile"
-                placeholder="Mobile"
-                value={formData.mobile}
-                onChange={handleChange}
-                className="modal-input"
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-                className="modal-input"
-              />
-              {emailError && <div className="error-message">{emailError}</div>}
-              <button
-                type="button"
-                className="modal-submit"
-                onClick={handleSendInvite}
-              >
-                Send Invite
-              </button>
-            </form>
+            <div className="modal-header">
+              <Icon icon="mdi:invite" style={{ color: "white", fontSize: "4.7rem" }} />
+              {!isInviteSent ?(
+                <span className="modal-title">Add a new client</span>
+              ):
+              (
+                <span className="modal-title">Invitation Sent</span>
+              )
+              }
+              
+            </div>
+            {!isInviteSent ? (
+              <form className="modal-form" onSubmit={(e) => e.preventDefault()}>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="modal-input"
+                />
+                <input
+                  type="text"
+                  name="mobile"
+                  placeholder="Mobile"
+                  value={formData.mobile}
+                  onChange={handleChange}
+                  className="modal-input"
+                />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="modal-input"
+                />
+                {emailError && <div className="error-message">{emailError}</div>}
+                <div className="model-btn">
+                <button
+                  type="button"
+                  className="modal-submit"
+                  onClick={handleSendInvite}
+                >
+                  Send Invite
+                </button>
+                </div>
+              </form>
+            ) : (
+              <div className="confirmation">
+                <Icon
+                  icon="line-md:circle-to-confirm-circle-transition"
+                  style={{ color: "1a274f", fontSize: "10rem" }}
+                />
+              </div>
+            )}
           </div>
         </>
       )}

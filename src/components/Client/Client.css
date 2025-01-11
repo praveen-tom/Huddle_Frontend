@@ -1,0 +1,90 @@
+.client-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .search-input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 200px;
+  }
+  
+  .filter-button,
+  .sort-button,
+  .add-client-button {
+    padding: 10px 15px;
+    margin-left: 10px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .add-client-button {
+    background-color: #e6e6e6;
+    color: #233469;
+    border: 1px solid #233469;
+  }
+  
+  .client-table {
+    width: 100%;
+    height:auto;
+    border-collapse: separate;
+    margin-top: 20px;
+    border-spacing: 0 8px;
+  }
+  
+  .client-table th,
+  .client-table td {
+    text-align: left;
+    border: 0px solid #ddd;
+    background-color: #fff;
+    height:40px;
+  }
+
+  .client-table th {
+    background-color: #b9bbc1;
+  }
+  
+  .client-name {
+    display: flex;
+    align-items: center;
+  }
+  
+  .profile-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  
+  .last-session {
+    display: flex;
+    align-items: center;
+  }
+  
+  .next-session {
+    color: #000;
+  }
+  
+  .next-session.unplanned {
+    color: red;
+  }
+  
+  .payment-status.paid {
+    color: green;
+  }
+  
+  .payment-status.unpaid {
+    color: red;
+  }
+  

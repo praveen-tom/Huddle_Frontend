@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { UserContext } from "./Context/Context";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import API_ENDPOINTS from "./apiconfig";
@@ -8,6 +9,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate(); // Initialize navigate
+  const {login} = useContext(UserContext);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -21,10 +23,17 @@ function Login() {
         }
         const data = await response.json();
         console.log("data",data); // Debug line
-        data.map((getdata)=>(
-          getdata.email === email ? navigate("/app") : setError("Invalid credentials. Please try again.")
-        ));
-     
+        const isvalid = data.find((getdata)=> getdata.email === email);
+        console.log("valid",isvalid);
+        if(isvalid)
+        {
+          navigate("/app"); 
+          login({name:isvalid.name});
+        }
+        else
+        {
+          setError("Invalid credentials. Please try again.");
+        }
         } catch (error) {
           
         }
@@ -42,7 +51,7 @@ function Login() {
           <form onSubmit={handleLogin}>
             <div>
               <input
-                type="text" placeholder="username"
+                type="text" placeholder="username" value="Coach@coach.com"
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />

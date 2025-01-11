@@ -10,9 +10,11 @@
     "@fullcalendar/interaction": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
     "@fullcalendar/timegrid": "^6.1.15",
+    "@microsoft/signalr": "^8.0.7",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.7.9",
     "chart.js": "^4.4.6",
     "moment": "^2.30.1",
     "react": "^18.3.1",
@@ -48,6 +50,7 @@
     ]
   },
   "devDependencies": {
+    "@iconify/react": "^5.2.0",
     "eslint": "^8.57.1"
   }
 }
