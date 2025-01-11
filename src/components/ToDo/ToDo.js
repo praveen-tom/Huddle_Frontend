@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 import "./ToDo.css";
+import { toast } from "react-toastify";
 
 function ToDo() {
   const [tasks, setTasks] = useState([
@@ -41,6 +42,8 @@ function ToDo() {
       return;
     }
 
+    setLoading(true); // Set loading to true when the request starts
+
     const requestOptions = {
       method: "POST",
       headers: {
@@ -59,10 +62,14 @@ function ToDo() {
         alert(`Failed to send invite: ${errorData.message || "Unknown error occurred"}`);
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("An unexpected error occurred.");
+      handleCloseModal(); // Close the client info form on error
+      setErrorPopup(true); // Show the error popup
+    } finally {
+      setLoading(false); // Reset loading state when request completes
     }
   };
+
+  const handleErrorPopupClose = () => setErrorPopup(false); // Close the error popup
 
   return (
     <div className="to-do">
@@ -79,7 +86,7 @@ function ToDo() {
         ))}
       </ul>
 
-      {/* Modal */}
+      {/* Modal for Adding Client */}
       {showModal && (
         <>
           <div className="modal-backdrop" onClick={handleCloseModal}></div>
@@ -145,6 +152,24 @@ function ToDo() {
                 />
               </div>
             )}
+          </div>
+        </>
+      )}
+
+      {/* Error Popup */}
+      {errorPopup && (
+        <>
+          <div className="modal-backdrop" onClick={handleErrorPopupClose}></div>
+          <div className="error-popup">
+            <button className="popup-close" onClick={handleErrorPopupClose}>
+              ❌
+            </button>
+            <div className="popup-content">
+              <span>
+                Something went wrong. Please try again later. If the issue
+                persists, please call support.
+              </span>
+            </div>
           </div>
         </>
       )}
