@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ClientProfile from "./ClientProfile";
 import "./Client.css";
+import { Icon } from "@iconify/react";
 
 const Client = () => {
   const [clientList, setClientList] = useState([]);
@@ -36,9 +37,10 @@ const Client = () => {
   };
 
   const handleClientClick = (client) => {
+    console.log(client);
     const fetchProfileData = async () => {
       try {
-        const response = await fetch(`https://localhost:7046/api/Client/GetClientProfileforCoach/5c9e290b-bf20-4efd-a888-cf3e6e92703c`);
+        const response = await fetch(`https://localhost:7046/api/Client/GetClientProfileforCoach/${client}`);
         if (!response.ok) {
           throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
@@ -68,6 +70,10 @@ const Client = () => {
               value={searchTerm}
               onChange={handleSearch}
             />
+            <button><Icon
+                    icon="mdi:plus"
+                     style={{ color: "1a274f", fontSize: "1.7rem",cursor:"pointer" }}
+                      />Add Client</button>
           </div>
 
           <table className="client-table">
@@ -81,13 +87,12 @@ const Client = () => {
             </thead>
             <tbody>
               {filteredClients.map((client) => (
-                <tr key={client.id} onClick={() => handleClientClick(client)}>
+                <tr className="Client_row_select" key={client.id}  onClick={() => handleClientClick(client.id)}>
                   <td className="client-name">
-                    <img
-                      src={client.profileImage} // Profile image
-                      alt={client.name}
-                      className="profile-image"
-                    />
+                   <Icon
+                    icon="codicon:account"
+                     style={{ color: "1a274f", fontSize: "1.7rem",cursor:"pointer" }}
+                      />
                     {client.name}
                   </td>
                   <td>

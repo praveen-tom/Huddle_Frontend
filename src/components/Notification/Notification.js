@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useContext,useState } from "react";
 import "./Notification.css";
 import axios from "axios";
 import { HubConnectionBuilder } from "@microsoft/signalr";
+import { UserContext } from "../../Context/Context";
 
 export default function Notification({ isOpen, onClose }) {
   const [notifications, setNotifications] = useState([]);
   const userId = "123"; // Hardcoded user ID
+  const {Notification} = useContext(UserContext);
 
   useEffect(() => {
     let connection;
@@ -79,9 +81,9 @@ export default function Notification({ isOpen, onClose }) {
   const MAX_NOTIFICATIONS = 50;
   const displayedNotifications = notifications.slice(-MAX_NOTIFICATIONS);
   const unreadCount = notifications.filter((notif) => !notif.isRead).length;
+  Notification(unreadCount);
   return (
     <div className={`notification-panel ${isOpen ? "open" : ""}`}>
-      <div className="notification-badge">{unreadCount}</div>
       <div className="notification-header">
         <h2>Notifications</h2>
         <button className="mark-read" onClick={markAllAsRead}>

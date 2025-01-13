@@ -14,12 +14,12 @@ function ToDo() {
   const [formData, setFormData] = useState({ name: "", mobile: "", email: "" });
   const [emailError, setEmailError] = useState("");
   const [isInviteSent, setIsInviteSent] = useState(false);
-  const [loading, setLoading] = useState(false); 
-  const [errorPopup, setErrorPopup] = useState(false); 
+  const [loading, setLoading] = useState(false);
+  const [errorPopup, setErrorPopup] = useState(false);
 
   const handleOpenModal = () => {
     setShowModal(true);
-    setIsInviteSent(false); 
+    setIsInviteSent(false); // Reset invite status on modal open
   };
 
   const handleCloseModal = () => {
@@ -44,7 +44,7 @@ function ToDo() {
       return;
     }
 
-    setLoading(true); 
+    setLoading(true); // Set loading to true when the request starts
 
     const requestOptions = {
       method: "POST",
@@ -58,20 +58,20 @@ function ToDo() {
       const response = await fetch("https://localhost:7046/api/Client", requestOptions);
 
       if (response.ok) {
-        setIsInviteSent(true); 
+        setIsInviteSent(true); // Set invite sent flag
       } else {
         const errorData = await response.json();
         alert(`Failed to send invite: ${errorData.message || "Unknown error occurred"}`);
       }
     } catch (error) {
-      handleCloseModal(); 
-      setErrorPopup(true); 
+      handleCloseModal(); // Close the client info form on error
+      setErrorPopup(true); // Show the error popup
     } finally {
-      setLoading(false); 
+      setLoading(false); // Reset loading state when request completes
     }
   };
 
-  const handleErrorPopupClose = () => setErrorPopup(false); 
+  const handleErrorPopupClose = () => setErrorPopup(false); // Close the error popup
 
   return (
     <div className="to-do">

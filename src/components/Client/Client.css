@@ -26,15 +26,23 @@
 }
 
 .client-table th,
-.client-table td {
+.Client_row_select {
   text-align: left;
   border: 0px solid #ddd;
   background-color: #fff;
-  height: 40px;
+  height: 45px;
+  font-weight:500;
+}
+
+.Client_row_select:hover {
+  background-color: #E9EBF8;
+  cursor: pointer;
+  height: 45px;
+  text-align: left;
 }
 
 .client-table th {
-  background-color: #b9bbc1;
+  background-color: #8B91A1;
 }
 
 .client-name {
@@ -192,3 +200,5 @@ ul {
 ul li {
   font-size: 14px;
 }
+
+

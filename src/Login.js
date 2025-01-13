@@ -3,6 +3,7 @@ import { UserContext } from "./Context/Context";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import API_ENDPOINTS from "./apiconfig";
+import { Icon } from "@iconify/react";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -23,12 +24,13 @@ function Login() {
         }
         const data = await response.json();
         console.log("data",data); // Debug line
+        console.log("imputemail",email); // Debug line
         const isvalid = data.find((getdata)=> getdata.email === email);
         console.log("valid",isvalid);
         if(isvalid)
         {
+           login({name:isvalid.name});
           navigate("/app"); 
-          login({name:isvalid.name});
         }
         else
         {
@@ -51,7 +53,7 @@ function Login() {
           <form onSubmit={handleLogin}>
             <div>
               <input
-                type="text" placeholder="username" value="Coach@coach.com"
+                type="text" placeholder="username"
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />

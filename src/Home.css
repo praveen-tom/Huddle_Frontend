@@ -53,8 +53,8 @@
   }
   
   .profile-picture {
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     object-fit: cover;
     cursor: pointer;
@@ -90,4 +90,21 @@
     width: 100%;
     height:auto;
     max-height: 50px;
+  }
+
+  .notification-icon-container
+  {
+    position: relative;
+  }
+
+  .notification-count {
+    width: 20px;
+    height: 20px;
+    background: #52d546;
+    border-radius: 25px;
+    position: absolute;
+    margin: -42px 18px;
+    font-size: 14px;
+    text-align: center;
+    font-weight: bold;
   }
