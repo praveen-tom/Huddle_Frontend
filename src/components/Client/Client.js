@@ -45,6 +45,7 @@ const Client = () => {
           throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
         const profileData = await response.json();
+        console.log(profileData);
         setSelectedClient(profileData);
         setIsProfileVisible(true);
       } catch (err) {
@@ -70,10 +71,8 @@ const Client = () => {
               value={searchTerm}
               onChange={handleSearch}
             />
-            <button><Icon
-                    icon="mdi:plus"
-                     style={{ color: "1a274f", fontSize: "1.7rem",cursor:"pointer" }}
-                      />Add Client</button>
+            <button className="add-client">
+                      + Add a new Client</button>
           </div>
 
           <table className="client-table">

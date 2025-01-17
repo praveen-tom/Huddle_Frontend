@@ -29,7 +29,7 @@ function Login() {
         console.log("valid",isvalid);
         if(isvalid)
         {
-           login({name:isvalid.name});
+           login({name:isvalid.name,id:isvalid.id});
           navigate("/app"); 
         }
         else

@@ -1,75 +1,75 @@
-import React, { useEffect, useContext,useState } from "react";
+import React, {useContext, useEffect, useState } from "react";
 import "./Notification.css";
 import axios from "axios";
 import { HubConnectionBuilder } from "@microsoft/signalr";
 import { UserContext } from "../../Context/Context";
-
+ 
 export default function Notification({ isOpen, onClose }) {
   const [notifications, setNotifications] = useState([]);
-  const userId = "123"; // Hardcoded user ID
+  const{user} = useContext(UserContext);
+  const CoachId = user.id// Replace with actual user ID or fetch dynamically
+  console.log("CoachId",CoachId);
   const {Notification} = useContext(UserContext);
-
   useEffect(() => {
     let connection;
 
     const fetchNotifications = async () => {
       try {
         const response = await axios.get(
-          `https://localhost:7046/api/Notification/${userId}`
+          `https://localhost:7046/api/Notification/${CoachId}`
         );
         setNotifications(response.data);
       } catch (error) {
         console.error("Error fetching notifications:", error);
       }
     };
-
+ 
     const setupSignalRConnection = async () => {
       try {
+        // Initialize SignalR connection
         connection = new HubConnectionBuilder()
-        .withUrl(`https://localhost:7046/notificationHub?userId=${userId}`, {
-          withCredentials: true,
-        })
-          .configureLogging("debug") // Enable detailed SignalR logs
-          .withAutomaticReconnect()
+.withUrl(`https://localhost:7046/notificationHub?userId=${CoachId}`, {
+            withCredentials: true,
+          })
+          .configureLogging("debug") // Enable SignalR logging
+          .withAutomaticReconnect() // Auto-reconnect on disconnect
           .build();
-
-          // Log connection lifecycle events
-          connection.onclose(() => console.log("SignalR connection closed."));
-          connection.onreconnecting(() => console.log("SignalR reconnecting..."));
-          connection.onreconnected(() => console.log("SignalR reconnected."));
-
-        // Listen for notifications
+ 
+        // Listen for incoming notifications
         connection.on("ReceiveNotification", (newNotification) => {
           console.log("New notification received:", newNotification);
-          setNotifications((prev) => [...prev, ...newNotification]);
+          setNotifications((prev) => [...prev, newNotification]); // Add new notification to state
         });
-
+ 
+        // Start the SignalR connection
         await connection.start();
         console.log("SignalR connection established");
       } catch (error) {
         console.error("Error establishing SignalR connection:", error);
       }
     };
-
     fetchNotifications();
     setupSignalRConnection();
-
-    // Cleanup function to stop the SignalR connection
+ 
+    // Cleanup function to stop SignalR connection
     return () => {
       if (connection) {
-        connection.off("ReceiveNotification"); // Remove the listener
+        connection.off("ReceiveNotification"); // Remove listener
         connection.stop().then(() => console.log("SignalR connection stopped"));
       }
     };
-  }, [userId]);
-
+  }, [CoachId]);
+ 
   const markAllAsRead = async () => {
     try {
-      await axios.post(`https://localhost:7046/api/Notification/mark-all-read`, `"${userId}"`, {
-        headers: { "Content-Type": "application/json" }, // Explicitly set the header
+      // Simulate marking notifications as read (API call)
+await fetch(`https://localhost:7046/api/Notification/mark-all-read`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(CoachId),
       });
-
-      // Update all notifications as read in the UI
+ 
+      // Mark all notifications as read in the UI
       setNotifications((prev) =>
         prev.map((notif) => ({ ...notif, isRead: true }))
       );
@@ -77,11 +77,13 @@ export default function Notification({ isOpen, onClose }) {
       console.error("Error marking notifications as read:", error);
     }
   };
-
+ 
   const MAX_NOTIFICATIONS = 50;
   const displayedNotifications = notifications.slice(-MAX_NOTIFICATIONS);
   const unreadCount = notifications.filter((notif) => !notif.isRead).length;
+  console.log("notification count",unreadCount,user.id);
   Notification(unreadCount);
+ 
   return (
     <div className={`notification-panel ${isOpen ? "open" : ""}`}>
       <div className="notification-header">

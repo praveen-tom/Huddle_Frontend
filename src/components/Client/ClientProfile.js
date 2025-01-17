@@ -1,8 +1,20 @@
 import React from "react";
 import "./Client.css";
+import { Icon } from "@iconify/react";
 
 const ClientProfile = ({ profileData, onClose, isProfileVisible }) => {
   const goals = profileData && profileData.goals ? profileData.goals : [];
+
+
+    const notes = [
+      "Joe Jackson has not completed 1 task",
+      "Florence Jones has not paid for Session 3",
+      "Adam Smith has not scheduled his session",
+      "Sam Styles has not completed 1 task",
+      "Florence Jones has not paid for Session 3",
+      "Adam Smith has not scheduled his session",
+    ];
+  
 
   return (
     <div className={`modal-content ${isProfileVisible ? "open" : ""}`}>
@@ -13,48 +25,110 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible }) => {
         </button>
       </div>
       <div className="profile-details-grid">
+        <div className="section1">
         <div className="profile-box">
-          <h4>Basic Info</h4>
+          <div className="profile-header"><h4>PROFILE</h4></div>
+          <div className="profile-content">
           <div className="profile-pic-container">
             <img
               src={profileData.profileImage}
-              alt={`${profileData.name}'s profile`}
+              alt="Profile"
               className="profile-image"
             />
           </div>
-          <h4 className="profile-name">{profileData.name}</h4>
+          <h3 className="profile-name">{profileData.name}</h3>
           <button className="message-btn">Message</button>
-        </div>
-
-        <div className="profile-box">
-          <h4>Sessions</h4>
-          <div className="session-buttons-container">
-            <button className="session-btn">Upcoming</button>
-            <button className="session-btn">Past</button>
           </div>
         </div>
-
-        <div className="profile-box">
+         <div className="gap"></div>
+        <div className="session-box">
+          <div className="session-header">
+          <h4>SESSIONS</h4>
+          </div>
+          <div className="session-buttons-container">
+            <div className="session-buttons">
+            <button className="session-btn upcoming">Upcoming</button>
+            <button className="session-btn past">Past</button>
+            </div>
+            <div className="schedule-btn">
+            <button className="session-btn schedule">+ Schedule</button>
+            </div>
+          </div>
+        </div>
+        </div>
+        <div className="section2">
+        <div className="personalinfo-box">
+          <div className="personalinfo-header">
           <h4>Information</h4>
+          </div>
           <div className="info-details">
-            <p><strong>Qualification:</strong> {profileData.qualification}</p>
+          <p><strong>Age:</strong> {profileData.age}</p>
+          <p><strong>Occupation:</strong> {profileData.occupation}</p>
             <p><strong>Mobile:</strong> {profileData.mobile}</p>
             <p><strong>Email:</strong> {profileData.email}</p>
-            <p><strong>Age:</strong> {profileData.age}</p>
+            <p><strong>Diagnosis:</strong> {profileData.diagnosis}</p>
+            <p><strong>Medication:</strong> {profileData.medication}</p>
+            <p><strong>Payment:</strong> {profileData.paymenttype}</p>
+           
           </div>
         </div>
-
-        <div className="profile-box">
+        <div className="gap"></div>
+        <div className="goals-box">
+          <div className="goals-header">  
           <h4>Goals</h4>
-          <ul>
-            {goals.length > 0 ? (
-              goals.map((goal, index) => (
-                <li key={index}>{goal}</li>
-              ))
-            ) : (
-              <li>No goals listed</li>
-            )}
-          </ul>
+          </div>
+          <div className="goals-container">
+          <div className="goals-content"> 
+            {goals.length === 0 && <p>No goals</p>}
+          {goals.map((goal, index) => (
+          <div key={index} className="goal-item">
+            <div className="goal-icon"> <Icon icon="mage:goals" style={{ color:"25376f", size:"2.7rem"  }}/></div>
+            <div className="goal-text">{goal}</div>
+          </div>
+          ))}
+          </div>
+          <button className="add-button">+ Add</button>
+          </div>
+        </div>
+        </div>
+
+
+        <div className="section3">
+        <div className="notes-box">
+          <div className="notes-header">
+          <h4>NOTES</h4>
+          </div>
+          <div className="notes-details">
+          <div className="notes-icon"><Icon icon="nimbus:edit" style={{ color:"25376f", size:"2.7rem"  }}/></div>
+          <div className="notes-list">
+            {notes.length === 0 && <p>No notes</p>}
+          {notes.map((item, index) => (
+            <p key={index} className="notes-item">
+              <span className="notes-text">{item}</span>
+            </p>
+          ))}
+      </div>
+          </div>
+        </div>
+        </div>
+
+        <div className="section4">
+        <div className="moods-box">
+          <div className="moods-header">
+          <h4>MOOD</h4>
+          </div>
+          <div className="moods-details">
+           
+          </div>
+        </div>
+        <div className="gap"></div>
+        <div className="document-box">
+          <div className="document-header">  
+          <h4>DOCS</h4>
+          </div>
+          <div className="document-content">
+          </div>
+        </div>
         </div>
       </div>
     </div>
