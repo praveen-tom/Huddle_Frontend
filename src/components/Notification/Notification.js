@@ -1,3 +1,5 @@
+//Notification.js
+
 import React, {useContext, useEffect, useState } from "react";
 import "./Notification.css";
 import axios from "axios";
@@ -28,7 +30,7 @@ export default function Notification({ isOpen, onClose }) {
       try {
         // Initialize SignalR connection
         connection = new HubConnectionBuilder()
-.withUrl(`https://localhost:7046/notificationHub?userId=${CoachId}`, {
+.withUrl(`https://localhost:7046/notificationHub?CoachId=${CoachId}`, {
             withCredentials: true,
           })
           .configureLogging("debug") // Enable SignalR logging
