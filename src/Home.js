@@ -1,4 +1,4 @@
-import React, { useContext,useState } from "react";
+import React, { useContext, useState } from "react";
 import "./Home.css";
 import Sidebar from "./components/Sidebar/Sidebar";
 import YourDay from "./components/YourDay/YourDay";
@@ -8,18 +8,17 @@ import Notification from "./components/Notification/Notification";
 import CoachProfile from "./components/CoachProfile/CoachProfile";
 import Calendar from "./components/Calander/Calander";
 import Client from "./components/Client/Client";
-import { UserContext } from "./Context/Context";
+import { UserContext } from "./Context/UserContext";
 import { Icon } from "@iconify/react";
-export default function App() {
+
+export default function Home() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isCoachProfileOpen, setIsCoachProfileOpen] = useState(false);
-
   const [currentPage, setCurrentPage] = useState("Daily Huddle"); // Track the active page
-  const{user} = useContext(UserContext);
-  const{notificationCount} = useContext(UserContext);
+  const { user } = useContext(UserContext);
 
   console.log("User context value in this component:", user); // Debug line
-  console.log("User context value in this Notification Count:", notificationCount);
+
   const toggleNotifications = () => {
     setIsNotificationOpen(!isNotificationOpen);
   };
@@ -27,8 +26,6 @@ export default function App() {
   const toggleCoachProfile = () => {
     setIsCoachProfileOpen(!isCoachProfileOpen);
   };
-
- 
 
   const renderPage = () => {
     switch (currentPage) {
@@ -50,7 +47,7 @@ export default function App() {
           </>
         );
       case "My Huddle":
-        return <Client/>; // Render only "Your Huddle" component for My Huddle page
+        return <Client />; // Render only "Your Huddle" component for My Huddle page
       case "Chats":
         return <div>Chats Page</div>; // Placeholder for Chats
       case "Payments Settings":
@@ -69,17 +66,23 @@ export default function App() {
       </div>
       <div className="main-content">
         <header className="top-panel">
-          <h1>Happy Friday,{user.name}!</h1>
+          <h1>Happy Friday, {user?.name}!</h1>
           <div className="header-badge">
             <i className="search-icon">🔍</i>
             <div className="notification-icon-container">
-            <Icon  icon="mingcute:notification-line" className="notification-icon"
-              onClick={toggleNotifications}
-              style={{ cursor: "pointer", color: "gray", fontSize: "2.0rem" }} />
-               <div className="notification-count">{notificationCount}</div>
-              </div>
-             <Icon className="profile-picture" onClick={toggleCoachProfile} icon="codicon:account"
-              style={{ color: "1a274f", fontSize: "1.7rem",cursor:"pointer" }}/>
+              <Icon
+                icon="mingcute:notification-line"
+                className="notification-icon"
+                onClick={toggleNotifications}
+                style={{ cursor: "pointer", color: "gray", fontSize: "2.0rem" }}
+              />
+            </div>
+            <Icon
+              className="profile-picture"
+              onClick={toggleCoachProfile}
+              icon="codicon:account"
+              style={{ color: "1a274f", fontSize: "1.7rem", cursor: "pointer" }}
+            />
           </div>
         </header>
         {renderPage()} {/* Render the current page dynamically */}
