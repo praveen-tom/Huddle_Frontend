@@ -31,35 +31,37 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
       </div>
       <div className="profile-details-grid">
         <div className="section1">
-        <div className="profile-box">
-          <div className="profile-header"><h4>PROFILE</h4></div>
-          <div className="profile-content">
-          <div className="profile-pic-container">
-            <img
-              src={profileData.profileImage}
-              alt="Profile"
-              className="profile-image"
-            />
-          </div>
-          <h3 className="profile-name">{profileData.name}</h3>
-          <button className="message-btn">Message</button>
-          </div>
-        </div>
-         <div className="gap"></div>
-        <div className="session-box">
-          <div className="session-header">
-          <h4>SESSIONS</h4>
-          </div>
-          <div className="session-buttons-container">
-            <div className="session-buttons">
-            <button className="session-btn upcoming">Upcoming</button>
-            <button className="session-btn past">Past</button>
+          <div className="profile-box">
+            <div className="profile-header">
+              <h4>PROFILE</h4>
             </div>
-            <div className="schedule-btn">
-            <button className="session-btn schedule">+ Schedule</button>
+            <div className="profile-content">
+              <div className="profile-pic-container">
+                <img
+                  src={profileData.profileImage}
+                  alt="Profile"
+                  className="profile-image"
+                />
+              </div>
+              <h3 className="profile-name">{profileData.name}</h3>
+              <button className="message-btn">Message</button>
             </div>
           </div>
-        </div>
+          <div className="gap"></div>
+          <div className="session-box">
+            <div className="session-header">
+              <h4>SESSIONS</h4>
+            </div>
+            <div className="session-buttons-container">
+              <div className="session-buttons">
+                <button className="session-btn upcoming">Upcoming</button>
+                <button className="session-btn past">Past</button>
+              </div>
+              <div className="schedule-btn">
+                <button className="session-btn schedule">+ Schedule</button>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="section2">
         <div className="personalinfo-box">
@@ -87,12 +89,7 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
             {goals.length === 0 && <p>No goals</p>}
           {goals.map((goal, index) => (
           <div key={index} className="goal-item">
-                    <div className="goal-icon">
-                      <Icon
-                        icon="mage:goals"
-                        style={{ color: "25376f", fontSize: "2.7rem" }}
-                      />
-                    </div>
+            <div className="goal-icon"> <Icon icon="mage:goals" style={{ color:"25376f", size:"2.7rem"  }}/></div>
             <div className="goal-text">{goal}</div>
           </div>
           ))}
@@ -102,19 +99,16 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
         </div>
         </div>
 
-
         <div className="section3">
         <div className="notes-box">
           <div className="notes-header">
           <h4>NOTES</h4>
           </div>
           <div className="notes-details">
-              <div className="notes-icon">
-                <Icon icon="nimbus:edit" style={{ color: "25376f", fontSize: "2.7rem" }} />
-              </div>
+          <div className="notes-icon"><Icon icon="nimbus:edit" style={{ color:"25376f", size:"2.7rem"  }}/></div>
           <div className="notes-list">
-                {profileData?.notes?.length === 0 && <p>No notes</p>}
-                {profileData?.notes?.map((item, index) => (
+            {notes.length === 0 && <p>No notes</p>}
+          {notes.map((item, index) => (
             <p key={index} className="notes-item">
               <span className="notes-text">{item}</span>
             </p>
@@ -139,22 +133,6 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
           <h4>DOCS</h4>
           </div>
           <div className="document-content">
-              {documents.length === 0 ? (
-                <p>No documents available.</p>
-              ) : (
-                <ul>
-                  {documents.map((doc, index) => (
-                    <li key={index}>
-                      <button
-                        onClick={() => handleDocumentDownload(doc)}
-                        className="document-link"
-                      >
-                        {index + 1}. {doc}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
           </div>
         </div>
         </div>

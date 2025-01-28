@@ -8,15 +8,14 @@ import Home from "./Home";
 
 function App() {
   return (
-    <UserProvider>
     <BrowserRouter>
       <ToastContainer />
       <Routes>
         <Route path="/" element={<Login />} />
-          <Route path="/app" element={<Home />} />
+
+        <Route path="/App" element={<Home />} />
       </Routes>
     </BrowserRouter>
-    </UserProvider>
   );
 }
 
