@@ -168,13 +168,15 @@
   .timeslots {
     background-color: #f4f5f7;
     border-radius: 6px;
-    padding: 0px;
+    padding-bottom: 0px;
     display: flex;
     flex-direction: row;
     gap: 15px;
     margin-bottom: 15px;
     height: 300px;
   }
+
+
  
   .timeslots .header {
     font-size: 1.5rem;
@@ -257,11 +259,19 @@ font-size: 20px;
 .time-slot
 {
   padding: 10px;
-  margin:10px;
+  margin: 10px;
+  background-color: #f4f5f7;
+  border: 1px solid #ddd;
+  cursor: pointer;
 
 }
 .time-slot.selected {
   background-color: #4caf50;
   color: white;
   border-color: #4caf50;
+}
+.time-slot.preferred {
+  background-color: green;
+  color: white;
+  border-color: green;
 }

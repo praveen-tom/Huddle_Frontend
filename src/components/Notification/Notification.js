@@ -1,10 +1,8 @@
-//Notification.js
-
 import React, {useContext, useEffect, useState } from "react";
 import "./Notification.css";
 import axios from "axios";
 import { HubConnectionBuilder } from "@microsoft/signalr";
-import { UserContext } from "../../Context/Context";
+import { UserContext } from "../../Context/UserContext";
  
 export default function Notification({ isOpen, onClose }) {
   const [notifications, setNotifications] = useState([]);

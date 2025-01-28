@@ -1,20 +1,25 @@
 import React from "react";
-import "./Client.css";
 import { Icon } from "@iconify/react";
+import "./Client.css";
 
-const ClientProfile = ({ profileData, onClose, isProfileVisible }) => {
-  const goals = profileData && profileData.goals ? profileData.goals : [];
+const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => {
+  if (!profileData) {
+    return <div>Loading...</div>; // Handle loading or null state
+  }
 
+  const goals = profileData?.goals || [];
+  const documents = profileData?.documents || []; // Destructure documents here
 
-    const notes = [
-      "Joe Jackson has not completed 1 task",
-      "Florence Jones has not paid for Session 3",
-      "Adam Smith has not scheduled his session",
-      "Sam Styles has not completed 1 task",
-      "Florence Jones has not paid for Session 3",
-      "Adam Smith has not scheduled his session",
-    ];
-  
+  // Function to handle document download
+  const handleDocumentDownload = (fileName) => {
+    const clientId = "af89ac3a-fc13-4aff-9fc8-c0dbf15ec794";
+    const url = `https://localhost:7046/api/CoachProfile/DownloadFile/${clientId}/${fileName}`;
+    // Create an invisible anchor element to download the file
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName; // Optional: you can also set a custom filename
+    link.click();
+  };
 
   return (
     <div className={`modal-content ${isProfileVisible ? "open" : ""}`}>
@@ -82,7 +87,12 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible }) => {
             {goals.length === 0 && <p>No goals</p>}
           {goals.map((goal, index) => (
           <div key={index} className="goal-item">
-            <div className="goal-icon"> <Icon icon="mage:goals" style={{ color:"25376f", size:"2.7rem"  }}/></div>
+                    <div className="goal-icon">
+                      <Icon
+                        icon="mage:goals"
+                        style={{ color: "25376f", fontSize: "2.7rem" }}
+                      />
+                    </div>
             <div className="goal-text">{goal}</div>
           </div>
           ))}
@@ -99,10 +109,12 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible }) => {
           <h4>NOTES</h4>
           </div>
           <div className="notes-details">
-          <div className="notes-icon"><Icon icon="nimbus:edit" style={{ color:"25376f", size:"2.7rem"  }}/></div>
+              <div className="notes-icon">
+                <Icon icon="nimbus:edit" style={{ color: "25376f", fontSize: "2.7rem" }} />
+              </div>
           <div className="notes-list">
-            {notes.length === 0 && <p>No notes</p>}
-          {notes.map((item, index) => (
+                {profileData?.notes?.length === 0 && <p>No notes</p>}
+                {profileData?.notes?.map((item, index) => (
             <p key={index} className="notes-item">
               <span className="notes-text">{item}</span>
             </p>
@@ -127,6 +139,22 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible }) => {
           <h4>DOCS</h4>
           </div>
           <div className="document-content">
+              {documents.length === 0 ? (
+                <p>No documents available.</p>
+              ) : (
+                <ul>
+                  {documents.map((doc, index) => (
+                    <li key={index}>
+                      <button
+                        onClick={() => handleDocumentDownload(doc)}
+                        className="document-link"
+                      >
+                        {index + 1}. {doc}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
           </div>
         </div>
         </div>
