@@ -3,47 +3,54 @@ import { UserContext } from "./Context/UserContext";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import API_ENDPOINTS from "./apiconfig";
-
+ 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { login } = useContext(UserContext);
-
+ 
   const handleLogin = (e) => {
     e.preventDefault();
-      const fetchData = async()=>{
-        
-        try {
-          const response = await fetch(API_ENDPOINTS.getCoachProfile);
-          console.log(response);
-          if (!response.ok) {
+ 
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`${API_ENDPOINTS.getCoachProfile}/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userName: email, passWord: password }),
+        });
+ 
+        if (!response.ok) {
+          if (response.status === 401) {
+            setError("Invalid credentials. Please try again.");
+          } else {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
           }
           return;
         }
+ 
         const data = await response.json();
-        console.log("data",data); // Debug line
-        console.log("imputemail",email); // Debug line
-        const isvalid = data.find((getdata)=> getdata.email === email);
-        console.log("valid",isvalid);
-        if(isvalid)
-        {
-           login({name:isvalid.name,id:isvalid.id});
-          navigate("/app"); 
-        }
-        else
-        {
+ 
+        if (data.success) {
+          // Log in the user and navigate to the home page
+          login({ name: data.coach.name, id: data.coach.id });
+          navigate("/app");
+        } else {
           setError("Invalid credentials. Please try again.");
         }
-        } catch (error) {
-          
-        }
-      };
+      } catch (error) {
+        console.error("Error during login:", error);
+        setError("An unexpected error occurred. Please try again later.");
+      }
+    };
+ 
     fetchData();
   };
-
+ 
   return (
     <div className="main-container">
       <div className="content-body">
@@ -80,5 +87,5 @@ function Login() {
     </div>
   );
 }
-
+ 
 export default Login;

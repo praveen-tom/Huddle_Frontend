@@ -29,10 +29,10 @@ export default function CoachProfile({ isOpen, onClose }) {
                 const data = await response.json();
 
                 setNotification(data);
-                setDefaultTimeslots(data.timeslots.defaulttiming || []);
-                setPreferredTimeslots(data.timeslots.preferredtiming || []);
-                setSelectedTimes(data.timeslots.preferredtiming || []);
-                setOriginalTimes(data.timeslots.preferredtiming || []);
+                setDefaultTimeslots(data.timeslots?.defaulttiming || []);
+                setPreferredTimeslots(data.timeslots?.preferredtiming || []);
+                setSelectedTimes(data.timeslots?.preferredtiming || []);
+                setOriginalTimes(data.timeslots?.preferredtiming || []);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -71,7 +71,6 @@ export default function CoachProfile({ isOpen, onClose }) {
             });
 
             let responseData;
-            // Check the content-type header to decide whether to parse JSON or text
             const contentType = response.headers.get("Content-Type");
             
             if (contentType && contentType.includes("application/json")) {
@@ -86,9 +85,8 @@ export default function CoachProfile({ isOpen, onClose }) {
                 return;
             }
 
-            // If responseData is a string (plain text), treat it as a success/failure message
             if (typeof responseData === "string") {
-                alert(responseData); // Display the message returned by the server
+                alert(responseData);
             } else {
                 alert("Coach information updated successfully!");
                 setIsEditMode(false);
@@ -200,48 +198,23 @@ export default function CoachProfile({ isOpen, onClose }) {
                             <form onSubmit={handleFormSubmit} className="edit-form">
                                 <div>
                                     <label>Name :</label>
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value={notification.name}
-                                        onChange={handleChange}
-                                    />
+                                    <input type="text" name="name" value={notification.name || ""} onChange={handleChange} />
                                 </div>
                                 <div>
                                     <label>Qualification :</label>
-                                    <input
-                                        type="text"
-                                        name="qualification"
-                                        value={notification.qualification}
-                                        onChange={handleChange}
-                                    />
+                                    <input type="text" name="qualification" value={notification.qualification || ""} onChange={handleChange} />
                                 </div>
                                 <div>
                                     <label>Mobile :</label>
-                                    <input
-                                        type="text"
-                                        name="mobile"
-                                        value={notification.mobile}
-                                        onChange={handleChange}
-                                    />
+                                    <input type="text" name="mobile" value={notification.mobile || ""} onChange={handleChange} />
                                 </div>
                                 <div>
                                     <label>Email :</label>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        value={notification.email}
-                                        onChange={handleChange}
-                                    />
+                                    <input type="email" name="email" value={notification.email || ""} onChange={handleChange} />
                                 </div>
                                 <div>
                                     <label>Age :</label>
-                                    <input
-                                        type="number"
-                                        name="age"
-                                        value={notification.age}
-                                        onChange={handleChange}
-                                    />
+                                    <input type="number" name="age" value={notification.age || ""} onChange={handleChange} />
                                 </div>
                                 <div className="btn-submit">
                                     <button type="submit">Save</button>
@@ -249,37 +222,12 @@ export default function CoachProfile({ isOpen, onClose }) {
                             </form>
                         ) : (
                             <div className="view-mode">
-                                <div className="edit-icon">
-                                    <a href="#" onClick={handleEditClick}>
-                                        <span>Edit</span>
-                                    </a>
-                                </div>
                                 <ul className="noti-list">
-                                    {notification ? (
-                                        <>
-                                            <li>
-                                                <label>Name : </label>
-                                                {notification.name}
-                                            </li>
-                                            <li>
-                                                <label>Qualification :</label>{" "}
-                                                {notification.qualification}
-                                            </li>
-                                            <li>
-                                                <label>Mobile :</label>{" "}
-                                                {notification.mobile}
-                                            </li>
-                                            <li>
-                                                <label>Email :</label>{" "}
-                                                {notification.email}
-                                            </li>
-                                            <li>
-                                                <label>Age :</label> {notification.age}
-                                            </li>
-                                        </>
-                                    ) : (
-                                        <li>No notifications available</li>
-                                    )}
+                                    <li><label>Name :</label> {notification.name}</li>
+                                    <li><label>Qualification :</label> {notification.qualification}</li>
+                                    <li><label>Mobile :</label> {notification.mobile}</li>
+                                    <li><label>Email :</label> {notification.email}</li>
+                                    <li><label>Age :</label> {notification.age}</li>
                                 </ul>
                             </div>
                         )}
@@ -287,24 +235,11 @@ export default function CoachProfile({ isOpen, onClose }) {
 
                     <div className="timeslots">
                         <div className="header">TIMESLOTS</div>
-                        <div>
-                   
-                        {notification.availableTimes.map((time,index)=>(
-                        <button
-                        key={index}
-                        className={`task-text time-slot ${
-                            selectedTimes.includes(time) ? "selected" : ""
-                        }`}
-                        onClick={() => handleTimeslotClick(time)}
-                    >
-                        {time}
-                    </button>
+                        {notification.availableTimes?.map((time, index) => (
+                            <button key={index} className={`task-text time-slot ${selectedTimes.includes(time) ? "selected" : ""}`} onClick={() => handleTimeslotClick(time)}>
+                                {time}
+                            </button>
                         ))}
-                         <div>
-                            <h4>Selected TimeSlots</h4>
-                            <span>{selectedTimes.join(",")||"None"}</span>
-                        </div>
-                        </div>
                     </div>
                 </div>
             </div>
