@@ -288,23 +288,22 @@ export default function CoachProfile({ isOpen, onClose }) {
                     <div className="timeslots">
                         <div className="header">TIMESLOTS</div>
                         <div>
-                            <h4>Available Timeslots</h4>
-                            {defaultTimeslots.map((time, index) => (
-                                <button
-                                    key={index}
-                                    className={`task-text time-slot ${
-                                        selectedTimes.includes(time) ? "preferred" : ""
-                                    }`}
-                                    onClick={() => handleTimeslotClick(time)}
-                                >
-                                    {time}
-                                </button>
-                            ))}
+                   
+                        {notification.availableTimes.map((time,index)=>(
+                        <button
+                        key={index}
+                        className={`task-text time-slot ${
+                            selectedTimes.includes(time) ? "selected" : ""
+                        }`}
+                        onClick={() => handleTimeslotClick(time)}
+                    >
+                        {time}
+                    </button>
+                        ))}
+                         <div>
+                            <h4>Selected TimeSlots</h4>
+                            <span>{selectedTimes.join(",")||"None"}</span>
                         </div>
-
-                        <div>
-                            <h4>Selected Timeslots</h4>
-                            <span>{selectedTimes.join(", ") || "None"}</span>
                         </div>
                     </div>
                 </div>

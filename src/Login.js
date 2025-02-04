@@ -13,41 +13,34 @@ function Login() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`${API_ENDPOINTS.getCoachProfile}/login`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userName: email, passWord: password }),
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            setError("Invalid credentials. Please try again.");
-          } else {
+      const fetchData = async()=>{
+        
+        try {
+          const response = await fetch(API_ENDPOINTS.getCoachProfile);
+          console.log(response);
+          if (!response.ok) {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
           }
           return;
         }
-
         const data = await response.json();
-
-        if (data.success) {
-          // Log in the user and navigate to the home page
-          login({ name: data.coach.name, id: data.coach.id });
-          navigate("/app");
-        } else {
+        console.log("data",data); // Debug line
+        console.log("imputemail",email); // Debug line
+        const isvalid = data.find((getdata)=> getdata.email === email);
+        console.log("valid",isvalid);
+        if(isvalid)
+        {
+           login({name:isvalid.name,id:isvalid.id});
+          navigate("/app"); 
+        }
+        else
+        {
           setError("Invalid credentials. Please try again.");
         }
-      } catch (error) {
-        console.error("Error during login:", error);
-        setError("An unexpected error occurred. Please try again later.");
-      }
-    };
-
+        } catch (error) {
+          
+        }
+      };
     fetchData();
   };
 
