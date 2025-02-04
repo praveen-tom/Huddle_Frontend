@@ -2,19 +2,19 @@ import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 import "./Client.css";
 import SchedulePopup from "./SchedulePopup";
- 
+
 const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
- 
+
   console.log("Profile data:", profileData);
- 
+  
   if (!profileData) {
     return <div>Loading...</div>; // Handle loading or null state
   }
- 
+
   const goals = profileData?.goals || [];
   const documents = profileData?.documents || []; // Destructure documents here
- 
+
   // Function to handle document download
   const handleDocumentDownload = (fileName) => {
     const clientId = "af89ac3a-fc13-4aff-9fc8-c0dbf15ec794";
@@ -25,7 +25,7 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
     link.download = fileName; // Optional: you can also set a custom filename
     link.click();
   };
- 
+
   return (
     <div className={`modal-content ${isProfileVisible ? "open" : ""}`}>
       <div className="header">
@@ -121,7 +121,7 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
             </div>
           </div>
         </div>
- 
+
         <div className="section3">
           <div className="notes-box">
             <div className="notes-header">
@@ -142,7 +142,7 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
             </div>
           </div>
         </div>
- 
+
         <div className="section4">
           <div className="moods-box">
             <div className="moods-header">
@@ -177,8 +177,8 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
         </div>
       </div>
       {isPopupOpen && (
-        <SchedulePopup
-          onClose={() => setIsPopupOpen(false)}
+        <SchedulePopup 
+          onClose={() => setIsPopupOpen(false)} 
           clientName={profileData.name} // Pass the profile name
           profileData={profileData} // Pass the entire profileData
         />
@@ -186,5 +186,5 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
     </div>
   );
 };
- 
+
 export default ClientProfile;

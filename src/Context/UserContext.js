@@ -11,7 +11,7 @@ export const UserProvider = ({children}) =>{
     const [notificationCount, setNotificationCount] = useState(0);
 
     const login = (UserDetails) => {
-        console.log("Login called with:", UserDetails); // Debug current user state
+        console.log("Login called with:", UserDetails); 
         setUser(UserDetails);
         localStorage.setItem("user", JSON.stringify(UserDetails)); 
         console.log("After setting user:", UserDetails);  
@@ -23,7 +23,7 @@ export const UserProvider = ({children}) =>{
     };
 
     const Notification = (count) => {
-        setNotificationCount(count);// Placeholder for Notification
+        setNotificationCount(count);
     };
     
     useEffect(() => {

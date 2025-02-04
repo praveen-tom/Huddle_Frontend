@@ -25,8 +25,8 @@ function YourDay() {
       <ul className="list">
         {schedule.map((item, index) => (
           <li key={index} className="list-item">
-            <li className="title">{item.title}</li>
-            <li className="time">{item.time}</li>
+            <div className="title">{item.title}</div>
+            <div className="time">{item.time}</div>
           </li>
         ))}
       </ul>

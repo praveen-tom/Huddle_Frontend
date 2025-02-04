@@ -4,10 +4,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { Doughnut } from "react-chartjs-2";
-import Chart from "chart.js/auto";
 import "./Calendar.css";
-import { click } from "@testing-library/user-event/dist/click";
-import { height } from "@fortawesome/free-solid-svg-icons/fa0";
  
 const Calendar = () => {
   const [events, setEvents] = useState([

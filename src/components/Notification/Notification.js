@@ -82,8 +82,9 @@ await fetch(`https://localhost:7046/api/Notification/mark-all-read`, {
   const displayedNotifications = notifications.slice(-MAX_NOTIFICATIONS);
   const unreadCount = notifications.filter((notif) => !notif.isRead).length;
   console.log("notification count",unreadCount,user.id);
-  Notification(unreadCount);
- 
+  useEffect(() => {
+    Notification(unreadCount);
+  }, [unreadCount]); 
   return (
     <div className={`notification-panel ${isOpen ? "open" : ""}`}>
       <div className="notification-header">
