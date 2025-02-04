@@ -1,8 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 import "./Client.css";
+import SchedulePopup from "./SchedulePopup";
 
 const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+  console.log("Profile data:", profileData);
+  
   if (!profileData) {
     return <div>Loading...</div>; // Handle loading or null state
   }
@@ -58,7 +63,7 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
                 <button className="session-btn past">Past</button>
               </div>
               <div className="schedule-btn">
-                <button className="session-btn schedule">+ Schedule</button>
+                <button className="session-btn schedule" onClick={() => setIsPopupOpen(true)}>+ Schedule</button>
               </div>
             </div>
           </div>
@@ -171,6 +176,13 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
           </div>
         </div>
       </div>
+      {isPopupOpen && (
+        <SchedulePopup 
+          onClose={() => setIsPopupOpen(false)} 
+          clientName={profileData.name} // Pass the profile name
+          profileData={profileData} // Pass the entire profileData
+        />
+      )}
     </div>
   );
 };
