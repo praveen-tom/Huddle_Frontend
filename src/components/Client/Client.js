@@ -18,7 +18,7 @@ const Client = () => {
   
   const handleOpenModal = () => {
     setShowModal(true);
-    setIsInviteSent(false); // Reset invite status on modal open
+    setIsInviteSent(false); 
   };
 
   const handleCloseModal = () => {
@@ -43,7 +43,7 @@ const Client = () => {
       return;
     }
 
-    setLoading(true); // Set loading to true when the request starts
+    setLoading(true); 
 
     const requestOptions = {
       method: "POST",
@@ -57,20 +57,20 @@ const Client = () => {
       const response = await fetch("https://localhost:7046/api/Client", requestOptions);
 
       if (response.ok) {
-        setIsInviteSent(true); // Set invite sent flag
+        setIsInviteSent(true);
       } else {
         const errorData = await response.json();
         alert(`Failed to send invite: ${errorData.message || "Unknown error occurred"}`);
       }
     } catch (error) {
-      handleCloseModal(); // Close the client info form on error
-      setErrorPopup(true); // Show the error popup
+      handleCloseModal(); 
+      setErrorPopup(true); 
     } finally {
-      setLoading(false); // Reset loading state when request completes
+      setLoading(false); 
     }
   };
 
-  const handleErrorPopupClose = () => setErrorPopup(false); // Close the error popup
+  const handleErrorPopupClose = () => setErrorPopup(false); 
 
   useEffect(() => {
     const fetchData = async () => {

@@ -4,8 +4,17 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { Doughnut } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
 import "./Calendar.css";
- 
+
+// Register the necessary chart elements
+ChartJS.register(ArcElement, Tooltip, Legend);
+
 const Calendar = () => {
   const [events, setEvents] = useState([
     {
@@ -26,7 +35,7 @@ const Calendar = () => {
     },
     {
       id: "3",
-      title: "planning with Adam",
+      title: "Planning with Adam",
       start: "2024-12-09T09:00:00",
       end: "2024-12-09T10:00:00",
       color: "#E67E22",
@@ -74,9 +83,8 @@ const Calendar = () => {
     },
   ]);
 
- 
   const [showChart, setShowChart] = useState(false);
- 
+
   const calculateHours = () => {
     const hoursByTag = {
       Session: 0,
@@ -85,16 +93,16 @@ const Calendar = () => {
       Personal: 0,
       Remaining: 0,
     };
- 
+
     const totalDayHours = 24;
- 
+
     // Sum up hours for each category
     events.forEach((event) => {
       const duration =
         (new Date(event.end).getTime() - new Date(event.start).getTime()) /
         (1000 * 60 * 60);
       const roundedDuration = Math.ceil(duration);
- 
+
       if (event.tag) {
         hoursByTag[event.tag] =
           (hoursByTag[event.tag] || 0) + roundedDuration;
@@ -102,19 +110,19 @@ const Calendar = () => {
         hoursByTag.Personal += roundedDuration; // Treat untagged as "Personal"
       }
     });
- 
+
     // Calculate remaining hours
     const totalLoggedHours =
       hoursByTag.Session +
       hoursByTag.Planning +
       hoursByTag.Others +
       hoursByTag.Personal;
- 
+
     hoursByTag.Remaining = Math.max(0, totalDayHours - totalLoggedHours);
- 
+
     return hoursByTag;
   };
- 
+
   const chartData = {
     labels: events.map((event) => event.title),
     datasets: [
@@ -130,7 +138,7 @@ const Calendar = () => {
       },
     ],
   };
- 
+
   const chartOptions = {
     plugins: {
       legend: {
@@ -150,15 +158,15 @@ const Calendar = () => {
     },
     maintainAspectRatio: false,
   };
- 
+
   const toggleChart = () => setShowChart((prev) => !prev);
- 
+
   const hoursByTag = calculateHours();
- 
+
   return (
     <div className="calendar-layout">
-        <div className="calendar-header-left">Calendar</div>
-     
+      <div className="calendar-header-left">Calendar</div>
+
       <div
         className="calendar-main"
         style={{
@@ -166,18 +174,15 @@ const Calendar = () => {
         }}
       >
         <FullCalendar
-          customButtons={
-            {
-              mycustombutton:{
+          customButtons={{
+            mycustombutton: {
               text: showChart ? "Back to Calendar" : "Insight",
-              click:function(){
+              click: function () {
                 toggleChart();
-              }
-            }
-            }
-          }
+              },
+            },
+          }}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-         
           headerToolbar={{
             left: "today,mycustombutton",
             center: "title",
@@ -192,7 +197,7 @@ const Calendar = () => {
             if (title) {
               const calendarApi = selectInfo.view.calendar;
               calendarApi.unselect();
- 
+
               const newEvent = {
                 id: String(events.length + 1),
                 title,
@@ -200,7 +205,7 @@ const Calendar = () => {
                 end: selectInfo.endStr,
                 color: "#3498DB",
               };
- 
+
               setEvents([...events, newEvent]);
             }
           }}
@@ -216,35 +221,32 @@ const Calendar = () => {
           slotDuration="01:00:00"
           slotLabelInterval="01:00:00"
         />
-       
       </div>
       {showChart && (
-  <div
-    className="chart-container"
-    style={{
-      width: "10%",
-      height:"40%",
-      background:"none",
-      boxShadow:"none",
-      transition: "width 0.3s ease",
-    }}
-  >
-    <Doughnut data={chartData} options={chartOptions}
-    />
-    <div className="hours-summary">
-      <ul>
-        <li>Session: {hoursByTag.Session} hours</li>
-        <li>Planning: {hoursByTag.Planning} hours</li>
-        <li>Others: {hoursByTag.Others} hours</li>
-        <li>Personal: {hoursByTag.Personal} hours</li>
-        <li>Remaining: {hoursByTag.Remaining} hours</li>
-      </ul>
-    </div>
-  </div>
-)}
- 
+        <div
+          className="chart-container"
+          style={{
+            width: "10%",
+            height: "40%",
+            background: "none",
+            boxShadow: "none",
+            transition: "width 0.3s ease",
+          }}
+        >
+          <Doughnut data={chartData} options={chartOptions} />
+          <div className="hours-summary">
+            <ul>
+              <li>Session: {hoursByTag.Session} hours</li>
+              <li>Planning: {hoursByTag.Planning} hours</li>
+              <li>Others: {hoursByTag.Others} hours</li>
+              <li>Personal: {hoursByTag.Personal} hours</li>
+              <li>Remaining: {hoursByTag.Remaining} hours</li>
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
- 
+
 export default Calendar;
