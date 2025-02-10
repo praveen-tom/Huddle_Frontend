@@ -1,0 +1,153 @@
+/* PlanSession.css */
+.plan-session-popup {
+  position: fixed;
+  top: 65px; /* Match the top position with modal-content */
+  right: -100%; /* Start off-screen */
+  width: 100%;
+  max-width: 1000px;
+  height: 95%;
+  background-color: white;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+  transition: right 0.3s ease; /* Smooth sliding effect */
+  overflow-x: scroll;
+}
+
+.plan-session-popup.open {
+  right: 0; /* Slide into view */
+}
+
+/* Popup Content */
+.popup-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  width: min(90vw, 600px);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Close Button */
+.close-button {
+  background: transparent;
+  border: none;
+  font-size: 25px;
+  cursor: pointer;
+  float: right;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Time & Date Container */
+.time-date-container {
+  display: flex;
+  gap: 10px; /* Space between time and date inputs */
+}
+
+/* Button Styling */
+.button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+.button-primary {
+  background-color: #007bff;
+}
+
+.button-primary:hover {
+  background-color: #0056b3;
+}
+
+.button-danger {
+  background-color: #dc3545;
+}
+
+.button-danger:hover {
+  background-color: #c82333;
+}
+
+.button-success {
+  background-color: #28a745;
+}
+
+.button-success:hover {
+  background-color: #218838;
+}
+
+/* Objective & Task Item */
+.item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.item input[type="radio"] {
+  margin-right: 10px;
+}
+
+.item span {
+  flex: 1;
+}
+
+.item .icon {
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+/* Forms for Adding Objectives & Tasks */
+.add-item-form {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.add-item-form input[type="text"] {
+  flex: 1;
+  margin-right: 10px;
+}
+
+/* Accessibility: Focus States */
+button:focus,
+input:focus,
+textarea:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .popup-content {
+    padding: 15px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    padding: 8px;
+  }
+
+  .time-date-container {
+    flex-direction: column; /* Stack inputs vertically on small screens */
+    gap: 5px; /* Reduce gap between inputs */
+  }
+}

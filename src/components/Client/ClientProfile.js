@@ -1,29 +1,40 @@
+// ClientProfile.js
 import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 import "./Client.css";
 import SchedulePopup from "./SchedulePopup";
+import GoalPopup from "./GoalPopup"; // Import GoalPopup
+import PlanSessionPopup from "./PlanSessionPopup"; // Import PlanSessionPopup
 
 const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isGoalPopupOpen, setIsGoalPopupOpen] = useState(false);
+  const [isPlanSessionOpen, setIsPlanSessionOpen] = useState(false); // State for PlanSessionPopup
+  const [goals, setGoals] = useState(profileData?.goals || []);
 
-  console.log("Profile data:", profileData);
-  
   if (!profileData) {
     return <div>Loading...</div>; // Handle loading or null state
   }
 
-  const goals = profileData?.goals || [];
-  const documents = profileData?.documents || []; // Destructure documents here
+  const documents = profileData?.documents || [];
 
   // Function to handle document download
   const handleDocumentDownload = (fileName) => {
-    const clientId = "af89ac3a-fc13-4aff-9fc8-c0dbf15ec794";
     const url = `https://localhost:7046/api/CoachProfile/DownloadFile/${clientId}/${fileName}`;
-    // Create an invisible anchor element to download the file
     const link = document.createElement("a");
     link.href = url;
-    link.download = fileName; // Optional: you can also set a custom filename
+    link.download = fileName;
     link.click();
+  };
+
+  // Function to handle adding a new goal
+  const handleAddGoal = (newGoal) => {
+    setGoals([...goals, newGoal]); // Update goals list
+  };
+
+  // Function to handle opening the PlanSessionPopup
+  const handlePlanSessionOpen = () => {
+    setIsPlanSessionOpen(true);
   };
 
   return (
@@ -61,9 +72,27 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
               <div className="session-buttons">
                 <button className="session-btn upcoming">Upcoming</button>
                 <button className="session-btn past">Past</button>
+                {profileData?.upcommingSchedule && (
+                  <div className="session-info">
+                    <p className="session-title">
+                      {profileData.upcommingSchedule.sessiontitle}
+                    </p>
+                    <button
+                      className="session-btn plan"
+                      onClick={handlePlanSessionOpen} // Open PlanSessionPopup
+                    >
+                      Plan
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="schedule-btn">
-                <button className="session-btn schedule" onClick={() => setIsPopupOpen(true)}>+ Schedule</button>
+                <button
+                  className="session-btn schedule"
+                  onClick={() => setIsPopupOpen(true)}
+                >
+                  + Schedule
+                </button>
               </div>
             </div>
           </div>
@@ -74,27 +103,13 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
               <h4>Information</h4>
             </div>
             <div className="info-details">
-              <p>
-                <strong>Age:</strong> {profileData.age}
-              </p>
-              <p>
-                <strong>Occupation:</strong> {profileData.occupation}
-              </p>
-              <p>
-                <strong>Mobile:</strong> {profileData.mobile}
-              </p>
-              <p>
-                <strong>Email:</strong> {profileData.email}
-              </p>
-              <p>
-                <strong>Diagnosis:</strong> {profileData.diagnosis}
-              </p>
-              <p>
-                <strong>Medication:</strong> {profileData.medication}
-              </p>
-              <p>
-                <strong>Payment:</strong> {profileData.paymenttype}
-              </p>
+              <p><strong>Age:</strong> {profileData.age}</p>
+              <p><strong>Occupation:</strong> {profileData.occupation}</p>
+              <p><strong>Mobile:</strong> {profileData.mobile}</p>
+              <p><strong>Email:</strong> {profileData.email}</p>
+              <p><strong>Diagnosis:</strong> {profileData.diagnosis}</p>
+              <p><strong>Medication:</strong> {profileData.medication}</p>
+              <p><strong>Payment:</strong> {profileData.paymenttype}</p>
             </div>
           </div>
           <div className="gap"></div>
@@ -108,20 +123,21 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
                 {goals.map((goal, index) => (
                   <div key={index} className="goal-item">
                     <div className="goal-icon">
-                      <Icon
-                        icon="mage:goals"
-                        style={{ color: "25376f", fontSize: "2.7rem" }}
-                      />
+                      <Icon icon="mage:goals" style={{ color: "#25376f", fontSize: "2.7rem" }} />
                     </div>
                     <div className="goal-text">{goal}</div>
                   </div>
                 ))}
               </div>
-              <button className="add-button">+ Add</button>
+              <button
+                className="add-button"
+                onClick={() => setIsGoalPopupOpen(true)}
+              >
+                + Add
+              </button>
             </div>
           </div>
         </div>
-
         <div className="section3">
           <div className="notes-box">
             <div className="notes-header">
@@ -129,7 +145,7 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
             </div>
             <div className="notes-details">
               <div className="notes-icon">
-                <Icon icon="nimbus:edit" style={{ color: "25376f", fontSize: "2.7rem" }} />
+                <Icon icon="nimbus:edit" style={{ color: "#25376f", fontSize: "2.7rem" }} />
               </div>
               <div className="notes-list">
                 {profileData?.notes?.length === 0 && <p>No notes</p>}
@@ -142,7 +158,6 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
             </div>
           </div>
         </div>
-
         <div className="section4">
           <div className="moods-box">
             <div className="moods-header">
@@ -176,11 +191,28 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
           </div>
         </div>
       </div>
+      {/* Schedule Popup */}
       {isPopupOpen && (
-        <SchedulePopup 
-          onClose={() => setIsPopupOpen(false)} 
-          clientName={profileData.name} // Pass the profile name
-          profileData={profileData} // Pass the entire profileData
+        <SchedulePopup
+          onClose={() => setIsPopupOpen(false)}
+          clientName={profileData.name}
+          profileData={profileData}
+        />
+      )}
+      {/* Goal Popup */}
+      {isGoalPopupOpen && (
+        <GoalPopup
+          onClose={() => setIsGoalPopupOpen(false)}
+          onSave={handleAddGoal}
+          profileData={profileData}  // Pass profileData correctly
+        />
+      )}
+      {/* Plan Session Popup */}
+      {isPlanSessionOpen && (
+        <PlanSessionPopup
+          isOpen={isPlanSessionOpen}
+          onClose={() => setIsPlanSessionOpen(false)}
+          profileData={profileData}  // Pass profileData to PlanSessionPopup
         />
       )}
     </div>

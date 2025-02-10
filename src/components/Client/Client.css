@@ -17,8 +17,7 @@
   width: 200px;
 }
 
-.add-client
-{
+.add-client {
   padding: 12px 15px;
   font-size: 16px;
   cursor: pointer;
@@ -38,7 +37,7 @@
   border: 0px solid #ddd;
   background-color: #fff;
   height: 45px;
-  font-weight:500;
+  font-weight: 500;
 }
 
 .Client_row_select:hover {
@@ -127,7 +126,6 @@
   margin-top: 20px;
 }
 
-
 .profile-box h4 {
   font-size: 18px;
 }
@@ -143,7 +141,7 @@
   width: 100px;
   height: 100px;
   object-fit: cover;
-  margin:30px;
+  margin: 30px;
 }
 
 .profile-name {
@@ -183,10 +181,10 @@
 .session-btn:hover {
   background-color: #455817;
   color: #fff;
-  font-weight: bold
+  font-weight: bold;
 }
 
-.info-details{
+.info-details {
   padding: 20px;
 }
 
@@ -263,17 +261,16 @@ ul li {
   background-color: #25376f; /* Blue background on hover */
   color: #fff; /* White text on hover */
 }
-/* section 1 */
-.section1
-{
-    width: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-    display: flex
 
+/* section 1 */
+.section1 {
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
 }
-.profile-box
-{
+
+.profile-box {
   background-color: #f4f5f7;
   border-radius: 6px;
   padding: 0px;
@@ -284,8 +281,8 @@ ul li {
   height: 300px;
   width: 35%;
 }
-.profile-header
-{
+
+.profile-header {
   font-size: 1.5rem;
   color: #BBB2CB;
   margin-bottom: 0px;
@@ -293,7 +290,7 @@ ul li {
   text-align: center;
   background-color: #473C5F;
   border-radius: 0px 6px 6px 0px;
-  width:60px;
+  width: 60px;
   writing-mode: tb-rl;
   transform: rotate(180deg);
 }
@@ -304,21 +301,19 @@ ul li {
 .goals-header h4,
 .notes-header h4,
 .moods-header h4,
-.document-header h4
-{
+.document-header h4 {
   margin: 0px;
   padding: 13px;
   font-size: 25px;
   text-transform: uppercase;
 }
 
-.profile-content
-{
-    height: 100%;
-    width: 100%
+.profile-content {
+  height: 100%;
+  width: 100%;
 }
-.session-box
-{
+
+.session-box {
   background-color: #f4f5f7;
   border-radius: 6px;
   padding: 0px;
@@ -329,12 +324,12 @@ ul li {
   width: 60%;
   height: 300px;
 }
-.gap
-{
-  width:5%
+
+.gap {
+  width: 5%;
 }
-.session-header
-{
+
+.session-header {
   font-size: 1.5rem;
   font-weight: bold;
   color: #C0CB9F;
@@ -343,30 +338,28 @@ ul li {
   text-align: center;
   background-color: #455817;
   border-radius: 0px 6px 6px 0px;
-  width:60px;
+  width: 60px;
   writing-mode: tb-rl;
   transform: rotate(180deg);
 }
-.session-buttons-container
-{
+
+.session-buttons-container {
   height: 100%;
   width: 100%;
   display: block;
 }
-.session-buttons
-{
- height: 80%;
+
+.session-buttons {
+  height: 80%;
 }
-.schedule-btn{
+
+.schedule-btn {
   height: 10%;
 }
 
-.session-btn
-{
-  
-}
+.session-btn {}
 
-.upcoming{
+.upcoming {
   margin: 10px;
   background: #f4f5f7;
   color: #455817;
@@ -375,7 +368,7 @@ ul li {
   border-radius: 20px 20px 20px 20px;
 }
 
-.past{
+.past {
   margin: 10px;
   background: #f4f5f7;
   color: #455817;
@@ -384,7 +377,7 @@ ul li {
   border-radius: 20px 20px 20px 20px;
 }
 
-.schedule{
+.schedule {
   background: #f4f5f7;
   color: #455817;
   font-weight: bold;
@@ -393,16 +386,14 @@ ul li {
 }
 
 /* section2 */
-.section2
-{
-    width: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-    display: flex
-
+.section2 {
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
 }
-.personalinfo-box
-{
+
+.personalinfo-box {
   background-color: #f4f5f7;
   border-radius: 6px;
   padding: 0px;
@@ -414,8 +405,7 @@ ul li {
   width: 50%;
 }
 
-.personalinfo-header
-{
+.personalinfo-header {
   font-size: 1.5rem;
   font-weight: bold;
   color: #9BCBC9;
@@ -424,12 +414,12 @@ ul li {
   text-align: center;
   background-color: #0D6A66;
   border-radius: 0px 6px 6px 0px;
-   width:60px;
-   writing-mode: tb-rl;
-   transform: rotate(180deg);
+  width: 60px;
+  writing-mode: tb-rl;
+  transform: rotate(180deg);
 }
-.goals-box
-{
+
+.goals-box {
   background-color: #f4f5f7;
   border-radius: 6px;
   padding: 0px;
@@ -440,8 +430,8 @@ ul li {
   height: 300px;
   width: 50%;
 }
-.goals-header
-{
+
+.goals-header {
   font-size: 1.5rem;
   font-weight: bold;
   color: #C6CCDC;
@@ -450,25 +440,24 @@ ul li {
   text-align: center;
   background-color: #25376F;
   border-radius: 0px 6px 6px 0px;
-  width:60px;
+  width: 60px;
   writing-mode: tb-rl;
   transform: rotate(180deg);
 }
-.gap
-{
-  width:5%
+
+.gap {
+  width: 5%;
 }
 
 /* section3 */
-.section3{
+.section3 {
   width: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-    display: flex
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
 }
 
-.notes-box
-{
+.notes-box {
   background-color: #f4f5f7;
   border-radius: 6px;
   padding: 0px;
@@ -479,8 +468,8 @@ ul li {
   height: 300px;
   width: 100%;
 }
-.notes-header
-{
+
+.notes-header {
   font-size: 1.5rem;
   font-weight: bold;
   color: #CC9CA3;
@@ -489,20 +478,19 @@ ul li {
   text-align: center;
   background-color: #5C262A;
   border-radius: 0px 6px 6px 0px;
-  width:60px;
+  width: 60px;
   writing-mode: tb-rl;
   transform: rotate(180deg);
 }
 
-.notes-details{
+.notes-details {
   font-size: 14px;
-    color: #5C262A;
-    /* font-weight: bold; */
-    text-align: justify;
-    width: 100%;
+  color: #5C262A;
+  text-align: justify;
+  width: 100%;
 }
 
-.notes-list{
+.notes-list {
   padding: 9px;
   margin-top: -54px;
 }
@@ -515,15 +503,14 @@ ul li {
 }
 
 /* section 4 */
-.section4
-{
-    width: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-    display: flex
+.section4 {
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+}
 
-} 
-.moods-box  {
+.moods-box {
   background-color: #f4f5f7;
   border-radius: 6px;
   padding: 0px;
@@ -533,12 +520,9 @@ ul li {
   margin-bottom: 15px;
   height: 300px;
   width: 35%;
-
 }
 
-.moods-header
-{
-
+.moods-header {
   font-size: 1.5rem;
   font-weight: bold;
   color: #B0BBBC;
@@ -547,13 +531,12 @@ ul li {
   text-align: center;
   background-color: #3B4647;
   border-radius: 0px 6px 6px 0px;
-  width:60px;
+  width: 60px;
   writing-mode: tb-rl;
   transform: rotate(180deg);
 }
 
-.document-box
-{
+.document-box {
   background-color: #f4f5f7;
   border-radius: 6px;
   padding: 0px;
@@ -565,7 +548,7 @@ ul li {
   height: 300px;
 }
 
-.document-header{
+.document-header {
   font-size: 1.5rem;
   font-weight: bold;
   color: #CC9CA3;
@@ -574,7 +557,72 @@ ul li {
   text-align: center;
   background-color: #5C262A;
   border-radius: 0px 6px 6px 0px;
-  width:60px;
+  width: 60px;
   writing-mode: tb-rl;
   transform: rotate(180deg);
+}
+
+/* General styling */
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.open {
+  display: block;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* Session Box Styling */
+.session-box {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.session-header h4 {
+  margin-bottom: 10px;
+}
+
+.session-btn.upcoming {
+  background-color: #007bff;
+  color: white;
+}
+
+.session-btn.past {
+  background-color: #6c757d;
+  color: white;
+}
+
+.session-btn.plan {
+  background-color: #4CAF50;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.session-btn.plan:hover {
+  background-color: #45a049;
+}
+
+/* Layout of session title and plan button */
+.session-info {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.session-title {
+  font-size: 1.2rem;
+  margin-right: 10px;
 }
