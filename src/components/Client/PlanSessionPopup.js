@@ -1,10 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import './PlanSession.css';
 import { FaEdit, FaTrash } from 'react-icons/fa';
+import { v4 as uuidv4 } from 'uuid';
 
 const PlanSessionPopup = ({ isOpen, onClose, profileData }) => {
-  const [time, setTime] = useState('');
-  const [date, setDate] = useState('');
+  const [activeTab, setActiveTab] = useState("plan");
+
+  // Helper function to convert dd-MM-yyyy to yyyy-MM-dd
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    const [day, month, year] = dateString.split('-');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Extract plannedTime and plannedDate from profileData
+  const initialTime = profileData?.upcommingSchedule?.plannedTime || '';
+  const initialDate = profileData?.upcommingSchedule?.plannedDate
+    ? formatDateForInput(profileData.upcommingSchedule.plannedDate)
+    : '';
+
+  // State for time and date
+  const [time, setTime] = useState(initialTime);
+  const [date, setDate] = useState(initialDate);
+
+  // Other states
   const [title, setTitle] = useState('');
   const [overview, setOverview] = useState('');
   const [objectives, setObjectives] = useState([]);
@@ -12,14 +31,18 @@ const PlanSessionPopup = ({ isOpen, onClose, profileData }) => {
   const [newObjective, setNewObjective] = useState('');
   const [isAddingObjective, setIsAddingObjective] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
-
   const [plannedTasks, setPlannedTasks] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
   const [newTask, setNewTask] = useState('');
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [taskEditIndex, setTaskEditIndex] = useState(null);
 
-  // Load objectives and planned tasks from profileData or local storage on mount
+  const plannedSessionId = profileData?.upcommingSchedule?.id || null;
+
+  console.log('Profile Data:', profileData);
+  console.log('Planned Session ID:', plannedSessionId);
+
+  // Load objectives and tasks from localStorage or profileData
   useEffect(() => {
     const storedObjectives = JSON.parse(localStorage.getItem('objectives')) || [];
     const storedTasks = JSON.parse(localStorage.getItem('plannedTasks')) || [];
@@ -27,17 +50,15 @@ const PlanSessionPopup = ({ isOpen, onClose, profileData }) => {
     setPlannedTasks(profileData?.plannedTasks?.length ? profileData.plannedTasks : storedTasks);
   }, [profileData]);
 
-  // Save objectives to local storage
   useEffect(() => {
     localStorage.setItem('objectives', JSON.stringify(objectives));
   }, [objectives]);
 
-  // Save planned tasks to local storage
   useEffect(() => {
     localStorage.setItem('plannedTasks', JSON.stringify(plannedTasks));
   }, [plannedTasks]);
 
-  // Handle adding a new objective
+  // Handlers for Objectives
   const handleAddObjective = () => {
     if (objectives.length < 5) {
       setIsAddingObjective(true);
@@ -48,43 +69,44 @@ const PlanSessionPopup = ({ isOpen, onClose, profileData }) => {
     }
   };
 
-  // Save new or edited objective
   const handleSaveObjective = () => {
     if (!newObjective.trim()) {
       alert('Objective cannot be empty.');
       return;
     }
+
+    const newObjectiveData = {
+      Id: uuidv4(),
+      plannedsessionid: plannedSessionId,
+      Objective: newObjective,
+      status: "created"
+    };
+
     if (editIndex !== null) {
       const updatedObjectives = [...objectives];
-      updatedObjectives[editIndex] = newObjective;
+      updatedObjectives[editIndex] = newObjectiveData;
       setObjectives(updatedObjectives);
       setEditIndex(null);
     } else {
-      setObjectives([...objectives, newObjective]);
+      setObjectives([...objectives, newObjectiveData]);
     }
+
     setNewObjective('');
     setIsAddingObjective(false);
   };
 
-  // Edit objective
   const handleEditObjective = (index) => {
-    setNewObjective(objectives[index]);
+    setNewObjective(objectives[index].Objective);
     setIsAddingObjective(true);
     setEditIndex(index);
   };
 
-  // Delete objective
   const handleDeleteObjective = (index) => {
     const updatedObjectives = objectives.filter((_, i) => i !== index);
     setObjectives(updatedObjectives);
   };
 
-  // Handle radio selection for objectives
-  const handleObjectiveSelection = (index) => {
-    setSelectedObjective(index);
-  };
-
-  // Handle adding a new planned task
+  // Handlers for Planned Tasks
   const handleAddTask = () => {
     if (plannedTasks.length < 5) {
       setIsAddingTask(true);
@@ -95,96 +117,82 @@ const PlanSessionPopup = ({ isOpen, onClose, profileData }) => {
     }
   };
 
-  // Save new or edited planned task
   const handleSaveTask = () => {
     if (!newTask.trim()) {
       alert('Planned task cannot be empty.');
       return;
     }
+
+    const newTaskData = {
+      Id: uuidv4(),
+      plannedsessionid: plannedSessionId,
+      task: newTask,
+      status: "created"
+    };
+
     if (taskEditIndex !== null) {
       const updatedTasks = [...plannedTasks];
-      updatedTasks[taskEditIndex] = newTask;
+      updatedTasks[taskEditIndex] = newTaskData;
       setPlannedTasks(updatedTasks);
       setTaskEditIndex(null);
     } else {
-      setPlannedTasks([...plannedTasks, newTask]);
+      setPlannedTasks([...plannedTasks, newTaskData]);
     }
+
     setNewTask('');
     setIsAddingTask(false);
   };
 
-  // Edit planned task
   const handleEditTask = (index) => {
-    setNewTask(plannedTasks[index]);
+    setNewTask(plannedTasks[index].task);
     setIsAddingTask(true);
     setTaskEditIndex(index);
   };
 
-  // Delete planned task
   const handleDeleteTask = (index) => {
     const updatedTasks = plannedTasks.filter((_, i) => i !== index);
     setPlannedTasks(updatedTasks);
   };
 
-  // Handle radio selection for planned tasks
-  const handleTaskSelection = (index) => {
-    setSelectedTask(index);
-  };
-
-  // Handle form submission
+  // Handle form submission (Plan tab)
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    // Log form values for debugging
-    console.log('Form Values:');
-    console.log('Time:', time);
-    console.log('Date:', date);
-    console.log('Title:', title);
-    console.log('Overview:', overview);
-    console.log('Objectives:', objectives);
-    console.log('Planned Tasks:', plannedTasks);
-  
-    // Check if the required fields are filled in properly
+
     if (!title.trim() || !overview.trim()) {
       alert('Please fill in all required fields.');
       return;
     }
-  
+
     const plannedSessionData = {
-      Id: "", // Generate a new GUID for the session
-      schedulesession: 'some-random-guid', // Replace with actual logic if needed
+      Id: uuidv4(),
+      schedulesession: plannedSessionId || 'some-random-guid',
       title: title,
       notes: overview,
       planneddate: date,
       plannedtime: time,
       status: 'Not Completed',
-      CreatedBy: profileData.coachId, // Set as null if coachId is missing
-      CreatedDatetime: new Date().toISOString(), // Set as null if coachId is missing
-      ModifiedBy: null, // Set as null if coachId is missing
+      CreatedBy: profileData.coachId || uuidv4(),
+      CreatedDatetime: new Date().toISOString(),
+      ModifiedBy: profileData.coachId || uuidv4(),
       ModifiedDatetime: new Date().toISOString(),
-      tasks: plannedTasks.map(task => ({ task })),
-      objectives: objectives.map(objective => ({ Objective: objective })),
+      tasks: plannedTasks,
+      objectives: objectives
     };
-  
-    // Log the request body for debugging
-    console.log('Request Body:', JSON.stringify(plannedSessionData));
-  
+
     try {
       const response = await fetch('https://localhost:7046/api/PlannedSession', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(plannedSessionData),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Error Response from Server:', errorData);
         alert(`Failed to create planned session: ${errorData.message || 'Unknown error'}`);
         return;
       }
-  
+
       const responseData = await response.json();
       console.log('Response from server:', responseData);
       alert('Planned session created successfully!');
@@ -196,94 +204,147 @@ const PlanSessionPopup = ({ isOpen, onClose, profileData }) => {
   };
 
   return (
-    <div className={`plan-session-popup ${isOpen ? 'open' : ''}`}>
-      <div className="popup-content">
-        <h2>Plan Session</h2>
-        <button onClick={onClose} className="close-button">&#10006;</button>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Time & Date:</label>
-            <div className="time-date-container">
-              <input type="time" id="time" value={time} onChange={(e) => setTime(e.target.value)} />
-              <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} />
-            </div>
+    <>
+      {/* Backdrop */}
+      {/* Popup */}
+      <div className={`plan-session-popup ${isOpen ? 'open' : ''}`}>
+        <div className="popup-content">
+          <button onClick={onClose} className="close-button">X</button>
+
+          {/* Vertical Tabs */}
+          <div className="vertical-tabs">
+            <button
+              className={activeTab === "plan" ? "active" : ""}
+              onClick={(e) => { e.preventDefault(); setActiveTab("plan"); }}
+            >
+              Plan
+            </button>
+            <button
+              className={activeTab === "goals" ? "active" : ""}
+              onClick={(e) => { e.preventDefault(); setActiveTab("goals"); }}
+            >
+              Goals
+            </button>
+            <button
+              className={activeTab === "history" ? "active" : ""}
+              onClick={(e) => { e.preventDefault(); setActiveTab("history"); }}
+            >
+              History
+            </button>
+            <button
+              className={activeTab === "inspiration" ? "active" : ""}
+              onClick={(e) => { e.preventDefault(); setActiveTab("inspiration"); }}
+            >
+              Inspiration
+            </button>
           </div>
-          <div className="form-group">
-            <label htmlFor="title">Title:</label>
-            <input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label htmlFor="overview">Overview:</label>
-            <textarea id="overview" value={overview} onChange={(e) => setOverview(e.target.value)}></textarea>
-          </div>
-          {/* Objectives Section */}
-          <div className="form-group">
-            <h3>Objectives</h3>
-            {objectives.length > 0 ? (
-              objectives.map((objective, index) => (
-                <div key={index} className="item">
+
+          {/* Main Content */}
+          <div className="main-content">
+            {activeTab === "plan" && (
+              <form onSubmit={handleSubmit}>
+                <h2>Plan Session</h2>
+
+                {/* Time & Date */}
+                <label>Time & Date:</label>
+                <div className="time-date-container">
                   <input
-                    type="radio"
-                    name="selectedObjective"
-                    checked={selectedObjective === index}
-                    onChange={() => handleObjectiveSelection(index)}
+                    type="time"
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    className="form-group-input"
                   />
-                  <span>{objective}</span>
-                  <FaEdit className="icon" onClick={() => handleEditObjective(index)} />
-                  <FaTrash className="icon" onClick={() => handleDeleteObjective(index)} />
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="form-group-input"
+                  />
                 </div>
-              ))
-            ) : (
-              <button type="button" className="button button-success" onClick={handleAddObjective}>Add Objective</button>
-            )}
-            {isAddingObjective && (
-              <div className="add-item-form">
+
+                {/* Title */}
+                <label>Title:</label>
                 <input
                   type="text"
-                  value={newObjective}
-                  onChange={(e) => setNewObjective(e.target.value)}
-                  placeholder="Enter objective"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="form-group-input"
                 />
-                <button type="button" className="button button-primary" onClick={handleSaveObjective}>Save</button>
-              </div>
+
+                {/* Overview */}
+                <label>Overview:</label>
+                <textarea
+                  value={overview}
+                  onChange={(e) => setOverview(e.target.value)}
+                  className="form-group-textarea"
+                ></textarea>
+
+                {/* Objectives Section */}
+                <h3>Objectives</h3>
+                {objectives.length > 0 ? (
+                  objectives.map((objective, index) => (
+                    <div key={objective.Id} className="item">
+                      <span>{objective.Objective}</span>
+                      <FaEdit onClick={() => handleEditObjective(index)} className="icon" />
+                      <FaTrash onClick={() => handleDeleteObjective(index)} className="icon" />
+                    </div>
+                  ))
+                ) : (
+                  <p>No objectives added yet.</p>
+                )}
+                {isAddingObjective && (
+                  <div className="add-item-form">
+                    <input
+                      type="text"
+                      value={newObjective}
+                      onChange={(e) => setNewObjective(e.target.value)}
+                      placeholder="Enter objective"
+                      className="form-group-input"
+                    />
+                    <button onClick={handleSaveObjective}>Save</button>
+                  </div>
+                )}
+                <button onClick={handleAddObjective}>Add Objective</button>
+
+                {/* Planned Tasks Section */}
+                <h3>Planned Tasks</h3>
+                {plannedTasks.length > 0 ? (
+                  plannedTasks.map((task, index) => (
+                    <div key={task.Id} className="item">
+                      <span>{task.task}</span>
+                      <FaEdit onClick={() => handleEditTask(index)} className="icon" />
+                      <FaTrash onClick={() => handleDeleteTask(index)} className="icon" />
+                    </div>
+                  ))
+                ) : (
+                  <p>No planned tasks added yet.</p>
+                )}
+                {isAddingTask && (
+                  <div className="add-item-form">
+                    <input
+                      type="text"
+                      value={newTask}
+                      onChange={(e) => setNewTask(e.target.value)}
+                      placeholder="Enter planned task"
+                      className="form-group-input"
+                    />
+                    <button onClick={handleSaveTask}>Save</button>
+                  </div>
+                )}
+                <button onClick={handleAddTask}>Add Planned Task</button>
+
+                {/* Submit Button */}
+                <button type="submit" className="button button-primary">Share</button>
+              </form>
             )}
+
+            {activeTab === "goals" && <div>Goals content goes here.</div>}
+            {activeTab === "history" && <div>History content goes here.</div>}
+            {activeTab === "inspiration" && <div>Inspiration content goes here.</div>}
           </div>
-          {/* Planned Tasks Section */}
-          <div className="form-group">
-            <h3>Planned Tasks</h3>
-            {plannedTasks.length > 0 ? (
-              plannedTasks.map((task, index) => (
-                <div key={index} className="item">
-                  <input
-                    type="radio"
-                    name="selectedTask"
-                    checked={selectedTask === index}
-                    onChange={() => handleTaskSelection(index)}
-                  />
-                  <span>{task}</span>
-                  <FaEdit className="icon" onClick={() => handleEditTask(index)} />
-                  <FaTrash className="icon" onClick={() => handleDeleteTask(index)} />
-                </div>
-              ))
-            ) : (
-              <button type="button" className="button button-success" onClick={handleAddTask}>Add Planned Task</button>
-            )}
-            {isAddingTask && (
-              <div className="add-item-form">
-                <input
-                  type="text"
-                  value={newTask}
-                  onChange={(e) => setNewTask(e.target.value)}
-                  placeholder="Enter planned task"
-                />
-                <button type="button" className="button button-primary" onClick={handleSaveTask}>Save</button>
-              </div>
-            )}
-          </div>
-          <button type="submit" className="button button-primary">Share</button>
-        </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
