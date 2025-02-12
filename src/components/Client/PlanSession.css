@@ -20,11 +20,12 @@
 .popup-content {
   display: flex;
   height: 100%;
+  width: 100%;
 }
 
 /* Vertical Tabs */
 .vertical-tabs {
-  width: 40%; /* Width of the vertical tab bar */
+  width: 20%; /* Width of the vertical tab bar */
   background-color: #f4f4f4;
   padding: 20px;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
