@@ -244,7 +244,7 @@ const PlanSessionPopup = ({ isOpen, onClose, profileData }) => {
     return (
         <>
             <div className={`plan-session-popup ${isOpen ? 'open' : ''}`}>
-                <div className="popup-content">
+                <div className="Paln-popup-content">
                     <button onClick={onClose} className="close-button">X</button>
 
                     {/* Vertical Tabs */}

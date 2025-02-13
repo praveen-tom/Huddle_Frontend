@@ -76,7 +76,7 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
                   <div className="session-info">
                     <p className="session-title">
                       {profileData.upcommingSchedule.sessiontitle}
-                    </p>
+                      </p>
                     <button
                       className="session-btn plan"
                       onClick={handlePlanSessionOpen} // Open PlanSessionPopup
