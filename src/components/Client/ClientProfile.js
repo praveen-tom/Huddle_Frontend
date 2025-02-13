@@ -4,7 +4,7 @@ import { Icon } from "@iconify/react";
 import "./Client.css";
 import SchedulePopup from "./SchedulePopup";
 import GoalPopup from "./GoalPopup"; // Import GoalPopup
-import PlanSessionPopup from "./PlanSessionPopup"; // Import PlanSessionPopup
+import PlanSessionPopup from "./PlanSession"; // Import PlanSessionPopup
 
 const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
