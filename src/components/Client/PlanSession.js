@@ -3,391 +3,427 @@ import './PlanSession.css';
 import { Icon } from '@iconify/react';
 import { v4 as uuidv4 } from 'uuid';
 
-const PlanSessionPopup = ({ isOpen, onClose, profileData }) => {
-    const [activeTab, setActiveTab] = useState("plan");
+const PlanSession = ({ profileData, setCurrentPage }) => {
+  const [activeTab, setActiveTab] = useState("plan");
 
-    // Helper function to convert dd-MM-yyyy to yyyy-MM-dd
-    const formatDateForInput = (dateString) => {
-        if (!dateString) return '';
-        const [day, month, year] = dateString.split('-');
-        return `${year}-${month}-${day}`;
+  // Helper function to convert dd-MM-yyyy to yyyy-MM-dd
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    const [day, month, year] = dateString.split('-');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatTimeForInput = (timeString) => {
+    if (!timeString) return '';
+    const [hours, minutes] = timeString.split(':');
+    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+  };
+
+  // Extract plannedTime and plannedDate from profileData
+  const initialTime = formatTimeForInput(profileData?.upcommingSchedule?.plannedTime || '');
+  const initialDate = profileData?.upcommingSchedule?.plannedDate
+    ? formatDateForInput(profileData.upcommingSchedule.plannedDate)
+    : '';
+
+  // State for time and date
+  const [time, setTime] = useState(initialTime);
+  const [date, setDate] = useState(initialDate);
+  const [title, setTitle] = useState('');
+  const [overview, setOverview] = useState('');
+  const [objectives, setObjectives] = useState(profileData?.objectives || []);
+  const [newObjective, setNewObjective] = useState('');
+  const [isAddingObjective, setIsAddingObjective] = useState(false);
+  const [editIndex, setEditIndex] = useState(null);
+  const [plannedTasks, setPlannedTasks] = useState(profileData?.plannedTasks || []);
+  const [newTask, setNewTask] = useState('');
+  const [isAddingTask, setIsAddingTask] = useState(false);
+  const [taskEditIndex, setTaskEditIndex] = useState(null);
+
+  const plannedSessionId = profileData?.upcommingSchedule?.id || null;
+
+  // Load objectives and tasks from localStorage or profileData
+  useEffect(() => {
+    const storedObjectives = JSON.parse(localStorage.getItem('objectives')) || [];
+    const storedTasks = JSON.parse(localStorage.getItem('plannedTasks')) || [];
+    setObjectives(profileData?.objectives?.length ? profileData.objectives : storedObjectives);
+    setPlannedTasks(profileData?.plannedTasks?.length ? profileData.plannedTasks : storedTasks);
+  }, [profileData]);
+
+  useEffect(() => {
+    localStorage.setItem('objectives', JSON.stringify(objectives));
+  }, [objectives]);
+
+  useEffect(() => {
+    localStorage.setItem('plannedTasks', JSON.stringify(plannedTasks));
+  }, [plannedTasks]);
+
+  // Handle form submission (Plan tab)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!title.trim()) {
+      alert('Please fill in Title.');
+      return;
+    }
+
+    if (!overview.trim()) {
+      alert('Please fill in Overview.');
+      return;
+    }
+
+    if (objectives.length === 0) {
+      alert('Please add at least one objective.');
+      return;
+    }
+
+    if (plannedTasks.length === 0) {
+      alert('Please add at least one planned task.');
+      return;
+    }
+
+    const plannedSessionData = {
+      Id: uuidv4(),
+      schedulesession: plannedSessionId || uuidv4(),
+      title,
+      notes: overview,
+      planneddate: date,
+      plannedtime: time,
+      status: 'Not Completed',
+      CreatedBy: profileData.coachId || uuidv4(),
+      CreatedDatetime: new Date().toISOString(),
+      ModifiedBy: profileData.coachId || uuidv4(),
+      ModifiedDatetime: new Date().toISOString(),
+      tasks: plannedTasks,
+      objectives: objectives
     };
 
-    const formatTimeForInput = (timeString) => {
-        if (!timeString) return '';
-        const [hours, minutes] = timeString.split(':');
-        return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
-    };
-    // Extract plannedTime and plannedDate from profileData
-    const initialTime = formatTimeForInput(profileData?.upcommingSchedule?.plannedTime || '');
-    const initialDate = profileData?.upcommingSchedule?.plannedDate
-        ? formatDateForInput(profileData.upcommingSchedule.plannedDate)
-        : '';
+    try {
+      const response = await fetch('https://localhost:7046/api/PlannedSession', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(plannedSessionData),
+      });
 
-    // State for time and date
-    const [time, setTime] = useState(initialTime);
-    const [date, setDate] = useState(initialDate);
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(`Failed to create planned session: ${errorData.message || 'Unknown error'}`);
+        return;
+      }
 
-    // Other states
-    const [title, setTitle] = useState('');
-    const [overview, setOverview] = useState('');
-    const [objectives, setObjectives] = useState([]);
-    const [selectedObjective, setSelectedObjective] = useState(null);
-    const [newObjective, setNewObjective] = useState('');
-    const [isAddingObjective, setIsAddingObjective] = useState(false);
-    const [editIndex, setEditIndex] = useState(null);
-    const [plannedTasks, setPlannedTasks] = useState([]);
-    const [selectedTask, setSelectedTask] = useState(null);
-    const [newTask, setNewTask] = useState('');
-    const [isAddingTask, setIsAddingTask] = useState(false);
-    const [taskEditIndex, setTaskEditIndex] = useState(null);
+      alert('Planned session created successfully!');
+      localStorage.removeItem('objectives');
+      localStorage.removeItem('plannedTasks');
 
-    const plannedSessionId = profileData?.upcommingSchedule?.id || null;
+      setCurrentPage("ClientProfile"); // Navigate back to ClientProfile after success
+    } catch (error) {
+      alert(`Failed to create planned session: ${error.message}`);
+    }
+  };
 
-    console.log('Profile Data:', profileData);
-    console.log('Planned Session ID:', plannedSessionId);
+  // Handlers for Objectives
+  const handleAddObjective = () => {
+    if (objectives.length < 5) {
+      setIsAddingObjective(true);
+      setNewObjective('');
+      setEditIndex(null);
+    } else {
+      alert('You can only add up to 5 objectives.');
+    }
+  };
 
-    // Load objectives and tasks from localStorage or profileData
-    useEffect(() => {
-        const storedObjectives = JSON.parse(localStorage.getItem('objectives')) || [];
-        const storedTasks = JSON.parse(localStorage.getItem('plannedTasks')) || [];
-        setObjectives(profileData?.objectives?.length ? profileData.objectives : storedObjectives);
-        setPlannedTasks(profileData?.plannedTasks?.length ? profileData.plannedTasks : storedTasks);
-    }, [profileData]);
+  const handleEditObjective = (index) => {
+    setNewObjective(objectives[index].Objective);
+    setIsAddingObjective(true);
+    setEditIndex(index);
+  };
 
-    useEffect(() => {
-        localStorage.setItem('objectives', JSON.stringify(objectives));
-    }, [objectives]);
+  const handleSaveObjective = () => {
+    if (!newObjective.trim()) {
+      alert('Objective cannot be empty.');
+      return;
+    }
 
-    useEffect(() => {
-        localStorage.setItem('plannedTasks', JSON.stringify(plannedTasks));
-    }, [plannedTasks]);
-
-    // Handlers for Objectives
-    const handleAddObjective = (e) => {
-        e.preventDefault();
-        if (objectives.length < 5) {
-            setIsAddingObjective(true);
-            setNewObjective('');
-            setEditIndex(null);
-        } else {
-            alert('You can only add up to 5 objectives.');
-        }
+    const newObjectiveData = {
+      Id: uuidv4(),
+      plannedsessionid: plannedSessionId,
+      Objective: newObjective,
+      status: "created"
     };
 
-    const handleSaveObjective = (e) => {
-        e.preventDefault();
-        if (!newObjective.trim()) {
-            alert('Objective cannot be empty.');
-            return;
-        }
+    if (editIndex !== null) {
+      const updatedObjectives = [...objectives];
+      updatedObjectives[editIndex] = newObjectiveData;
+      setObjectives(updatedObjectives);
+      setEditIndex(null);
+    } else {
+      setObjectives([...objectives, newObjectiveData]);
+    }
 
-        const newObjectiveData = {
-            Id: uuidv4(),
-            plannedsessionid: plannedSessionId,
-            Objective: newObjective,
-            status: "created"
-        };
+    setNewObjective('');
+    setIsAddingObjective(false);
+  };
 
-        if (editIndex !== null) {
-            const updatedObjectives = [...objectives];
-            updatedObjectives[editIndex] = newObjectiveData;
-            setObjectives(updatedObjectives);
-            setEditIndex(null);
-        } else {
-            setObjectives([...objectives, newObjectiveData]);
-        }
+  const handleCancelObjective = () => {
+    setIsAddingObjective(false);
+    setNewObjective('');
+    setEditIndex(null);
+  };
 
-        setNewObjective('');
-        setIsAddingObjective(false);
+  const handleDeleteObjective = (index) => {
+    const updatedObjectives = objectives.filter((_, i) => i !== index);
+    setObjectives(updatedObjectives);
+  };
+
+  // Handlers for Planned Tasks
+  const handleAddTask = () => {
+    if (plannedTasks.length < 5) {
+      setIsAddingTask(true);
+      setNewTask('');
+      setTaskEditIndex(null);
+    } else {
+      alert('You can only add up to 5 planned tasks.');
+    }
+  };
+
+  const handleEditTask = (index) => {
+    setNewTask(plannedTasks[index].task);
+    setIsAddingTask(true);
+    setTaskEditIndex(index);
+  };
+
+  const handleSaveTask = () => {
+    if (!newTask.trim()) {
+      alert('Planned task cannot be empty.');
+      return;
+    }
+
+    const newTaskData = {
+      Id: uuidv4(),
+      plannedsessionid: plannedSessionId,
+      task: newTask,
+      status: "created"
     };
 
-    const handleEditObjective = (index) => {
-        setNewObjective(objectives[index].Objective);
-        setIsAddingObjective(true);
-        setEditIndex(index);
-    };
+    if (taskEditIndex !== null) {
+      const updatedTasks = [...plannedTasks];
+      updatedTasks[taskEditIndex] = newTaskData;
+      setPlannedTasks(updatedTasks);
+      setTaskEditIndex(null);
+    } else {
+      setPlannedTasks([...plannedTasks, newTaskData]);
+    }
 
-    const handleDeleteObjective = (index) => {
-        const updatedObjectives = objectives.filter((_, i) => i !== index);
-        setObjectives(updatedObjectives);
-    };
-    const handleCancelObjective = (e) => {
-        e.preventDefault();
-        setIsAddingObjective(false);
-        setNewObjective(''); // Clear the input field
-        setEditIndex(null);
-    };
+    setNewTask('');
+    setIsAddingTask(false);
+  };
 
-    // Handlers for Planned Tasks
-    const handleAddTask = (e) => {
-        e.preventDefault();
-        if (plannedTasks.length < 5) {
-            setIsAddingTask(true);
-            setNewTask('');
-            setTaskEditIndex(null);
-        } else {
-            alert('You can only add up to 5 planned tasks.');
-        }
-    };
+  const handleCancelTask = () => {
+    setIsAddingTask(false);
+    setNewTask('');
+    setTaskEditIndex(null);
+  };
 
-    const handleSaveTask = (e) => {
-        e.preventDefault();
-        if (!newTask.trim()) {
-            alert('Planned task cannot be empty.');
-            return;
-        }
+  const handleDeleteTask = (index) => {
+    const updatedTasks = plannedTasks.filter((_, i) => i !== index);
+    setPlannedTasks(updatedTasks);
+  };
 
-        const newTaskData = {
-            Id: uuidv4(),
-            plannedsessionid: plannedSessionId,
-            task: newTask,
-            status: "created"
-        };
+  return (
+    <div className="plan-session-page">
+      {/* Vertical Tabs */}
+      <div className="vertical-tabs">
+        {["plan", "goals", "history", "inspiration"].map((tab) => (
+          <button
+            key={tab}
+            className={activeTab === tab ? "active" : ""}
+            onClick={(e) => {
+              e.preventDefault();
+              setActiveTab(tab);
+            }}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
+      </div>
 
-        if (taskEditIndex !== null) {
-            const updatedTasks = [...plannedTasks];
-            updatedTasks[taskEditIndex] = newTaskData;
-            setPlannedTasks(updatedTasks);
-            setTaskEditIndex(null);
-        } else {
-            setPlannedTasks([...plannedTasks, newTaskData]);
-        }
+      {/* Main Content */}
+      <div className="main-content">
+        {activeTab === "plan" && (
+          <form onSubmit={handleSubmit}>
+            <h2>Plan Session for {profileData.name}</h2>
 
-        setNewTask('');
-        setIsAddingTask(false);
-    };
-
-    const handleEditTask = (index) => {
-        setNewTask(plannedTasks[index].task);
-        setIsAddingTask(true);
-        setTaskEditIndex(index);
-    };
-
-    const handleDeleteTask = (index) => {
-        const updatedTasks = plannedTasks.filter((_, i) => i !== index);
-        setPlannedTasks(updatedTasks);
-    };
-    const handleCancelTask = (e) => {
-        e.preventDefault();
-        setIsAddingTask(false);
-        setNewTask(''); // Clear the input field
-        setTaskEditIndex(null);
-    };
-
-    // Handle form submission (Plan tab)
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        if (!title.trim()) {
-            alert('Please fill in Title.');
-            return;
-        }
-
-        if (!overview.trim()) {
-            alert('Please fill in Overview.');
-            return;
-        }
-
-        if (objectives.length === 0) {
-            alert('Please add at least one objective.');
-            return;
-        }
-
-        if (plannedTasks.length === 0) {
-            alert('Please add at least one planned task.');
-            return;
-        }
-
-        const plannedSessionData = {
-            Id: uuidv4(),
-            schedulesession: plannedSessionId || 'some-random-guid',
-            title: title,
-            notes: overview,
-            planneddate: date,
-            plannedtime: time,
-            status: 'Not Completed',
-            CreatedBy: profileData.coachId || uuidv4(),
-            CreatedDatetime: new Date().toISOString(),
-            ModifiedBy: profileData.coachId || uuidv4(),
-            ModifiedDatetime: new Date().toISOString(),
-            tasks: plannedTasks,
-            objectives: objectives
-        };
-
-        try {
-            const response = await fetch('https://localhost:7046/api/PlannedSession', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(plannedSessionData),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Error Response from Server:', errorData);
-                alert(`Failed to create planned session: ${errorData.message || 'Unknown error'}`);
-                return;
-            }
-
-            const responseData = await response.json();
-            console.log('Response from server:', responseData);
-            alert('Planned session created successfully!');
-            localStorage.removeItem('objectives');
-            localStorage.removeItem('plannedTasks');
-            onClose();
-        } catch (error) {
-            console.error('Error while creating planned session:', error);
-            alert(`Failed to create planned session: ${error.message}`);
-        }
-    };
-
-    return (
-        <>
-            <div className={`plan-session-popup ${isOpen ? 'open' : ''}`}>
-                <div className="Paln-popup-content">
-                    <button onClick={onClose} className="close-button">X</button>
-
-                    {/* Vertical Tabs */}
-                    <div className="vertical-tabs">
-                        <button
-                            className={activeTab === "plan" ? "active" : ""}
-                            onClick={(e) => { e.preventDefault(); setActiveTab("plan"); }}
-                        >
-                            Plan
-                        </button>
-                        <button
-                            className={activeTab === "goals" ? "active" : ""}
-                            onClick={(e) => { e.preventDefault(); setActiveTab("goals"); }}
-                        >
-                            Goals
-                        </button>
-                        <button
-                            className={activeTab === "history" ? "active" : ""}
-                            onClick={(e) => { e.preventDefault(); setActiveTab("history"); }}
-                        >
-                            History
-                        </button>
-                        <button
-                            className={activeTab === "inspiration" ? "active" : ""}
-                            onClick={(e) => { e.preventDefault(); setActiveTab("inspiration"); }}
-                        >
-                            Inspiration
-                        </button>
-                    </div>
-
-                    {/* Main Content */}
-                    <div className="main-content">
-                        {activeTab === "plan" && (
-                            <form onSubmit={handleSubmit}>
-                                <h2>Plan Session</h2>
-
-                                {/* Time & Date */}
-                                <label>Time & Date:</label>
-                                <div className="time-date-container">
-                                    <input
-                                        type="time"
-                                        value={time}
-                                        onChange={(e) => setTime(formatTimeForInput(e.target.value))}
-                                        className="form-group-input"
-                                    />
-                                    <input
-                                        type="date"
-                                        value={date}
-                                        onChange={(e) => setDate(e.target.value)}
-                                        className="form-group-input"
-                                    />
-                                </div>
-
-                                {/* Title */}
-                                <label>Title:</label>
-                                <input
-                                    type="text"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    className="form-group-input"
-                                />
-
-                                {/* Overview */}
-                                <label>Overview:</label>
-                                <textarea
-                                    value={overview}
-                                    onChange={(e) => setOverview(e.target.value)}
-                                    className="form-group-textarea"
-                                ></textarea>
-
-                                {/* Objectives Section */}
-                                <h3>Objectives</h3>
-                                {objectives.length > 0 ? (
-                                    objectives.map((objective, index) => (
-                                        <div key={objective.Id} className="item">
-                                            <span>{objective.Objective}</span>
-                                            <Icon icon="mdi:edit" onClick={() => handleEditObjective(index)} className="icon" />
-                                            <Icon icon="mdi:delete" onClick={() => handleDeleteObjective(index)} className="icon" />
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p>No objectives added yet.</p>
-                                )}
-                                {isAddingObjective && (
-                                    <div className="add-item-form">
-                                        <input
-                                            type="text"
-                                            value={newObjective}
-                                            onChange={(e) => setNewObjective(e.target.value)}
-                                            placeholder="Enter objective"
-                                            className="form-group-input"
-                                        />
-                                        <button onClick={handleSaveObjective}>Save</button>
-                                        <button onClick={handleCancelObjective}>Cancel</button>
-                                    </div>
-                                )}
-                                {!isAddingObjective && (
-                                    <button onClick={handleAddObjective}>Add Objective</button>
-                                )}
-
-                                {/* Planned Tasks Section */}
-                                <h3>Planned Tasks</h3>
-                                {plannedTasks.length > 0 ? (
-                                    plannedTasks.map((task, index) => (
-                                        <div key={task.Id} className="item">
-                                            <span>{task.task}</span>
-                                            <Icon icon="mdi:edit" onClick={() => handleEditTask(index)} className="icon" />
-                                            <Icon icon="mdi:delete" onClick={() => handleDeleteTask(index)} className="icon" />
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p>No planned tasks added yet.</p>
-                                )}
-                                {isAddingTask && (
-                                    <div className="add-item-form">
-                                        <input
-                                            type="text"
-                                            value={newTask}
-                                            onChange={(e) => setNewTask(e.target.value)}
-                                            placeholder="Enter planned task"
-                                            className="form-group-input"
-                                        />
-                                        <button onClick={handleSaveTask}>Save</button>
-                                        <button onClick={handleCancelTask}>Cancel</button>
-                                    </div>
-                                )}
-                                {!isAddingTask && (
-                                    <button onClick={handleAddTask}>Add Planned Task</button>
-                                )}
-
-                                {/* Submit Button */}
-                                <button type="submit" className="button button-primary">Share</button>
-                            </form>
-                        )}
-
-                        {activeTab === "goals" && <div>Goals content goes here.</div>}
-                        {activeTab === "history" && <div>History content goes here.</div>}
-                        {activeTab === "inspiration" && <div>Inspiration content goes here.</div>}
-                    </div>
-                </div>
+            {/* Time & Date */}
+            <div className="form-group">
+              <label>Time & Date:</label>
+              <div className="time-date-container">
+                <input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(formatTimeForInput(e.target.value))}
+                  className="form-group-input"
+                />
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="form-group-input"
+                />
+              </div>
             </div>
-        </>
-    );
+
+            {/* Title */}
+            <div className="form-group">
+              <label>Title:</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="form-group-input"
+              />
+            </div>
+
+            {/* Overview */}
+            <div className="form-group">
+              <label>Overview:</label>
+              <textarea
+                value={overview}
+                onChange={(e) => setOverview(e.target.value)}
+                className="form-group-textarea"
+              />
+            </div>
+
+            {/* Objectives Section */}
+            <div className="form-group">
+              <label>Objectives:</label>
+              <div className="goals-container">
+                {objectives.length > 0 ? (
+                  <ul>
+                    {objectives.map((obj, index) => (
+                      <li key={obj.Id} className="goal-item">
+                        <div className="goal-label">{obj.Objective}</div>
+                        <div className="goal-actions">
+                          <Icon
+                            icon="mdi:pencil"
+                            onClick={() => handleEditObjective(index)}
+                            className="icon"
+                          />
+                          <Icon
+                            icon="mdi:delete"
+                            onClick={() => handleDeleteObjective(index)}
+                            className="icon"
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No objectives added yet.</p>
+                )}
+              </div>
+              {isAddingObjective ? (
+                <div className="add-item-form">
+                  <input
+                    type="text"
+                    value={newObjective}
+                    onChange={(e) => setNewObjective(e.target.value)}
+                    placeholder="Enter objective"
+                    className="form-group-input"
+                  />
+                  <button className="button button-primary" onClick={handleSaveObjective}>
+                    {editIndex !== null ? 'Update' : 'Add'}
+                  </button>
+                  <button className="button button-danger" onClick={handleCancelObjective}>
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button className="button button-primary" onClick={handleAddObjective}>
+                  + Add Objective
+                </button>
+              )}
+            </div>
+
+            {/* Planned Tasks Section */}
+            <div className="form-group">
+              <label>Planned Tasks:</label>
+              <div className="goals-container">
+                {plannedTasks.length > 0 ? (
+                  <ul>
+                    {plannedTasks.map((task, index) => (
+                      <li key={task.Id} className="goal-item">
+                        <div className="goal-label">{task.task}</div>
+                        <div className="goal-actions">
+                          <Icon
+                            icon="mdi:pencil"
+                            onClick={() => handleEditTask(index)}
+                            className="icon"
+                          />
+                          <Icon
+                            icon="mdi:delete"
+                            onClick={() => handleDeleteTask(index)}
+                            className="icon"
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No planned tasks added yet.</p>
+                )}
+              </div>
+              {isAddingTask ? (
+                <div className="add-item-form">
+                  <input
+                    type="text"
+                    value={newTask}
+                    onChange={(e) => setNewTask(e.target.value)}
+                    placeholder="Enter planned task"
+                    className="form-group-input"
+                  />
+                  <button className="button button-primary" onClick={handleSaveTask}>
+                    {taskEditIndex !== null ? 'Update' : 'Add'}
+                  </button>
+                  <button className="button button-danger" onClick={handleCancelTask}>
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button className="button button-primary" onClick={handleAddTask}>
+                  + Add Planned Task
+                </button>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <button className="button button-primary" type="submit">
+              Share
+            </button>
+          </form>
+        )}
+
+        {activeTab === "goals" && (
+          <div>
+            <h2>Goals</h2>
+            <p>Goals content goes here.</p>
+          </div>
+        )}
+
+        {activeTab === "history" && (
+          <div>
+            <h2>History</h2>
+            <p>History content goes here.</p>
+          </div>
+        )}
+
+        {activeTab === "inspiration" && (
+          <div>
+            <h2>Inspiration</h2>
+            <p>Inspiration content goes here.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
-export default PlanSessionPopup;
+export default PlanSession;

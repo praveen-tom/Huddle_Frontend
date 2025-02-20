@@ -1,24 +1,25 @@
-// ClientProfile.js
 import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 import "./Client.css";
 import SchedulePopup from "./SchedulePopup";
-import GoalPopup from "./GoalPopup"; // Import GoalPopup
-import PlanSessionPopup from "./PlanSession"; // Import PlanSessionPopup
-
-const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => {
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [isGoalPopupOpen, setIsGoalPopupOpen] = useState(false);
-  const [isPlanSessionOpen, setIsPlanSessionOpen] = useState(false); // State for PlanSessionPopup
+import GoalPopup from "./GoalPopup"; 
+const ClientProfile = ({
+  profileData,
+  onClose,
+  isProfileVisible,
+  clientId,
+  setCurrentPage,
+}) => {
+  const [isPopupOpen, setIsPopupOpen] = useState(false); 
+  const [isGoalPopupOpen, setIsGoalPopupOpen] = useState(false); 
   const [goals, setGoals] = useState(profileData?.goals || []);
 
   if (!profileData) {
-    return <div>Loading...</div>; // Handle loading or null state
+    return <div>Loading...</div>; 
   }
 
   const documents = profileData?.documents || [];
 
-  // Function to handle document download
   const handleDocumentDownload = (fileName) => {
     const url = `https://localhost:7046/api/CoachProfile/DownloadFile/${clientId}/${fileName}`;
     const link = document.createElement("a");
@@ -27,23 +28,25 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
     link.click();
   };
 
-  // Function to handle adding a new goal
   const handleAddGoal = (newGoal) => {
-    setGoals([...goals, newGoal]); // Update goals list
+    setGoals([...goals, newGoal]); 
   };
 
-  // Function to handle opening the PlanSessionPopup
   const handlePlanSessionOpen = () => {
-    setIsPlanSessionOpen(true);
+    if (typeof setCurrentPage === "function") {
+      setCurrentPage("Plan Session"); 
+    } else {
+      console.error("❌ setCurrentPage is not defined or not a function");
+    }
   };
 
   return (
     <div className={`modal-content ${isProfileVisible ? "open" : ""}`}>
       <div className="header">
         <h2>{profileData.name}'s Profile</h2>
-        <button onClick={onClose} className="close-button">
+        {/* <button onClick={onClose} className="close-button">
           &#10006;
-        </button>
+        </button> */}
       </div>
       <div className="profile-details-grid">
         <div className="section1">
@@ -79,7 +82,7 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
                       </p>
                     <button
                       className="session-btn plan"
-                      onClick={handlePlanSessionOpen} // Open PlanSessionPopup
+                      onClick={handlePlanSessionOpen} 
                     >
                       Plan
                     </button>
@@ -158,38 +161,6 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
             </div>
           </div>
         </div>
-        <div className="section4">
-          <div className="moods-box">
-            <div className="moods-header">
-              <h4>MOOD</h4>
-            </div>
-            <div className="moods-details"></div>
-          </div>
-          <div className="gap"></div>
-          <div className="document-box">
-            <div className="document-header">
-              <h4>DOCS</h4>
-            </div>
-            <div className="document-content">
-              {documents.length === 0 ? (
-                <p>No documents available.</p>
-              ) : (
-                <ul>
-                  {documents.map((doc, index) => (
-                    <li key={index}>
-                      <button
-                        onClick={() => handleDocumentDownload(doc)}
-                        className="document-link"
-                      >
-                        {index + 1}. {doc}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        </div>
       </div>
       {/* Schedule Popup */}
       {isPopupOpen && (
@@ -204,15 +175,7 @@ const ClientProfile = ({ profileData, onClose, isProfileVisible, clientId }) => 
         <GoalPopup
           onClose={() => setIsGoalPopupOpen(false)}
           onSave={handleAddGoal}
-          profileData={profileData}  // Pass profileData correctly
-        />
-      )}
-      {/* Plan Session Popup */}
-      {isPlanSessionOpen && (
-        <PlanSessionPopup
-          isOpen={isPlanSessionOpen}
-          onClose={() => setIsPlanSessionOpen(false)}
-          profileData={profileData}  // Pass profileData to PlanSessionPopup
+          profileData={profileData} 
         />
       )}
     </div>
