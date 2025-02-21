@@ -232,7 +232,7 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
     <div className="plan-session-page">
       {/* Vertical Tabs */}
       <div className="vertical-tabs">
-        {["plan", "goals", "history", "inspiration"].map((tab) => (
+        {/* {["plan", "goals", "history", "inspiration"].map((tab) => (
           <button
             key={tab}
             className={activeTab === tab ? "active" : ""}
@@ -243,13 +243,42 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
-        ))}
+        ))} */}
+
+        <button className={`plan ${activeTab === 'plan' ? 'active' : ''}`} onClick={(e) => {
+              e.preventDefault();
+              setActiveTab('plan');
+            }}><Icon
+            icon="lucide:pencil-line"
+            className="icon"
+          />Plan</button>
+        <button className={`goals ${activeTab === 'goals' ? 'active' : ''}`} onClick={(e) => {
+              e.preventDefault();
+              setActiveTab('goals');
+            }}><Icon
+            icon="octicon:goal-24"
+            className="icon"
+          />Goals</button>
+        <button className={`history ${activeTab === 'history' ? 'active' : ''}`} onClick={(e) => {
+              e.preventDefault();
+              setActiveTab('history');
+            }}><Icon
+            icon="material-symbols:history"
+            className="icon"
+          />History</button>
+        <button className={`inspiration ${activeTab === 'inspiration' ? 'active' : ''}`} onClick={(e) => {
+              e.preventDefault();
+              setActiveTab('inspiration');
+            }}><Icon
+            icon="mdi:lightbulb-on-outline"
+            className="icon"
+          />Inspiration</button>
       </div>
 
       {/* Main Content */}
       <div className="main-content">
         {activeTab === "plan" && (
-          <form onSubmit={handleSubmit}>
+          <form  className="plan_form" onSubmit={handleSubmit}>
             <h2>Plan Session for {profileData.name}</h2>
 
             {/* Time & Date */}
@@ -295,7 +324,7 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
             {/* Objectives Section */}
             <div className="form-group">
               <label>Objectives:</label>
-              <div className="goals-container">
+              <div className="plan-goals-container">
                 {objectives.length > 0 ? (
                   <ul>
                     {objectives.map((obj, index) => (
@@ -346,7 +375,7 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
             {/* Planned Tasks Section */}
             <div className="form-group">
               <label>Planned Tasks:</label>
-              <div className="goals-container">
+              <div className="plan-goals-container">
                 {plannedTasks.length > 0 ? (
                   <ul>
                     {plannedTasks.map((task, index) => (
@@ -393,11 +422,12 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
                 </button>
               )}
             </div>
-
+<div className='plan-submit-btn'>
             {/* Submit Button */}
             <button className="button button-primary" type="submit">
               Share
             </button>
+            </div>
           </form>
         )}
 
