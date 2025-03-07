@@ -8,19 +8,19 @@ import Notification from "./components/Notification/Notification";
 import CoachProfile from "./components/CoachProfile/CoachProfile";
 import Calendar from "./components/Calander/Calander";
 import Client from "./components/Client/Client";
-import PlanSession from "./components/Client/PlanSession"; // Import PlanSession component
+import PlanSession from "./components/Client/PlanSession"; 
 import { UserContext } from "./Context/UserContext";
 import { Icon } from "@iconify/react";
 
 export default function Home() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isCoachProfileOpen, setIsCoachProfileOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState("Daily Huddle"); // Track the active page
+  const [currentPage, setCurrentPage] = useState("Daily Huddle"); 
     const [selectedProfileData, setSelectedProfileData] = useState(null);
   const { user } = useContext(UserContext);
   const { notificationCount } = useContext(UserContext);
 
-  console.log("User context value in this component:", user); // Debugging
+  console.log("User context value in this component:", user); 
   console.log("User context value in this Notification Count:", notificationCount);
 
   const toggleNotifications = () => {
@@ -36,7 +36,7 @@ export default function Home() {
         setSelectedProfileData(profileData);
     };
 
-  // Function to render pages dynamically
+  
   const renderPage = () => {
     switch (currentPage) {
       case "Daily Huddle":
@@ -57,9 +57,9 @@ export default function Home() {
           </>
         );
       case "My Huddle":
-        return <Client setCurrentPage={handleSetCurrentPage} />; // Pass setCurrentPage to Client
+        return <Client setCurrentPage={handleSetCurrentPage} />; 
       case "Plan Session":
-        return <PlanSession profileData={selectedProfileData}/>; // Render PlanSession page
+        return <PlanSession profileData={selectedProfileData}/>; 
       case "Chats":
         return <div>Chats Page</div>;
       case "Payments Settings":

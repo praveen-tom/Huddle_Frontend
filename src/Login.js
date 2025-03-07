@@ -35,9 +35,9 @@ function Login() {
 
         const data = await response.json();
 
-        if (data.success) {
+        if (data.status === 200) {
           // Log in the user and navigate to the home page
-          login({ name: data.coach.name, id: data.coach.id });
+          login({ name: data.data.name, id: data.data.id });
           navigate("/app");
         } else {
           setError("Invalid credentials. Please try again.");
