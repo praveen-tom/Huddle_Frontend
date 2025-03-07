@@ -21,18 +21,31 @@ const Client = ({ setCurrentPage }) => {
             try {
                 const response = await fetch("https://localhost:7046/api/Client");
                 if (!response.ok) {
-                    throw new Error(`Error: ${response.status} ${response.statusText}`);
+                    throw new Error(`❌ API Error: ${response.status} ${response.statusText}`);
                 }
-                const data = await response.json();
-                setClientList(data);
-                setFilteredClients(data);
+                const responseData = await response.json();
+                    const clientArray = responseData.data || []; 
+    
+                if (!Array.isArray(clientArray)) {
+                    console.warn("⚠️ Unexpected API response format. Expected an array in 'data'.");
+                    throw new Error("Invalid API response format.");
+                }
+    
+                setClientList(clientArray);
+                setFilteredClients(clientArray);
+    
+                console.log("✅ Clients stored in state:", clientArray);
             } catch (err) {
-                console.error("Failed to fetch clients:", err.message);
+                console.error("🚨 Failed to fetch clients:", err.message);
+                setClientList([]); 
+                setFilteredClients([]);
             }
         };
+    
         fetchData();
     }, []);
-
+    
+    
     const handleSearch = (event) => {
         const term = event.target.value.toLowerCase();
         setSearchTerm(term);
@@ -87,7 +100,7 @@ const Client = ({ setCurrentPage }) => {
             return;
         }
 
-    setLoading(true); // Set loading to true when the request starts
+    setLoading(true); 
 
         const requestOptions = {
             method: "POST",

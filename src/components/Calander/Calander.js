@@ -12,7 +12,6 @@ import {
 } from "chart.js";
 import "./Calendar.css";
 
-// Register the necessary chart elements
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Calendar = () => {
@@ -96,7 +95,6 @@ const Calendar = () => {
 
     const totalDayHours = 24;
 
-    // Sum up hours for each category
     events.forEach((event) => {
       const duration =
         (new Date(event.end).getTime() - new Date(event.start).getTime()) /
@@ -107,11 +105,10 @@ const Calendar = () => {
         hoursByTag[event.tag] =
           (hoursByTag[event.tag] || 0) + roundedDuration;
       } else {
-        hoursByTag.Personal += roundedDuration; // Treat untagged as "Personal"
+        hoursByTag.Personal += roundedDuration; 
       }
     });
 
-    // Calculate remaining hours
     const totalLoggedHours =
       hoursByTag.Session +
       hoursByTag.Planning +

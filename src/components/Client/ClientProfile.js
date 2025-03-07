@@ -14,6 +14,7 @@ const ClientProfile = ({
   const [isGoalPopupOpen, setIsGoalPopupOpen] = useState(false); 
   const [goals, setGoals] = useState(profileData?.goals || []);
 
+  console.log("Client Profile Data:", profileData);
   if (!profileData) {
     return <div>Loading...</div>; 
   }
@@ -75,10 +76,10 @@ const ClientProfile = ({
               <div className="session-buttons">
                 <button className="session-btn upcoming">Upcoming</button>
                 <button className="session-btn past">Past</button>
-                {profileData?.upcommingSchedule && (
+                {profileData?.data?.upcomingSchedule && (
                   <div className="session-info">
                     <p className="session-title">
-                      {profileData.upcommingSchedule.sessiontitle}
+                      {profileData.data?.upcomingSchedule.sessiontitle}
                       </p>
                     <button
                       className="session-btn plan"
