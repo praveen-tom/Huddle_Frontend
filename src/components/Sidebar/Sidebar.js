@@ -11,7 +11,7 @@ function Sidebar({ setCurrentPage }) {
   };
 
   const handleMenuClick = (page) => {
-    setCurrentPage(page); // Notify parent about the selected page
+    setCurrentPage(page); 
   };
 
   return (

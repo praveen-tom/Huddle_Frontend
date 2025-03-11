@@ -13,6 +13,7 @@ export default function CoachProfile({ isOpen, onClose }) {
     const [preferredTimeslots, setPreferredTimeslots] = useState([]);
 
     const { user } = useContext(UserContext); 
+    console.log("User context:", user);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -20,30 +21,39 @@ export default function CoachProfile({ isOpen, onClose }) {
                 if (!user?.id) {
                     throw new Error("User ID is not available.");
                 }
+    
                 const response = await fetch(
-                    `https://localhost:7046/api/CoachProfile/GetCoachById?id=${user.id}`
+                    `https://localhost:7046/api/CoachProfile/GetCoachById/${user.id}`
                 );
+    
                 if (!response.ok) {
                     throw new Error(`Error: ${response.status} ${response.statusText}`);
                 }
+    
                 const data = await response.json();
+    
+                const coachData = data.data || {}; 
+                const timeslots = coachData.timeslots || {};
+    
+                setNotification(coachData);
+                setDefaultTimeslots(timeslots.defaulttiming || []);
+                setPreferredTimeslots(timeslots.preferredtiming || []);
+                setSelectedTimes(timeslots.preferredtiming || []);
+                setOriginalTimes(timeslots.preferredtiming || []);
 
-                setNotification(data);
-                setDefaultTimeslots(data.timeslots.defaulttiming || []);
-                setPreferredTimeslots(data.timeslots.preferredtiming || []);
-                setSelectedTimes(data.timeslots.preferredtiming || []);
-                setOriginalTimes(data.timeslots.preferredtiming || []);
+
             } catch (err) {
                 setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
-
+    
         if (user?.id) {
             fetchData(); 
         }
-    }, [user]); 
+    }, [user]);
+    
 
     const handleEditClick = () => {
         setIsEditMode(true);
@@ -71,7 +81,6 @@ export default function CoachProfile({ isOpen, onClose }) {
             });
 
             let responseData;
-            // Check the content-type header to decide whether to parse JSON or text
             const contentType = response.headers.get("Content-Type");
             
             if (contentType && contentType.includes("application/json")) {
@@ -86,9 +95,8 @@ export default function CoachProfile({ isOpen, onClose }) {
                 return;
             }
 
-            // If responseData is a string (plain text), treat it as a success/failure message
             if (typeof responseData === "string") {
-                alert(responseData); // Display the message returned by the server
+                alert(responseData); 
             } else {
                 alert("Coach information updated successfully!");
                 setIsEditMode(false);
