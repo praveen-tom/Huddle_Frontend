@@ -1,21 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import "./YourHuddle.css";
 
 const YourHuddle = () => {
   const huddles = [
-    "Joe Jackson has not completed 1 task",
-    "Florence Jones has not paid for Session 3",
-    "Adam Smith has not scheduled his session",
-    "Sam Styles has not completed 1 task",
-    "Florence Jones has not paid for Session 3",
-    "Adam Smith has not scheduled his session",
-    "Sam Styles has not completed 1 task",
-    "Florence Jones has not paid for Session 3",
-    "Adam Smith has not scheduled his session",
-    "Sam Styles has not completed 1 task",
-    "Florence Jones has not paid for Session 3",
-    "Adam Smith has not scheduled his session",
-    "Sam Styles has not completed 1 task",
+    "Task Remainder",
+    "Session Remainder",
+    "Payment Remainder",
   ];
 
   return (
@@ -23,14 +13,30 @@ const YourHuddle = () => {
       <div className="header">YOUR HUDDLE</div>
       <ul className="huddle-list">
         {huddles.map((item, index) => (
-          <li key={index} className="huddle-item">
-            <span className="huddle-icon">✔️</span>
-            <span className="huddle-text">{item}</span>
-            <span className="huddle-delete">❌</span>
-          </li>
+          <HuddleItem key={index} text={item} />
         ))}
       </ul>
     </div>
+  );
+};
+
+const HuddleItem = ({ text }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  return (
+    <li className="huddle-item">
+      <span className="huddle-text">{text}</span>
+      <span 
+        className="huddle-notifications"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
+        🔔
+        {showTooltip && (
+          <span className="tooltip">Click to take action</span>
+        )}
+      </span>
+    </li>
   );
 };
 

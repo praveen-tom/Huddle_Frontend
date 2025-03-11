@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 const PlanSession = ({ profileData, setCurrentPage }) => {
   const [activeTab, setActiveTab] = useState("plan");
 
-  // Helper function to convert dd-MM-yyyy to yyyy-MM-dd
+  // Correct date/time formatting functions
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
     const [day, month, year] = dateString.split('-');
@@ -19,34 +19,49 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
     return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
   };
 
-  // Extract plannedTime and plannedDate from profileData
-  const initialTime = formatTimeForInput(profileData?.upcommingSchedule?.plannedTime || '');
-  const initialDate = profileData?.upcommingSchedule?.plannedDate
-    ? formatDateForInput(profileData.upcommingSchedule.plannedDate)
+  // Correctly reference upcomingSchedule (fixed typo)
+  const initialTime = formatTimeForInput(
+    profileData?.data?.upcomingSchedule?.plannedTime || ''
+  );
+  const initialDate = profileData?.data?.upcomingSchedule?.plannedDate
+    ? formatDateForInput(profileData.data.upcomingSchedule.plannedDate)
     : '';
 
-  // State for time and date
+  // State management
   const [time, setTime] = useState(initialTime);
   const [date, setDate] = useState(initialDate);
   const [title, setTitle] = useState('');
   const [overview, setOverview] = useState('');
-  const [objectives, setObjectives] = useState(profileData?.objectives || []);
+  const [objectives, setObjectives] = useState(
+    profileData?.data?.objectives || []
+  );
   const [newObjective, setNewObjective] = useState('');
   const [isAddingObjective, setIsAddingObjective] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
-  const [plannedTasks, setPlannedTasks] = useState(profileData?.plannedTasks || []);
+  const [plannedTasks, setPlannedTasks] = useState(
+    profileData?.data?.plannedTasks || []
+  );
   const [newTask, setNewTask] = useState('');
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [taskEditIndex, setTaskEditIndex] = useState(null);
+  const plannedSessionId = profileData?.data?.upcomingSchedule?.id || null;
 
-  const plannedSessionId = profileData?.upcommingSchedule?.id || null;
-
-  // Load objectives and tasks from localStorage or profileData
+  // Sync with localStorage if data not present in profile
   useEffect(() => {
     const storedObjectives = JSON.parse(localStorage.getItem('objectives')) || [];
     const storedTasks = JSON.parse(localStorage.getItem('plannedTasks')) || [];
-    setObjectives(profileData?.objectives?.length ? profileData.objectives : storedObjectives);
-    setPlannedTasks(profileData?.plannedTasks?.length ? profileData.plannedTasks : storedTasks);
+    
+    setObjectives(
+      profileData?.data?.objectives?.length 
+        ? profileData.data?.objectives 
+        : storedObjectives
+    );
+    
+    setPlannedTasks(
+      profileData?.data?.plannedTasks?.length 
+        ? profileData.data?.plannedTasks 
+        : storedTasks
+    );
   }, [profileData]);
 
   useEffect(() => {
@@ -57,27 +72,27 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
     localStorage.setItem('plannedTasks', JSON.stringify(plannedTasks));
   }, [plannedTasks]);
 
-  // Handle form submission (Plan tab)
+  // Form submission handler
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!title.trim()) {
-      alert('Please fill in Title.');
+      alert('Title is required');
       return;
     }
 
     if (!overview.trim()) {
-      alert('Please fill in Overview.');
+      alert('Overview is required');
       return;
     }
 
     if (objectives.length === 0) {
-      alert('Please add at least one objective.');
+      alert('Add at least 1 objective');
       return;
     }
 
     if (plannedTasks.length === 0) {
-      alert('Please add at least one planned task.');
+      alert('Add at least 1 planned task');
       return;
     }
 
@@ -89,9 +104,9 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
       planneddate: date,
       plannedtime: time,
       status: 'Not Completed',
-      CreatedBy: profileData.coachId || uuidv4(),
+      CreatedBy: profileData.data.coachId || uuidv4(),
       CreatedDatetime: new Date().toISOString(),
-      ModifiedBy: profileData.coachId || uuidv4(),
+      ModifiedBy: profileData.data.coachId || uuidv4(),
       ModifiedDatetime: new Date().toISOString(),
       tasks: plannedTasks,
       objectives: objectives
@@ -104,30 +119,28 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
         body: JSON.stringify(plannedSessionData),
       });
 
-      if (!response.ok) {
+      if (response.ok) {
+        alert('Session planned successfully!');
+        localStorage.removeItem('objectives');
+        localStorage.removeItem('plannedTasks');
+        //setCurrentPage("ClientProfile");
+      } else {
         const errorData = await response.json();
-        alert(`Failed to create planned session: ${errorData.message || 'Unknown error'}`);
-        return;
+        alert(`Error: ${errorData.message || 'Unknown error'}`);
       }
-
-      alert('Planned session created successfully!');
-      localStorage.removeItem('objectives');
-      localStorage.removeItem('plannedTasks');
-
-      setCurrentPage("ClientProfile"); // Navigate back to ClientProfile after success
     } catch (error) {
-      alert(`Failed to create planned session: ${error.message}`);
+      alert(`Failed: ${error.message}`);
     }
   };
 
-  // Handlers for Objectives
+  // Objective handlers
   const handleAddObjective = () => {
     if (objectives.length < 5) {
       setIsAddingObjective(true);
       setNewObjective('');
       setEditIndex(null);
     } else {
-      alert('You can only add up to 5 objectives.');
+      alert('Max 5 objectives');
     }
   };
 
@@ -139,7 +152,7 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
 
   const handleSaveObjective = () => {
     if (!newObjective.trim()) {
-      alert('Objective cannot be empty.');
+      alert('Objective required');
       return;
     }
 
@@ -151,16 +164,16 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
     };
 
     if (editIndex !== null) {
-      const updatedObjectives = [...objectives];
-      updatedObjectives[editIndex] = newObjectiveData;
-      setObjectives(updatedObjectives);
+      const updated = [...objectives];
+      updated[editIndex] = newObjectiveData;
+      setObjectives(updated);
       setEditIndex(null);
     } else {
       setObjectives([...objectives, newObjectiveData]);
     }
-
-    setNewObjective('');
+    
     setIsAddingObjective(false);
+    setNewObjective('');
   };
 
   const handleCancelObjective = () => {
@@ -170,18 +183,17 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
   };
 
   const handleDeleteObjective = (index) => {
-    const updatedObjectives = objectives.filter((_, i) => i !== index);
-    setObjectives(updatedObjectives);
+    setObjectives(objectives.filter((_, i) => i !== index));
   };
 
-  // Handlers for Planned Tasks
+  // Task handlers
   const handleAddTask = () => {
     if (plannedTasks.length < 5) {
       setIsAddingTask(true);
       setNewTask('');
       setTaskEditIndex(null);
     } else {
-      alert('You can only add up to 5 planned tasks.');
+      alert('Max 5 tasks');
     }
   };
 
@@ -193,7 +205,7 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
 
   const handleSaveTask = () => {
     if (!newTask.trim()) {
-      alert('Planned task cannot be empty.');
+      alert('Task required');
       return;
     }
 
@@ -205,16 +217,16 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
     };
 
     if (taskEditIndex !== null) {
-      const updatedTasks = [...plannedTasks];
-      updatedTasks[taskEditIndex] = newTaskData;
-      setPlannedTasks(updatedTasks);
+      const updated = [...plannedTasks];
+      updated[taskEditIndex] = newTaskData;
+      setPlannedTasks(updated);
       setTaskEditIndex(null);
     } else {
       setPlannedTasks([...plannedTasks, newTaskData]);
     }
-
-    setNewTask('');
+    
     setIsAddingTask(false);
+    setNewTask('');
   };
 
   const handleCancelTask = () => {
@@ -224,71 +236,58 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
   };
 
   const handleDeleteTask = (index) => {
-    const updatedTasks = plannedTasks.filter((_, i) => i !== index);
-    setPlannedTasks(updatedTasks);
+    setPlannedTasks(plannedTasks.filter((_, i) => i !== index));
   };
 
   return (
     <div className="plan-session-page">
-      {/* Vertical Tabs */}
+      {/* Navigation tabs */}
       <div className="vertical-tabs">
-        {/* {["plan", "goals", "history", "inspiration"].map((tab) => (
-          <button
-            key={tab}
-            className={activeTab === tab ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab(tab);
-            }}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))} */}
-
-        <button className={`plan ${activeTab === 'plan' ? 'active' : ''}`} onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('plan');
-            }}><Icon
-            icon="lucide:pencil-line"
-            className="icon"
-          />Plan</button>
-        <button className={`goals ${activeTab === 'goals' ? 'active' : ''}`} onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('goals');
-            }}><Icon
-            icon="octicon:goal-24"
-            className="icon"
-          />Goals</button>
-        <button className={`history ${activeTab === 'history' ? 'active' : ''}`} onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('history');
-            }}><Icon
-            icon="material-symbols:history"
-            className="icon"
-          />History</button>
-        <button className={`inspiration ${activeTab === 'inspiration' ? 'active' : ''}`} onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('inspiration');
-            }}><Icon
-            icon="mdi:lightbulb-on-outline"
-            className="icon"
-          />Inspiration</button>
+        <button 
+          className={`plan ${activeTab === 'plan' ? 'active' : ''}`}
+          onClick={() => setActiveTab('plan')}
+        >
+          <Icon icon="lucide:pencil-line" className="icon" />
+          Plan
+        </button>
+        <button 
+          className={`goals ${activeTab === 'goals' ? 'active' : ''}`}
+          onClick={() => setActiveTab('goals')}
+        >
+          <Icon icon="octicon:goal-24" className="icon" />
+          Goals
+        </button>
+        <button 
+          className={`history ${activeTab === 'history' ? 'active' : ''}`}
+          onClick={() => setActiveTab('history')}
+        >
+          <Icon icon="material-symbols:history" className="icon" />
+          History
+        </button>
+        <button 
+          className={`inspiration ${activeTab === 'inspiration' ? 'active' : ''}`}
+          onClick={() => setActiveTab('inspiration')}
+        >
+          <Icon icon="mdi:lightbulb-on-outline" className="icon" />
+          Inspiration
+        </button>
       </div>
 
-      {/* Main Content */}
+      {/* Main content area */}
       <div className="main-content">
+        {/* Plan tab content */}
         {activeTab === "plan" && (
-          <form  className="plan_form" onSubmit={handleSubmit}>
-            <h2>Plan Session for {profileData.name}</h2>
-
-            {/* Time & Date */}
+          <form className="plan_form" onSubmit={handleSubmit}>
+            <h2>Plan Session for {profileData.data.name}</h2>
+            
+            {/* Time & Date inputs */}
             <div className="form-group">
               <label>Time & Date:</label>
               <div className="time-date-container">
                 <input
                   type="time"
                   value={time}
-                  onChange={(e) => setTime(formatTimeForInput(e.target.value))}
+                  onChange={(e) => setTime(e.target.value)}
                   className="form-group-input"
                 />
                 <input
@@ -300,7 +299,7 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
               </div>
             </div>
 
-            {/* Title */}
+            {/* Title input */}
             <div className="form-group">
               <label>Title:</label>
               <input
@@ -311,7 +310,7 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
               />
             </div>
 
-            {/* Overview */}
+            {/* Overview textarea */}
             <div className="form-group">
               <label>Overview:</label>
               <textarea
@@ -321,7 +320,7 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
               />
             </div>
 
-            {/* Objectives Section */}
+            {/* Objectives section */}
             <div className="form-group">
               <label>Objectives:</label>
               <div className="plan-goals-container">
@@ -331,12 +330,12 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
                       <li key={obj.Id} className="goal-item">
                         <div className="goal-label">{obj.Objective}</div>
                         <div className="goal-actions">
-                          <Icon
+                          <Icon 
                             icon="mdi:pencil"
                             onClick={() => handleEditObjective(index)}
                             className="icon"
                           />
-                          <Icon
+                          <Icon 
                             icon="mdi:delete"
                             onClick={() => handleDeleteObjective(index)}
                             className="icon"
@@ -346,9 +345,10 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
                     ))}
                   </ul>
                 ) : (
-                  <p>No objectives added yet.</p>
+                  <p>No objectives added</p>
                 )}
               </div>
+
               {isAddingObjective ? (
                 <div className="add-item-form">
                   <input
@@ -358,21 +358,30 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
                     placeholder="Enter objective"
                     className="form-group-input"
                   />
-                  <button className="button button-primary" onClick={handleSaveObjective}>
+                  <button 
+                    className="button button-primary"
+                    onClick={handleSaveObjective}
+                  >
                     {editIndex !== null ? 'Update' : 'Add'}
                   </button>
-                  <button className="button button-danger" onClick={handleCancelObjective}>
+                  <button 
+                    className="button button-danger"
+                    onClick={handleCancelObjective}
+                  >
                     Cancel
                   </button>
                 </div>
               ) : (
-                <button className="button button-primary" onClick={handleAddObjective}>
+                <button 
+                  className="button button-primary"
+                  onClick={handleAddObjective}
+                >
                   + Add Objective
                 </button>
               )}
             </div>
 
-            {/* Planned Tasks Section */}
+            {/* Planned tasks section */}
             <div className="form-group">
               <label>Planned Tasks:</label>
               <div className="plan-goals-container">
@@ -382,12 +391,12 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
                       <li key={task.Id} className="goal-item">
                         <div className="goal-label">{task.task}</div>
                         <div className="goal-actions">
-                          <Icon
+                          <Icon 
                             icon="mdi:pencil"
                             onClick={() => handleEditTask(index)}
                             className="icon"
                           />
-                          <Icon
+                          <Icon 
                             icon="mdi:delete"
                             onClick={() => handleDeleteTask(index)}
                             className="icon"
@@ -397,60 +406,58 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
                     ))}
                   </ul>
                 ) : (
-                  <p>No planned tasks added yet.</p>
+                  <p>No tasks added</p>
                 )}
               </div>
+
               {isAddingTask ? (
                 <div className="add-item-form">
                   <input
                     type="text"
                     value={newTask}
                     onChange={(e) => setNewTask(e.target.value)}
-                    placeholder="Enter planned task"
+                    placeholder="Enter task"
                     className="form-group-input"
                   />
-                  <button className="button button-primary" onClick={handleSaveTask}>
+                  <button 
+                    className="button button-primary"
+                    onClick={handleSaveTask}
+                  >
                     {taskEditIndex !== null ? 'Update' : 'Add'}
                   </button>
-                  <button className="button button-danger" onClick={handleCancelTask}>
+                  <button 
+                    className="button button-danger"
+                    onClick={handleCancelTask}
+                  >
                     Cancel
                   </button>
                 </div>
               ) : (
-                <button className="button button-primary" onClick={handleAddTask}>
-                  + Add Planned Task
+                <button 
+                  className="button button-primary"
+                  onClick={handleAddTask}
+                >
+                  + Add Task
                 </button>
               )}
             </div>
-<div className='plan-submit-btn'>
-            {/* Submit Button */}
-            <button className="button button-primary" type="submit">
-              Share
-            </button>
+
+            {/* Submit button */}
+            <div className="plan-submit-btn">
+              <button 
+                className="button button-primary"
+                type="submit"
+              >
+                Share
+              </button>
             </div>
           </form>
         )}
 
-        {activeTab === "goals" && (
-          <div>
-            <h2>Goals</h2>
-            <p>Goals content goes here.</p>
-          </div>
-        )}
-
-        {activeTab === "history" && (
-          <div>
-            <h2>History</h2>
-            <p>History content goes here.</p>
-          </div>
-        )}
-
-        {activeTab === "inspiration" && (
-          <div>
-            <h2>Inspiration</h2>
-            <p>Inspiration content goes here.</p>
-          </div>
-        )}
+        {/* Other tabs (to be implemented) */}
+        {activeTab === "goals" && <div>Goals content...</div>}
+        {activeTab === "history" && <div>History content...</div>}
+        {activeTab === "inspiration" && <div>Inspiration content...</div>}
       </div>
     </div>
   );
