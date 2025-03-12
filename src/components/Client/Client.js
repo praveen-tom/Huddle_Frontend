@@ -62,7 +62,8 @@ const Client = ({ setCurrentPage }) => {
                 throw new Error(`Error: ${response.status} ${response.statusText}`);
             }
             const profileData = await response.json();
-            setSelectedClient(profileData);
+            //console.log("Client Profile Data:", profileData);   
+            setSelectedClient(profileData?.data || null);
             setIsProfileVisible(true);
         } catch (err) {
             console.error("Failed to fetch client profile:", err.message);

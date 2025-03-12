@@ -102,3 +102,72 @@
 .huddle-notifications:hover {
   color: #b42e37;
 }
+
+/* Modal Backdrop */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+/* Popup */
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 100px;
+  border-radius: 8px;
+  width: 500px;
+  max-width: 90%;
+  z-index: 1001;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.datagrid {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.datagrid th,
+.datagrid td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.datagrid th {
+  background-color: #f4f4f4;
+}
+
+.send-reminder-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.send-reminder-btn:hover {
+  background-color: #0056b3;
+}
