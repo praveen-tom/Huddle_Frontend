@@ -24,11 +24,11 @@ const HuddleItem = ({ text }) => {
 
   const handleBellClick = async () => {
     if (text === "Task Remainder") {
-      setShowPopup(true); // Open the popup
-      setLoading(true); // Start loading
+      setShowPopup(true); 
+      setLoading(true); 
 
       try {
-        const coachId = "11631c17-8bc5-49f2-8a10-45238ebf5424"; // Replace with dynamic coach ID if needed
+        const coachId = "11631c17-8bc5-49f2-8a10-45238ebf5424"; 
         const response = await fetch(
           `https://localhost:7046/api/Coach/gettaskbycoachid/${coachId}`
         );
@@ -40,9 +40,8 @@ const HuddleItem = ({ text }) => {
         const data = await response.json();
         console.log("API Response:", data);
 
-        // Extract tasks from the 'data' property of the response
         if (data.status === 200 && Array.isArray(data.data)) {
-          setTasks(data.data); // Store the fetched tasks
+          setTasks(data.data); 
         } else {
           throw new Error("Invalid API response format");
         }
@@ -50,18 +49,17 @@ const HuddleItem = ({ text }) => {
         console.error(error.message);
         alert("Error fetching tasks. Please try again later.");
       } finally {
-        setLoading(false); // Stop loading
+        setLoading(false); 
       }
     }
   };
 
   const handleClosePopup = () => {
-    setShowPopup(false); // Close the popup
+    setShowPopup(false); 
   };
 
   const handleSendReminder = async (task) => {
     try {
-      // Prepare the payload
       const payload = {
         plannedSessionId: task.plannedSessionId,
         coachId: task.coachId,
@@ -71,10 +69,8 @@ const HuddleItem = ({ text }) => {
         clientName: task.clientName,
       };
 
-      // Log the payload being sent
       console.log("Sending reminder payload:", payload);
 
-      // Make the API call
       const response = await fetch("https://localhost:7046/api/Coach/sendRemainderEmail", {
         method: "POST",
         headers: {
@@ -102,7 +98,6 @@ const HuddleItem = ({ text }) => {
     }
 
     try {
-      // Send reminders for all tasks
       for (const task of tasks) {
         await handleSendReminder(task);
       }
