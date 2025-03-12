@@ -59,23 +59,59 @@ const HuddleItem = ({ text }) => {
     setShowPopup(false); // Close the popup
   };
 
-  const handleSendReminder = (taskId) => {
-    alert(`Reminder sent for task ID: ${taskId}`);
-    // Add logic here to send a reminder (e.g., call another API)
+  const handleSendReminder = async (task) => {
+    try {
+      // Prepare the payload
+      const payload = {
+        plannedSessionId: task.plannedSessionId,
+        coachId: task.coachId,
+        clientId: task.clientId,
+        plannedTaskId: task.plannedTaskId,
+        taskTitle: task.taskTitle,
+        clientName: task.clientName,
+      };
+
+      // Log the payload being sent
+      console.log("Sending reminder payload:", payload);
+
+      // Make the API call
+      const response = await fetch("https://localhost:7046/api/Coach/sendRemainderEmail", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to send reminder");
+      }
+
+      alert(`Reminder sent successfully for task ID: ${task.plannedTaskId}`);
+    } catch (error) {
+      console.error(error.message);
+      alert(`Error sending reminder: ${error.message}`);
+    }
   };
 
-  const handleSendAllReminders = () => {
+  const handleSendAllReminders = async () => {
     if (tasks.length === 0) {
       alert("No tasks available to send reminders.");
       return;
     }
 
-    // Trigger reminders for all tasks
-    tasks.forEach((task) => {
-      handleSendReminder(task.plannedTaskId);
-    });
+    try {
+      // Send reminders for all tasks
+      for (const task of tasks) {
+        await handleSendReminder(task);
+      }
 
-    alert("Reminders sent for all tasks!");
+      alert("Reminders sent for all tasks!");
+    } catch (error) {
+      console.error(error.message);
+      alert(`Error sending reminders: ${error.message}`);
+    }
   };
 
   return (
@@ -100,13 +136,15 @@ const HuddleItem = ({ text }) => {
             <div className="popup-header">
               <h3>Task Remainder</h3>
               <div className="popup-actions">
-                 <button className="close-btn" onClick={handleClosePopup}>
+                <button className="send-all-btn" onClick={handleSendAllReminders}>
+                  Send All
+                </button>
+                <button className="close-btn" onClick={handleClosePopup}>
                   &times;
                 </button>
               </div>
             </div>
             <div className="popup-content">
-            <button className="send-all-btn" onClick={handleSendAllReminders}>Send All</button>
               {loading ? (
                 <p>Loading...</p>
               ) : tasks.length > 0 ? (
@@ -126,7 +164,7 @@ const HuddleItem = ({ text }) => {
                         <td>
                           <button
                             className="send-reminder-btn"
-                            onClick={() => handleSendReminder(task.plannedTaskId)}
+                            onClick={() => handleSendReminder(task)}
                           >
                             Send Reminder
                           </button>
