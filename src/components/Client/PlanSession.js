@@ -104,9 +104,9 @@ console.log("Profile Datass:", profileData);
       planneddate: date,
       plannedtime: time,
       status: 'Not Completed',
-      CreatedBy: profileData.data.coachId || uuidv4(),
+      CreatedBy: profileData.coachId || uuidv4(),
       CreatedDatetime: new Date().toISOString(),
-      ModifiedBy: profileData.data.coachId || uuidv4(),
+      ModifiedBy: profileData.coachId || uuidv4(),
       ModifiedDatetime: new Date().toISOString(),
       tasks: plannedTasks,
       objectives: objectives
