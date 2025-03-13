@@ -7,7 +7,7 @@ import { UserContext } from "../../Context/UserContext";
 export default function Notification({ isOpen, onClose }) {
   const [notifications, setNotifications] = useState([]);
   const{user} = useContext(UserContext);
-  const CoachId = user.id// Replace with actual user ID or fetch dynamically
+  const CoachId = user.id
   console.log("CoachId",CoachId);
   const {Notification} = useContext(UserContext);
   useEffect(() => {
@@ -26,22 +26,21 @@ export default function Notification({ isOpen, onClose }) {
  
     const setupSignalRConnection = async () => {
       try {
-        // Initialize SignalR connection
         connection = new HubConnectionBuilder()
 .withUrl(`https://huddleapi-production.up.railway.app/notificationHub?CoachId=${CoachId}`, {
             withCredentials: true,
           })
-          .configureLogging("debug") // Enable SignalR logging
-          .withAutomaticReconnect() // Auto-reconnect on disconnect
+          .configureLogging("debug") 
+          .withAutomaticReconnect() 
           .build();
  
-        // Listen for incoming notifications
+        
         connection.on("ReceiveNotification", (newNotification) => {
           console.log("New notification received:", newNotification);
-          setNotifications((prev) => [...prev, newNotification]); // Add new notification to state
+          setNotifications((prev) => [...prev, newNotification]); 
         });
  
-        // Start the SignalR connection
+        
         await connection.start();
         console.log("SignalR connection established");
       } catch (error) {
@@ -51,10 +50,10 @@ export default function Notification({ isOpen, onClose }) {
     fetchNotifications();
     setupSignalRConnection();
  
-    // Cleanup function to stop SignalR connection
+    
     return () => {
       if (connection) {
-        connection.off("ReceiveNotification"); // Remove listener
+        connection.off("ReceiveNotification"); 
         connection.stop().then(() => console.log("SignalR connection stopped"));
       }
     };
@@ -62,14 +61,14 @@ export default function Notification({ isOpen, onClose }) {
  
   const markAllAsRead = async () => {
     try {
-      // Simulate marking notifications as read (API call)
+      
 await fetch(`https://localhost:7046/api/Notification/mark-all-read`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(CoachId),
       });
  
-      // Mark all notifications as read in the UI
+      
       setNotifications((prev) =>
         prev.map((notif) => ({ ...notif, isRead: true }))
       );

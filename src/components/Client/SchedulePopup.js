@@ -10,7 +10,8 @@ const SchedulePopup = ({ clientName, onClose, profileData }) => {
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
-
+  
+  console.log("Clients Profile Data:", profileData);
   const handleDateChange = (range) => {
     if (range && range.length === 2 && range[0] >= new Date()) {
       setSelectedRange(range);
@@ -43,21 +44,23 @@ const SchedulePopup = ({ clientName, onClose, profileData }) => {
     const sessionDates = getDateRangeArray(selectedRange[0], selectedRange[1]);
 
     const sessionData = {
-      Id: "",
+      Id: "", 
       CoachId: user.id,
-      ClientId: profileData?.ClientId || "",
-      ClientEmail: profileData.email,
-      Sessiontitle: title,
-      Sessiondates: sessionDates,
-      PlannedDate: formatDate(selectedRange[0]),
-      PlannedTime: "",
-      Status: "Pending",
-      CreatedBy: user?.id || "",
-      CreatedDatetime: new Date().toISOString(),
+      ClientId: profileData?.data?.clientId || "",  
+      ClientEmail: profileData?.data?.email || "",  
+      Sessiontitle: profileData?.data?.upcomingSchedule?.sessiontitle || title.trim(), 
+      Sessiondates: profileData?.data?.upcomingSchedule?.sessiondates || sessionDates, 
+      PlannedDate: formatDate(selectedRange[0]), 
+      PlannedTime: "", 
+      Status: "Pending", 
+      CreatedBy: user?.id || "", 
+      CreatedDatetime: new Date().toISOString(), 
       ModifiedBy: "",
-      ModifiedDatetime: new Date().toISOString(),
+      ModifiedDatetime: new Date().toISOString(), 
     };
-
+    
+    
+    console.log(sessionData);
     try {
       const response = await fetch("https://localhost:7046/api/SessionScheduling", {
         method: "POST",
