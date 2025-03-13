@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const PlanSession = ({ profileData, setCurrentPage }) => {
   const [activeTab, setActiveTab] = useState("plan");
-
+console.log("Profile Datass:", profileData);  
   // Correct date/time formatting functions
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
@@ -21,10 +21,10 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
 
   // Correctly reference upcomingSchedule (fixed typo)
   const initialTime = formatTimeForInput(
-    profileData?.data?.upcomingSchedule?.plannedTime || ''
+    profileData.upcomingSchedule?.plannedTime || ''
   );
-  const initialDate = profileData?.data?.upcomingSchedule?.plannedDate
-    ? formatDateForInput(profileData.data.upcomingSchedule.plannedDate)
+  const initialDate = profileData.upcomingSchedule?.plannedDate
+    ? formatDateForInput(profileData.upcomingSchedule.plannedDate)
     : '';
 
   // State management
@@ -33,18 +33,18 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
   const [title, setTitle] = useState('');
   const [overview, setOverview] = useState('');
   const [objectives, setObjectives] = useState(
-    profileData?.data?.objectives || []
+    profileData.objectives || []
   );
   const [newObjective, setNewObjective] = useState('');
   const [isAddingObjective, setIsAddingObjective] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
   const [plannedTasks, setPlannedTasks] = useState(
-    profileData?.data?.plannedTasks || []
+    profileData.plannedTasks || []
   );
   const [newTask, setNewTask] = useState('');
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [taskEditIndex, setTaskEditIndex] = useState(null);
-  const plannedSessionId = profileData?.data?.upcomingSchedule?.id || null;
+  const plannedSessionId = profileData.upcomingSchedule?.id || null;
 
   // Sync with localStorage if data not present in profile
   useEffect(() => {
@@ -52,14 +52,14 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
     const storedTasks = JSON.parse(localStorage.getItem('plannedTasks')) || [];
     
     setObjectives(
-      profileData?.data?.objectives?.length 
-        ? profileData.data?.objectives 
+      profileData.objectives?.length 
+        ? profileData.objectives 
         : storedObjectives
     );
     
     setPlannedTasks(
-      profileData?.data?.plannedTasks?.length 
-        ? profileData.data?.plannedTasks 
+      profileData.plannedTasks?.length 
+        ? profileData.plannedTasks 
         : storedTasks
     );
   }, [profileData]);
@@ -278,7 +278,7 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
         {/* Plan tab content */}
         {activeTab === "plan" && (
           <form className="plan_form" onSubmit={handleSubmit}>
-            <h2>Plan Session for {profileData.data.name}</h2>
+            <h2>Plan Session for {profileData.name}</h2>
             
             {/* Time & Date inputs */}
             <div className="form-group">
