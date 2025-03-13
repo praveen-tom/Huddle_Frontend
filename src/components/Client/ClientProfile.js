@@ -13,12 +13,18 @@ const ClientProfile = ({
   const [isPopupOpen, setIsPopupOpen] = useState(false); 
   const [isGoalPopupOpen, setIsGoalPopupOpen] = useState(false); 
   const [goals, setGoals] = useState(profileData?.goals || []);
+  const moods = profileData?.moods || [];
+  const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+  
+  // Find the index of today's mood record
+  const todayIndex = moods.findIndex((mood) => mood.createdDate === today);
+  const [currentIndex, setCurrentIndex] = useState(todayIndex !== -1 ? todayIndex : 0);
 
   console.log("Client Profile Data:", profileData);
   if (!profileData) {
     return <div>Loading...</div>; 
   }
-
+  
   const documents = profileData?.documents || [];
 
   const handleDocumentDownload = (fileName) => {
@@ -40,6 +46,22 @@ const ClientProfile = ({
       console.error("❌ setCurrentPage is not defined or not a function");
     }
   };
+
+  const handlePrevious = () => {
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : moods.length - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev < moods.length - 1 ? prev + 1 : 0));
+  };
+
+  if (moods.length === 0) {
+     <p>No mood data available</p>;
+  }
+
+  const currentMood = moods[currentIndex];
+  // Function to get image path dynamically based on moodType
+  const getMoodImage = (moodType) => `/MOODS/${moodType.toUpperCase()}.png`;
 
   return (
     <div className={`modal-content ${isProfileVisible ? "open" : ""}`}>
@@ -79,8 +101,9 @@ const ClientProfile = ({
                 {profileData?.data?.upcomingSchedule && (
                   <div className="session-info">
                     <p className="session-title">
-                      {profileData.data?.upcomingSchedule.sessiontitle}
-                      </p>
+
+  {`${profileData.upcommingSchedule.plannedDate} ${profileData.upcommingSchedule.plannedTime} ${profileData.upcommingSchedule.sessiontitle}`}
+</p>
                     <button
                       className="session-btn plan"
                       onClick={handlePlanSessionOpen} 
@@ -159,6 +182,50 @@ const ClientProfile = ({
                   </p>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="section4">
+          <div className="moods-box">
+            <div className="moods-header">
+              <h4>MOOD</h4>
+            </div>
+            <div className="moods-details">
+            {profileData?.moods?.length === 0 && <p>No data</p>}
+            {profileData?.moods?.length > 0 && (
+              <div className="mood-item">
+              <div className="mood-date"><Icon icon="flat-color-icons:previous" onClick={handlePrevious} width="20" height="20"></Icon>{currentMood.createdDate}<Icon icon="flat-color-icons:next" onClick={handleNext}  width="20" height="20"></Icon></div>
+              <div className="mood-icon">
+                <img src={getMoodImage(currentMood.moodType)} alt={currentMood.moodType}></img>
+              </div>
+              <div className="mood-text">{currentMood.moodType}</div>
+              </div>
+              )}
+            </div>
+          </div>
+          <div className="gap"></div>
+          <div className="document-box">
+            <div className="document-header">
+              <h4>DOCS</h4>
+            </div>
+            <div className="document-content">
+              {documents.length === 0 ? (
+                <p>No documents available.</p>
+              ) : (
+                <ul>
+                  {documents.map((doc, index) => (
+                    <li key={index}>
+                      <button
+                        onClick={() => handleDocumentDownload(doc)}
+                        className="document-link"
+                      >
+                        {index + 1}. {doc}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </div>

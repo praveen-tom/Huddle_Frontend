@@ -626,3 +626,20 @@ ul li {
   font-size: 1.2rem;
   margin-right: 10px;
 }
+
+.mood-item
+{
+  width:100%;
+}
+
+.mood-date{
+  text-align: center;
+  padding: 8px;
+}
+
+.mood-icon img
+{
+  width: 200px;
+  height: 200px;
+  padding: 20px;
+}

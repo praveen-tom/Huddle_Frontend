@@ -16,7 +16,7 @@ export default function Notification({ isOpen, onClose }) {
     const fetchNotifications = async () => {
       try {
         const response = await axios.get(
-          `https://localhost:7046/api/Notification/${CoachId}`
+          `https://huddleapi-production.up.railway.app/api/Notification/${CoachId}`
         );
         setNotifications(response.data);
       } catch (error) {
@@ -27,7 +27,7 @@ export default function Notification({ isOpen, onClose }) {
     const setupSignalRConnection = async () => {
       try {
         connection = new HubConnectionBuilder()
-.withUrl(`https://localhost:7046/notificationHub?CoachId=${CoachId}`, {
+.withUrl(`https://huddleapi-production.up.railway.app/notificationHub?CoachId=${CoachId}`, {
             withCredentials: true,
           })
           .configureLogging("debug") 
