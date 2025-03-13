@@ -46,7 +46,7 @@ const SchedulePopup = ({ clientName, onClose, profileData }) => {
     const sessionData = {
       Id: "", 
       CoachId: user.id,
-      ClientId: profileData?.data?.clientId || "",  
+      ClientId: profileData.clientId || "",  
       ClientEmail: profileData.email || "",  
       Sessiontitle: profileData.upcomingSchedule?.sessiontitle || title.trim(), 
       Sessiondates: profileData.upcomingSchedule?.sessiondates || sessionDates, 
