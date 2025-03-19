@@ -76,8 +76,7 @@ const ClientProfile = ({
             <div className="profile-content">
               <div className="profile-pic-container">
                 <img
-                  src={profileData.profileImage}
-                  alt="Profile"
+                  src={profileData.profileImage ? profileData.profileImage : "/ProfilePic/default-avatar.png"}                  alt="Profile"
                   className="profile-image"
                 />
               </div>
