@@ -19,11 +19,22 @@ const ClientProfile = ({
   const todayIndex = moods.findIndex((mood) => mood.createdDate === today);
   const [currentIndex, setCurrentIndex] = useState(todayIndex !== -1 ? todayIndex : 0);
 
+  // State to track which session tab (Upcoming/Past) is active
+  const [activeSessionTab, setActiveSessionTab] = useState("upcoming");
+
   if (!profileData) {
     return <div>Loading...</div>;
   }
 
   const documents = profileData?.documents || [];
+
+  // Filter upcoming and past sessions based on status
+  const upcomingSessions = profileData?.upcomingSchedule?.filter(
+    (session) => session.status !== "Completed"
+  );
+  const pastSessions = profileData?.upcomingSchedule?.filter(
+    (session) => session.status === "Completed"
+  );
 
   const handleDocumentDownload = (fileName) => {
     const url = `https://localhost:7046/api/CoachProfile/DownloadFile/${clientId}/${fileName}`;
@@ -37,9 +48,9 @@ const ClientProfile = ({
     setGoals([...goals, newGoal]);
   };
 
-  const handlePlanSessionOpen = () => {
+  const handlePlanSessionOpen = (session) => {
     if (typeof setCurrentPage === "function") {
-      setCurrentPage("Plan Session");
+      setCurrentPage("Plan Session", { ...profileData, upcomingSchedule: [session] });
     } else {
       console.error("❌ setCurrentPage is not defined or not a function");
     }
@@ -54,7 +65,6 @@ const ClientProfile = ({
   };
 
   const currentMood = moods[currentIndex];
-
   const getMoodImage = (moodType) => `/MOODS/${moodType.toUpperCase()}.png`;
 
   return (
@@ -83,6 +93,7 @@ const ClientProfile = ({
             </div>
           </div>
           <div className="gap"></div>
+
           {/* Sessions Box */}
           <div className="session-box">
             <div className="session-header">
@@ -90,29 +101,61 @@ const ClientProfile = ({
             </div>
             <div className="session-buttons-container">
               <div className="session-buttons">
-                <button className="session-btn upcoming">Upcoming</button>
-                <button className="session-btn past">Past</button>
+                {/* Upcoming Button */}
+                <button
+                  className={`session-btn upcoming ${
+                    activeSessionTab === "upcoming" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveSessionTab("upcoming")}
+                >
+                  Upcoming
+                </button>
+
+                {/* Past Button */}
+                <button
+                  className={`session-btn past ${
+                    activeSessionTab === "past" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveSessionTab("past")}
+                >
+                  Past
+                </button>
+
                 {/* Display Upcoming Sessions */}
-                {profileData?.upcomingSchedule?.length > 0 ? (
-                  profileData.upcomingSchedule.map((session, index) => (
+                {activeSessionTab === "upcoming" &&
+                upcomingSessions?.length > 0 ? (
+                  upcomingSessions.map((session, index) => (
                     <div key={index} className="session-info">
                       <p className="session-title">
                         {`${session.sessiontitle} - ${session.plannedDate} at ${session.plannedTime}`}
                       </p>
                       <button
                         className="session-btn plan"
-                        onClick={() => {
-                          setCurrentPage("Plan Session", { ...profileData, upcomingSchedule: [session] });
-                        }}
+                        onClick={() => handlePlanSessionOpen(session)}
                       >
                         Plan
                       </button>
                     </div>
                   ))
-                ) : (
+                ) : activeSessionTab === "upcoming" ? (
                   <p>No upcoming sessions</p>
-                )}
+                ) : null}
+
+                {/* Display Past Sessions */}
+                {activeSessionTab === "past" &&
+                pastSessions?.length > 0 ? (
+                  pastSessions.map((session, index) => (
+                    <div key={index} className="session-info">
+                      <p className="session-title">
+                        {`${session.plannedDate} - ${session.sessiontitle}  `}
+                      </p>
+                    </div>
+                  ))
+                ) : activeSessionTab === "past" ? (
+                  <p>No past sessions</p>
+                ) : null}
               </div>
+
               {/* Schedule Button */}
               <div className="schedule-btn">
                 <button
@@ -125,6 +168,7 @@ const ClientProfile = ({
             </div>
           </div>
         </div>
+
         {/* Section 2: Personal Info and Goals */}
         <div className="section2">
           {/* Personal Information Box */}
@@ -143,6 +187,7 @@ const ClientProfile = ({
             </div>
           </div>
           <div className="gap"></div>
+
           {/* Goals Box */}
           <div className="goals-box">
             <div className="goals-header">
@@ -172,6 +217,7 @@ const ClientProfile = ({
             </div>
           </div>
         </div>
+
         {/* Section 3: Notes */}
         <div className="section3">
           <div className="notes-box">
@@ -196,6 +242,7 @@ const ClientProfile = ({
             </div>
           </div>
         </div>
+
         {/* Section 4: Mood and Documents */}
         <div className="section4">
           {/* Mood Box */}
@@ -234,6 +281,7 @@ const ClientProfile = ({
             </div>
           </div>
           <div className="gap"></div>
+
           {/* Documents Box */}
           <div className="document-box">
             <div className="document-header">
@@ -260,6 +308,7 @@ const ClientProfile = ({
           </div>
         </div>
       </div>
+
       {/* Schedule Popup */}
       {isPopupOpen && (
         <SchedulePopup
@@ -268,6 +317,7 @@ const ClientProfile = ({
           profileData={profileData}
         />
       )}
+
       {/* Goal Popup */}
       {isGoalPopupOpen && (
         <GoalPopup
