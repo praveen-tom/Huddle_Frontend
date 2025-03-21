@@ -19,8 +19,6 @@ const ClientProfile = ({
   const todayIndex = moods.findIndex((mood) => mood.createdDate === today);
   const [currentIndex, setCurrentIndex] = useState(todayIndex !== -1 ? todayIndex : 0);
 
-  console.log("Client Profile Data:", profileData);
-
   if (!profileData) {
     return <div>Loading...</div>;
   }
@@ -64,7 +62,6 @@ const ClientProfile = ({
       <div className="header">
         <h2>{profileData.name}'s Profile</h2>
       </div>
-
       <div className="profile-details-grid">
         {/* Section 1: Profile and Sessions */}
         <div className="section1">
@@ -76,7 +73,8 @@ const ClientProfile = ({
             <div className="profile-content">
               <div className="profile-pic-container">
                 <img
-                  src={profileData.profileImage ? profileData.profileImage : "/ProfilePic/default-avatar.png"}                  alt="Profile"
+                  src={profileData.profileImage ? profileData.profileImage : "/ProfilePic/default-avatar.png"}
+                  alt="Profile"
                   className="profile-image"
                 />
               </div>
@@ -84,9 +82,7 @@ const ClientProfile = ({
               <button className="message-btn">Message</button>
             </div>
           </div>
-
           <div className="gap"></div>
-
           {/* Sessions Box */}
           <div className="session-box">
             <div className="session-header">
@@ -96,23 +92,25 @@ const ClientProfile = ({
               <div className="session-buttons">
                 <button className="session-btn upcoming">Upcoming</button>
                 <button className="session-btn past">Past</button>
-
-                {/* Display Upcoming Session */}
-                {profileData?.upcomingSchedule && (
-                  <div className="session-info">
-                    <p className="session-title">
-                      {`${profileData.upcomingSchedule.plannedDate} ${profileData.upcomingSchedule.plannedTime} ${profileData.upcomingSchedule.sessiontitle}`}
-                    </p>
-                    <button
-                      className="session-btn plan"
-                      onClick={handlePlanSessionOpen}
-                    >
-                      Plan
-                    </button>
-                  </div>
+                {/* Display Upcoming Sessions */}
+                {profileData?.upcomingSchedule?.length > 0 ? (
+                  profileData.upcomingSchedule.map((session, index) => (
+                    <div key={index} className="session-info">
+                      <p className="session-title">
+                        {`${session.sessiontitle} - ${session.plannedDate} at ${session.plannedTime}`}
+                      </p>
+                      <button
+                        className="session-btn plan"
+                        onClick={handlePlanSessionOpen}
+                      >
+                        Plan
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <p>No upcoming sessions</p>
                 )}
               </div>
-
               {/* Schedule Button */}
               <div className="schedule-btn">
                 <button
@@ -125,7 +123,6 @@ const ClientProfile = ({
             </div>
           </div>
         </div>
-
         {/* Section 2: Personal Info and Goals */}
         <div className="section2">
           {/* Personal Information Box */}
@@ -143,9 +140,7 @@ const ClientProfile = ({
               <p><strong>Payment:</strong> {profileData.paymenttype || "N/A"}</p>
             </div>
           </div>
-
           <div className="gap"></div>
-
           {/* Goals Box */}
           <div className="goals-box">
             <div className="goals-header">
@@ -175,7 +170,6 @@ const ClientProfile = ({
             </div>
           </div>
         </div>
-
         {/* Section 3: Notes */}
         <div className="section3">
           <div className="notes-box">
@@ -200,7 +194,6 @@ const ClientProfile = ({
             </div>
           </div>
         </div>
-
         {/* Section 4: Mood and Documents */}
         <div className="section4">
           {/* Mood Box */}
@@ -238,9 +231,7 @@ const ClientProfile = ({
               )}
             </div>
           </div>
-
           <div className="gap"></div>
-
           {/* Documents Box */}
           <div className="document-box">
             <div className="document-header">
@@ -267,7 +258,6 @@ const ClientProfile = ({
           </div>
         </div>
       </div>
-
       {/* Schedule Popup */}
       {isPopupOpen && (
         <SchedulePopup
@@ -276,7 +266,6 @@ const ClientProfile = ({
           profileData={profileData}
         />
       )}
-
       {/* Goal Popup */}
       {isGoalPopupOpen && (
         <GoalPopup
