@@ -101,7 +101,9 @@ const ClientProfile = ({
                       </p>
                       <button
                         className="session-btn plan"
-                        onClick={handlePlanSessionOpen}
+                        onClick={() => {
+                          setCurrentPage("Plan Session", { ...profileData, upcomingSchedule: [session] });
+                        }}
                       >
                         Plan
                       </button>
