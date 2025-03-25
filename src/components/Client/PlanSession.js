@@ -5,7 +5,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 const PlanSession = ({ profileData, setCurrentPage }) => {
   const [activeTab, setActiveTab] = useState("plan");
-console.log("Profile Datass:", profileData);  
+
+  // Log the received profileData for debugging
+  console.log("Profile Data in PlanSession:", profileData);
+
   // Correct date/time formatting functions
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
@@ -19,50 +22,36 @@ console.log("Profile Datass:", profileData);
     return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
   };
 
-  // Correctly reference upcomingSchedule (fixed typo)
-  const initialTime = formatTimeForInput(
-    profileData.upcomingSchedule?.plannedTime || ''
-  );
-  const initialDate = profileData.upcomingSchedule?.plannedDate
-    ? formatDateForInput(profileData.upcomingSchedule.plannedDate)
+  // Extract the single session from upcomingSchedule
+  const selectedSession = profileData?.upcomingSchedule?.[0];
+
+  // Initialize state using the selected session's data
+  const initialTime = formatTimeForInput(selectedSession?.plannedTime || '');
+  const initialDate = selectedSession?.plannedDate
+    ? formatDateForInput(selectedSession.plannedDate)
     : '';
 
   // State management
   const [time, setTime] = useState(initialTime);
   const [date, setDate] = useState(initialDate);
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState(selectedSession?.sessiontitle || '');
   const [overview, setOverview] = useState('');
-  const [objectives, setObjectives] = useState(
-    profileData.objectives || []
-  );
+  const [objectives, setObjectives] = useState([]);
   const [newObjective, setNewObjective] = useState('');
   const [isAddingObjective, setIsAddingObjective] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
-  const [plannedTasks, setPlannedTasks] = useState(
-    profileData.plannedTasks || []
-  );
+  const [plannedTasks, setPlannedTasks] = useState([]);
   const [newTask, setNewTask] = useState('');
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [taskEditIndex, setTaskEditIndex] = useState(null);
-  const plannedSessionId = profileData.upcomingSchedule?.id || null;
 
-  // Sync with localStorage if data not present in profile
+  // Sync objectives and tasks with localStorage
   useEffect(() => {
     const storedObjectives = JSON.parse(localStorage.getItem('objectives')) || [];
     const storedTasks = JSON.parse(localStorage.getItem('plannedTasks')) || [];
-    
-    setObjectives(
-      profileData.objectives?.length 
-        ? profileData.objectives 
-        : storedObjectives
-    );
-    
-    setPlannedTasks(
-      profileData.plannedTasks?.length 
-        ? profileData.plannedTasks 
-        : storedTasks
-    );
-  }, [profileData]);
+    setObjectives(storedObjectives);
+    setPlannedTasks(storedTasks);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('objectives', JSON.stringify(objectives));
@@ -80,17 +69,14 @@ console.log("Profile Datass:", profileData);
       alert('Title is required');
       return;
     }
-
     if (!overview.trim()) {
       alert('Overview is required');
       return;
     }
-
     if (objectives.length === 0) {
       alert('Add at least 1 objective');
       return;
     }
-
     if (plannedTasks.length === 0) {
       alert('Add at least 1 planned task');
       return;
@@ -98,18 +84,18 @@ console.log("Profile Datass:", profileData);
 
     const plannedSessionData = {
       Id: uuidv4(),
-      schedulesession: plannedSessionId || uuidv4(),
+      schedulesession: selectedSession?.id || uuidv4(),
       title,
       notes: overview,
       planneddate: date,
       plannedtime: time,
       status: 'Not Completed',
-      CreatedBy: profileData.data.coachId || uuidv4(),
+      CreatedBy: profileData.coachId || uuidv4(),
       CreatedDatetime: new Date().toISOString(),
-      ModifiedBy: profileData.data.coachId || uuidv4(),
+      ModifiedBy: profileData.coachId || uuidv4(),
       ModifiedDatetime: new Date().toISOString(),
       tasks: plannedTasks,
-      objectives: objectives
+      objectives: objectives,
     };
 
     try {
@@ -123,7 +109,7 @@ console.log("Profile Datass:", profileData);
         alert('Session planned successfully!');
         localStorage.removeItem('objectives');
         localStorage.removeItem('plannedTasks');
-        //setCurrentPage("ClientProfile");
+        setCurrentPage("ClientProfile");
       } else {
         const errorData = await response.json();
         alert(`Error: ${errorData.message || 'Unknown error'}`);
@@ -155,14 +141,12 @@ console.log("Profile Datass:", profileData);
       alert('Objective required');
       return;
     }
-
     const newObjectiveData = {
       Id: uuidv4(),
-      plannedsessionid: plannedSessionId,
+      plannedsessionid: selectedSession?.id,
       Objective: newObjective,
-      status: "created"
+      status: "created",
     };
-
     if (editIndex !== null) {
       const updated = [...objectives];
       updated[editIndex] = newObjectiveData;
@@ -171,7 +155,6 @@ console.log("Profile Datass:", profileData);
     } else {
       setObjectives([...objectives, newObjectiveData]);
     }
-    
     setIsAddingObjective(false);
     setNewObjective('');
   };
@@ -208,14 +191,12 @@ console.log("Profile Datass:", profileData);
       alert('Task required');
       return;
     }
-
     const newTaskData = {
       Id: uuidv4(),
-      plannedsessionid: plannedSessionId,
+      plannedsessionid: selectedSession?.id,
       task: newTask,
-      status: "created"
+      status: "created",
     };
-
     if (taskEditIndex !== null) {
       const updated = [...plannedTasks];
       updated[taskEditIndex] = newTaskData;
@@ -224,7 +205,6 @@ console.log("Profile Datass:", profileData);
     } else {
       setPlannedTasks([...plannedTasks, newTaskData]);
     }
-    
     setIsAddingTask(false);
     setNewTask('');
   };
@@ -243,28 +223,28 @@ console.log("Profile Datass:", profileData);
     <div className="plan-session-page">
       {/* Navigation tabs */}
       <div className="vertical-tabs">
-        <button 
+        <button
           className={`plan ${activeTab === 'plan' ? 'active' : ''}`}
           onClick={() => setActiveTab('plan')}
         >
           <Icon icon="lucide:pencil-line" className="icon" />
           Plan
         </button>
-        <button 
+        <button
           className={`goals ${activeTab === 'goals' ? 'active' : ''}`}
           onClick={() => setActiveTab('goals')}
         >
           <Icon icon="octicon:goal-24" className="icon" />
           Goals
         </button>
-        <button 
+        <button
           className={`history ${activeTab === 'history' ? 'active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
           <Icon icon="material-symbols:history" className="icon" />
           History
         </button>
-        <button 
+        <button
           className={`inspiration ${activeTab === 'inspiration' ? 'active' : ''}`}
           onClick={() => setActiveTab('inspiration')}
         >
@@ -279,7 +259,7 @@ console.log("Profile Datass:", profileData);
         {activeTab === "plan" && (
           <form className="plan_form" onSubmit={handleSubmit}>
             <h2>Plan Session for {profileData.name}</h2>
-            
+
             {/* Time & Date inputs */}
             <div className="form-group">
               <label>Time & Date:</label>
@@ -330,12 +310,12 @@ console.log("Profile Datass:", profileData);
                       <li key={obj.Id} className="goal-item">
                         <div className="goal-label">{obj.Objective}</div>
                         <div className="goal-actions">
-                          <Icon 
+                          <Icon
                             icon="mdi:pencil"
                             onClick={() => handleEditObjective(index)}
                             className="icon"
                           />
-                          <Icon 
+                          <Icon
                             icon="mdi:delete"
                             onClick={() => handleDeleteObjective(index)}
                             className="icon"
@@ -348,7 +328,6 @@ console.log("Profile Datass:", profileData);
                   <p>No objectives added</p>
                 )}
               </div>
-
               {isAddingObjective ? (
                 <div className="add-item-form">
                   <input
@@ -358,13 +337,13 @@ console.log("Profile Datass:", profileData);
                     placeholder="Enter objective"
                     className="form-group-input"
                   />
-                  <button 
+                  <button
                     className="button button-primary"
                     onClick={handleSaveObjective}
                   >
                     {editIndex !== null ? 'Update' : 'Add'}
                   </button>
-                  <button 
+                  <button
                     className="button button-danger"
                     onClick={handleCancelObjective}
                   >
@@ -372,7 +351,7 @@ console.log("Profile Datass:", profileData);
                   </button>
                 </div>
               ) : (
-                <button 
+                <button
                   className="button button-primary"
                   onClick={handleAddObjective}
                 >
@@ -391,12 +370,12 @@ console.log("Profile Datass:", profileData);
                       <li key={task.Id} className="goal-item">
                         <div className="goal-label">{task.task}</div>
                         <div className="goal-actions">
-                          <Icon 
+                          <Icon
                             icon="mdi:pencil"
                             onClick={() => handleEditTask(index)}
                             className="icon"
                           />
-                          <Icon 
+                          <Icon
                             icon="mdi:delete"
                             onClick={() => handleDeleteTask(index)}
                             className="icon"
@@ -409,7 +388,6 @@ console.log("Profile Datass:", profileData);
                   <p>No tasks added</p>
                 )}
               </div>
-
               {isAddingTask ? (
                 <div className="add-item-form">
                   <input
@@ -419,13 +397,13 @@ console.log("Profile Datass:", profileData);
                     placeholder="Enter task"
                     className="form-group-input"
                   />
-                  <button 
+                  <button
                     className="button button-primary"
                     onClick={handleSaveTask}
                   >
                     {taskEditIndex !== null ? 'Update' : 'Add'}
                   </button>
-                  <button 
+                  <button
                     className="button button-danger"
                     onClick={handleCancelTask}
                   >
@@ -433,7 +411,7 @@ console.log("Profile Datass:", profileData);
                   </button>
                 </div>
               ) : (
-                <button 
+                <button
                   className="button button-primary"
                   onClick={handleAddTask}
                 >
@@ -444,7 +422,7 @@ console.log("Profile Datass:", profileData);
 
             {/* Submit button */}
             <div className="plan-submit-btn">
-              <button 
+              <button
                 className="button button-primary"
                 type="submit"
               >

@@ -19,13 +19,22 @@ const ClientProfile = ({
   const todayIndex = moods.findIndex((mood) => mood.createdDate === today);
   const [currentIndex, setCurrentIndex] = useState(todayIndex !== -1 ? todayIndex : 0);
 
-  console.log("Client Profile Data:", profileData);
+  // State to track which session tab (Upcoming/Past) is active
+  const [activeSessionTab, setActiveSessionTab] = useState("upcoming");
 
   if (!profileData) {
     return <div>Loading...</div>;
   }
 
   const documents = profileData?.documents || [];
+
+  // Filter upcoming and past sessions based on status
+  const upcomingSessions = profileData?.upcomingSchedule?.filter(
+    (session) => session.status !== "Completed"
+  );
+  const pastSessions = profileData?.upcomingSchedule?.filter(
+    (session) => session.status === "Completed"
+  );
 
   const handleDocumentDownload = (fileName) => {
     const url = `https://localhost:7046/api/CoachProfile/DownloadFile/${clientId}/${fileName}`;
@@ -39,9 +48,9 @@ const ClientProfile = ({
     setGoals([...goals, newGoal]);
   };
 
-  const handlePlanSessionOpen = () => {
+  const handlePlanSessionOpen = (session) => {
     if (typeof setCurrentPage === "function") {
-      setCurrentPage("Plan Session");
+      setCurrentPage("Plan Session", { ...profileData, upcomingSchedule: [session] });
     } else {
       console.error("❌ setCurrentPage is not defined or not a function");
     }
@@ -56,7 +65,6 @@ const ClientProfile = ({
   };
 
   const currentMood = moods[currentIndex];
-
   const getMoodImage = (moodType) => `/MOODS/${moodType.toUpperCase()}.png`;
 
   return (
@@ -64,7 +72,6 @@ const ClientProfile = ({
       <div className="header">
         <h2>{profileData.name}'s Profile</h2>
       </div>
-
       <div className="profile-details-grid">
         {/* Section 1: Profile and Sessions */}
         <div className="section1">
@@ -76,7 +83,7 @@ const ClientProfile = ({
             <div className="profile-content">
               <div className="profile-pic-container">
                 <img
-                  src={profileData.profileImage}
+                  src={profileData.profileImage ? profileData.profileImage : "/ProfilePic/default-avatar.png"}
                   alt="Profile"
                   className="profile-image"
                 />
@@ -85,7 +92,6 @@ const ClientProfile = ({
               <button className="message-btn">Message</button>
             </div>
           </div>
-
           <div className="gap"></div>
 
           {/* Sessions Box */}
@@ -95,23 +101,59 @@ const ClientProfile = ({
             </div>
             <div className="session-buttons-container">
               <div className="session-buttons">
-                <button className="session-btn upcoming">Upcoming</button>
-                <button className="session-btn past">Past</button>
+                {/* Upcoming Button */}
+                <button
+                  className={`session-btn upcoming ${
+                    activeSessionTab === "upcoming" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveSessionTab("upcoming")}
+                >
+                  Upcoming
+                </button>
 
-                {/* Display Upcoming Session */}
-                {profileData?.upcomingSchedule && (
-                  <div className="session-info">
-                    <p className="session-title">
-                      {`${profileData.upcomingSchedule.plannedDate} ${profileData.upcomingSchedule.plannedTime} ${profileData.upcomingSchedule.sessiontitle}`}
-                    </p>
-                    <button
-                      className="session-btn plan"
-                      onClick={handlePlanSessionOpen}
-                    >
-                      Plan
-                    </button>
-                  </div>
-                )}
+                {/* Past Button */}
+                <button
+                  className={`session-btn past ${
+                    activeSessionTab === "past" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveSessionTab("past")}
+                >
+                  Past
+                </button>
+
+                {/* Display Upcoming Sessions */}
+                {activeSessionTab === "upcoming" &&
+                upcomingSessions?.length > 0 ? (
+                  upcomingSessions.map((session, index) => (
+                    <div key={index} className="session-info">
+                      <p className="session-title">
+                        {`${session.sessiontitle} - ${session.plannedDate} at ${session.plannedTime}`}
+                      </p>
+                      <button
+                        className="session-btn plan"
+                        onClick={() => handlePlanSessionOpen(session)}
+                      >
+                        Plan
+                      </button>
+                    </div>
+                  ))
+                ) : activeSessionTab === "upcoming" ? (
+                  <p>No upcoming sessions</p>
+                ) : null}
+
+                {/* Display Past Sessions */}
+                {activeSessionTab === "past" &&
+                pastSessions?.length > 0 ? (
+                  pastSessions.map((session, index) => (
+                    <div key={index} className="session-info">
+                      <p className="session-title">
+                        {`${session.plannedDate} - ${session.sessiontitle}  `}
+                      </p>
+                    </div>
+                  ))
+                ) : activeSessionTab === "past" ? (
+                  <p>No past sessions</p>
+                ) : null}
               </div>
 
               {/* Schedule Button */}
@@ -144,7 +186,6 @@ const ClientProfile = ({
               <p><strong>Payment:</strong> {profileData.paymenttype || "N/A"}</p>
             </div>
           </div>
-
           <div className="gap"></div>
 
           {/* Goals Box */}
@@ -239,7 +280,6 @@ const ClientProfile = ({
               )}
             </div>
           </div>
-
           <div className="gap"></div>
 
           {/* Documents Box */}
