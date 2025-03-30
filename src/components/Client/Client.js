@@ -57,6 +57,7 @@ const Client = ({ setCurrentPage }) => {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }
       const profileData = await response.json();
+      console.log("Client profile data:", profileData);
       setSelectedClient(profileData?.data || null);
       setIsProfileVisible(true);
     } catch (err) {
@@ -161,15 +162,17 @@ const Client = ({ setCurrentPage }) => {
                     {client.name}
                   </td>
                   <td>
-                    <span className="last-session">
-                      {new Date(client.lastsession).toLocaleDateString()} ago
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`next-session ${client.nextsession === "Unplanned" ? "unplanned" : ""}`}>
-                      {client.nextsession}
-                    </span>
-                  </td>
+                  <span className="last-session">
+                    {client.lastSession !== null && client.lastSession !== undefined
+                      ? `${client.lastSession} days ago`
+                      : "N/A"}
+                  </span>
+                </td>
+                <td>
+                  <span className={`next-session ${!client.nextSession ? "unplanned" : ""}`}>
+                    {client.nextSession ? client.nextSession : "Unplanned"}
+                  </span>
+                </td>
                   <td>
                     <span className={`payment-status ${client.paymentstatus === "Paid" ? "paid" : "unpaid"}`}>
                       {client.paymentstatus === "Paid" ? "✔️" : "❌"}
