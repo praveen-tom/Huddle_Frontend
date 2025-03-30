@@ -6,6 +6,7 @@ import GoalPopup from "./GoalPopup";
 
 const ClientProfile = ({
   profileData,
+  isOpen,
   onClose,
   isProfileVisible,
   clientId,
@@ -68,10 +69,14 @@ const ClientProfile = ({
   const getMoodImage = (moodType) => `/MOODS/${moodType.toUpperCase()}.png`;
 
   return (
-    <div className={`modal-content ${isProfileVisible ? "open" : ""}`}>
-      <div className="header">
+    <div className={`clientprofile-panel ${isOpen ? "open" : ""}`}>
+       <div className="header">
+        <button className="close-button" onClick={onClose}>
+          ✖
+        </button>
         <h2>{profileData.name}'s Profile</h2>
       </div>
+             {/* Profile Details Grid */}
       <div className="profile-details-grid">
         {/* Section 1: Profile and Sessions */}
         <div className="section1">
@@ -83,7 +88,11 @@ const ClientProfile = ({
             <div className="profile-content">
               <div className="profile-pic-container">
                 <img
-                  src={profileData.profileImage ? profileData.profileImage : "/ProfilePic/default-avatar.png"}
+                  src={
+                    profileData.profileImage
+                      ? profileData.profileImage
+                      : "/ProfilePic/default-avatar.png"
+                  }
                   alt="Profile"
                   className="profile-image"
                 />
@@ -93,7 +102,6 @@ const ClientProfile = ({
             </div>
           </div>
           <div className="gap"></div>
-
           {/* Sessions Box */}
           <div className="session-box">
             <div className="session-header">
@@ -110,7 +118,6 @@ const ClientProfile = ({
                 >
                   Upcoming
                 </button>
-
                 {/* Past Button */}
                 <button
                   className={`session-btn past ${
@@ -120,7 +127,6 @@ const ClientProfile = ({
                 >
                   Past
                 </button>
-
                 {/* Display Upcoming Sessions */}
                 {activeSessionTab === "upcoming" &&
                 upcomingSessions?.length > 0 ? (
@@ -140,14 +146,13 @@ const ClientProfile = ({
                 ) : activeSessionTab === "upcoming" ? (
                   <p>No upcoming sessions</p>
                 ) : null}
-
                 {/* Display Past Sessions */}
                 {activeSessionTab === "past" &&
                 pastSessions?.length > 0 ? (
                   pastSessions.map((session, index) => (
                     <div key={index} className="session-info">
                       <p className="session-title">
-                        {`${session.plannedDate} - ${session.sessiontitle}  `}
+                        {`${session.plannedDate} - ${session.sessiontitle}`}
                       </p>
                     </div>
                   ))
@@ -155,7 +160,6 @@ const ClientProfile = ({
                   <p>No past sessions</p>
                 ) : null}
               </div>
-
               {/* Schedule Button */}
               <div className="schedule-btn">
                 <button
@@ -174,7 +178,7 @@ const ClientProfile = ({
           {/* Personal Information Box */}
           <div className="personalinfo-box">
             <div className="personalinfo-header">
-              <h4>Information</h4>
+              <h4>INFORMATION</h4>
             </div>
             <div className="info-details">
               <p><strong>Age:</strong> {profileData.age || "N/A"}</p>
@@ -187,11 +191,10 @@ const ClientProfile = ({
             </div>
           </div>
           <div className="gap"></div>
-
           {/* Goals Box */}
           <div className="goals-box">
             <div className="goals-header">
-              <h4>Goals</h4>
+              <h4>GOALS</h4>
             </div>
             <div className="goals-container">
               <div className="goals-content">
@@ -281,7 +284,6 @@ const ClientProfile = ({
             </div>
           </div>
           <div className="gap"></div>
-
           {/* Documents Box */}
           <div className="document-box">
             <div className="document-header">
