@@ -15,6 +15,83 @@
   right: 0; /* Slide into view */
 }
 
+/* New styles for profile picture and popup */
+.profile-picture {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid #ddd;
+}
+
+.profile-picture1 {
+  width: 35px;
+  height: 35px;
+  border-radius: 10%;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid #ddd;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.popup-content h3 {
+  margin-bottom: 15px;
+}
+
+.popup-content input[type="file"] {
+  margin-bottom: 15px;
+  width: 85%;
+}
+
+.popup-image-preview {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 15px;
+}
+
+.popup-buttons button {
+  margin: 0 10px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.popup-buttons button:first-child {
+  background: #0D6A66;
+  color: white;
+}
+
+.popup-buttons button:last-child {
+  background: #f4f5f7;
+  color: black;
+}
+
+
 .coachprofile-header {
   display: flex;
   justify-content: space-between;
@@ -41,6 +118,7 @@
   border: none;
   font-size: 20px;
   cursor: pointer;
+  color: black;
 }
 .coachprofile-content {
   width: 100%; /* Add scroll if content overflows */
@@ -50,6 +128,7 @@
   flex: 1; /* Take up remaining height */
 
 }
+
 .coachleft-panel
 {
   width: 50%; /* Add scroll if content overflows */

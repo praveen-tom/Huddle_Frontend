@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import './CoachProfile.css';
-import { UserContext } from "../../Context/UserContext"; 
+import { UserContext } from "../../Context/UserContext";
 
 export default function CoachProfile({ isOpen, onClose }) {
     const [notification, setNotification] = useState({});
@@ -11,8 +11,10 @@ export default function CoachProfile({ isOpen, onClose }) {
     const [originalTimes, setOriginalTimes] = useState([]);
     const [defaultTimeslots, setDefaultTimeslots] = useState([]);
     const [preferredTimeslots, setPreferredTimeslots] = useState([]);
+    const [isPopupOpen, setIsPopupOpen] = useState(false); // State to control popup visibility
+    const [profileImage, setProfileImage] = useState(null); // State to store uploaded image
+    const { user } = useContext(UserContext);
 
-    const { user } = useContext(UserContext); 
     console.log("User context:", user);
 
     useEffect(() => {
@@ -21,39 +23,43 @@ export default function CoachProfile({ isOpen, onClose }) {
                 if (!user?.id) {
                     throw new Error("User ID is not available.");
                 }
-    
                 const response = await fetch(
                     `https://localhost:7046/api/CoachProfile/GetCoachById/${user.id}`
                 );
-    
                 if (!response.ok) {
-                    throw new Error(`Error: ${response.status} ${response.statusText}`);
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Failed to fetch coach data.");
                 }
-    
                 const data = await response.json();
-    
-                const coachData = data.data || {}; 
+                const coachData = data.data || {};
                 const timeslots = coachData.timeslots || {};
-    
+
+                // Set the profile image if it exists in the API response
+                if (coachData.profilePic) {
+                    const base64Prefix = "data:image/png;base64,";
+                    const fullBase64String = coachData.profilePic.startsWith(base64Prefix)
+                        ? coachData.profilePic
+                        : `${base64Prefix}${coachData.profilePic}`;
+                    setProfileImage(fullBase64String);
+                }
+
+                // Update other states
                 setNotification(coachData);
                 setDefaultTimeslots(timeslots.defaulttiming || []);
                 setPreferredTimeslots(timeslots.preferredtiming || []);
                 setSelectedTimes(timeslots.preferredtiming || []);
                 setOriginalTimes(timeslots.preferredtiming || []);
-
-
             } catch (err) {
                 setError(err.message);
+                console.error("Error fetching coach data:", err);
             } finally {
                 setLoading(false);
             }
         };
-    
         if (user?.id) {
-            fetchData(); 
+            fetchData();
         }
     }, [user]);
-    
 
     const handleEditClick = () => {
         setIsEditMode(true);
@@ -61,16 +67,14 @@ export default function CoachProfile({ isOpen, onClose }) {
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();
-
         const updatedCoachInfo = {
-            Id: user?.id, 
+            Id: user?.id,
             Name: notification.name,
             Email: notification.email,
             Age: notification.age,
             qualification: notification.qualification,
             mobile: notification.mobile,
         };
-
         try {
             const response = await fetch("https://localhost:7046/api/CoachProfile/UpdateCoachInfo", {
                 method: "PUT",
@@ -79,29 +83,13 @@ export default function CoachProfile({ isOpen, onClose }) {
                 },
                 body: JSON.stringify(updatedCoachInfo),
             });
-
-            let responseData;
-            const contentType = response.headers.get("Content-Type");
-            
-            if (contentType && contentType.includes("application/json")) {
-                responseData = await response.json();
-            } else {
-                responseData = await response.text();
-            }
-
             if (!response.ok) {
-                console.error("Server error:", responseData);
-                alert(`Failed to update coach info: ${responseData.message || responseData}`);
-                return;
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Failed to update coach info.");
             }
-
-            if (typeof responseData === "string") {
-                alert(responseData); 
-            } else {
-                alert("Coach information updated successfully!");
-                setIsEditMode(false);
-            }
-
+            const responseData = await response.json();
+            alert(responseData.message || "Coach information updated successfully!");
+            setIsEditMode(false);
         } catch (error) {
             console.error("Error while updating coach info:", error);
             alert(`Failed to update coach info: ${error.message}`);
@@ -119,17 +107,16 @@ export default function CoachProfile({ isOpen, onClose }) {
     const handleTimeslotClick = async (time) => {
         setSelectedTimes((prevTimes) =>
             prevTimes.includes(time)
-                ? prevTimes.filter((t) => t !== time) 
-                : [...prevTimes, time] 
+                ? prevTimes.filter((t) => t !== time)
+                : [...prevTimes, time]
         );
-
         const payload = {
-            ClientId: user?.id, 
-            CoachPreferredTimeslots: selectedTimes.includes(time) ? selectedTimes.filter(t => t !== time) : [...selectedTimes, time]
+            ClientId: user?.id,
+            CoachPreferredTimeslots: selectedTimes.includes(time)
+                ? selectedTimes.filter(t => t !== time)
+                : [...selectedTimes, time],
         };
-
         console.log("Payload being sent:", payload);
-
         try {
             const response = await fetch(
                 "https://localhost:7046/api/CoachProfile/SaveTimeslots",
@@ -141,22 +128,77 @@ export default function CoachProfile({ isOpen, onClose }) {
                     body: JSON.stringify(payload),
                 }
             );
-
             if (!response.ok) {
                 const errorData = await response.json();
-                console.error("Server error:", errorData);
-                alert(`Failed to update timeslots: ${errorData.message || "Unknown error"}`);
-                return;
+                throw new Error(errorData.message || "Failed to update timeslots.");
             }
-
             const responseData = await response.json();
             console.log("Response from server:", responseData);
-
             alert("Timeslots updated successfully!");
             setOriginalTimes([...selectedTimes]);
         } catch (error) {
             console.error("Error while updating timeslots:", error);
             alert(`Failed to update timeslots: ${error.message}`);
+        }
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProfileImage(reader.result); // Set the base64 image URL
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleSaveProfileImage = async () => {
+        try {
+            if (!profileImage) {
+                alert("Please select an image to upload.");
+                return;
+            }
+    
+            // Extract the Base64 string (including the prefix)
+            const base64String = profileImage; // Use the full Base64 string
+            if (!base64String) {
+                throw new Error("Invalid Base64 string.");
+            }
+    
+            // Prepare the payload
+            const payload = {
+                UserId: user?.id, // User ID
+                ProfileImage: base64String, // Send the full Base64 string
+            };
+            console.log("Payload being sent:", payload);
+    
+            // Send the request to the backend
+            const response = await fetch("https://localhost:7046/api/Coach/UploadProfileImage", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json", // Use JSON for sending the payload
+                },
+                body: JSON.stringify(payload),
+            });
+    
+            if (!response.ok) {
+                let errorText;
+                try {
+                    const errorData = await response.json();
+                    errorText = errorData.message || "Unknown error";
+                } catch {
+                    errorText = await response.text();
+                }
+                throw new Error(errorText || "Failed to upload profile image.");
+            }
+    
+            const responseData = await response.json();
+            alert(responseData.message || "Profile image updated successfully!");
+            setIsPopupOpen(false); // Close the popup after saving
+        } catch (error) {
+            console.error("Error while uploading profile image:", error);
+            alert(`Failed to upload profile image: ${error.message}`);
         }
     };
 
@@ -166,7 +208,6 @@ export default function CoachProfile({ isOpen, onClose }) {
     if (loading) {
         return <div>Loading...</div>;
     }
-
     if (error) {
         return <div>Error: {error}</div>;
     }
@@ -187,9 +228,10 @@ export default function CoachProfile({ isOpen, onClose }) {
                             <div className="empty-div"></div>
                             <div className="sub-content">
                                 <img
-                                    src="https://via.placeholder.com/40"
+                                    src={profileImage || "/ProfilePic/default-avatar.png"}
                                     alt="Profile"
                                     className="profile-picture"
+                                    onClick={() => setIsPopupOpen(true)} // Open popup on click
                                 />
                                 <h1>{notification.name}</h1>
                                 <button>Message</button>
@@ -200,7 +242,6 @@ export default function CoachProfile({ isOpen, onClose }) {
                         <div className="header">PAYMENTS</div>
                     </div>
                 </div>
-
                 <div className="coachright-panel">
                     <div className="info">
                         <div className="header">INFORMATION</div>
@@ -292,7 +333,6 @@ export default function CoachProfile({ isOpen, onClose }) {
                             </div>
                         )}
                     </div>
-
                     <div className="timeslots">
                         <div className="header">TIMESLOTS</div>
                         <div>
@@ -309,7 +349,6 @@ export default function CoachProfile({ isOpen, onClose }) {
                                 </button>
                             ))}
                         </div>
-
                         <div>
                             <h4>Selected Timeslots</h4>
                             <span>{selectedTimes.join(", ") || "None"}</span>
@@ -317,6 +356,22 @@ export default function CoachProfile({ isOpen, onClose }) {
                     </div>
                 </div>
             </div>
+            {/* Popup for uploading profile image */}
+            {isPopupOpen && (
+                <div className="popup-overlay">
+                    <div className="popup-content">
+                        <h3>Upload Profile Picture</h3>
+                        <input type="file" accept="image/*" onChange={handleFileChange} />
+                        {profileImage && (
+                            <img src={profileImage} alt="Preview" className="popup-image-preview" />
+                        )}
+                        <div className="popup-buttons">
+                            <button onClick={handleSaveProfileImage}>Upload</button>
+                            <button onClick={() => setIsPopupOpen(false)}>Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

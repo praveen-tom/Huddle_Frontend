@@ -91,7 +91,7 @@ export default function Home() {
               <div className="notification-count">{notificationCount}</div>
             </div>
             <Icon
-              className="profile-picture"
+              className="profile-picture1"
               onClick={toggleCoachProfile}
               icon="codicon:account"
               style={{ color: "1a274f", fontSize: "1.7rem", cursor: "pointer" }}
