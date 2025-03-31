@@ -17,7 +17,7 @@
   writing-mode: tb-rl;
   text-align: center;
   background-color: #0D6A66;
-  border-radius: 6px 0px 0px 6px
+  border-radius: 6px 0px 0px 6px;
 }
 
 .task-list {
@@ -27,7 +27,6 @@
   width: -webkit-fill-available;
   overflow-y: scroll;
   scrollbar-width: none;
-
 }
 
 .task-item {
@@ -85,7 +84,8 @@
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  height:400px;
+  max-height: 80vh; /* Limit the modal height to 80% of the viewport height */
+  overflow-y: auto; /* Enable vertical scrolling if content overflows */
 }
 
 /* Modal header */
@@ -94,11 +94,10 @@
   justify-content: center;
   align-items: center;
   margin-bottom: 15px;
-  height:45%;
-  background-color:#1A274F;
-  border-radius: 8px 8px 0px 0px;border-radius: 8px 8px 0px 0px;
+  height: 45%;
+  background-color: #1A274F;
+  border-radius: 8px 8px 0px 0px;
   flex-direction: column;
-
 }
 
 .modal-title {
@@ -107,9 +106,9 @@
   color: #fff;
 }
 
-.btn-close{
+.btn-close {
   position: absolute;
-  margin-left:93%;
+  margin-left: 93%;
 }
 
 .modal-close {
@@ -130,7 +129,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 1px 15px 0 15px;
+  padding: 15px; /* Add padding for better spacing */
 }
 
 .modal-input {
@@ -146,8 +145,12 @@
   box-shadow: 0 0 5px rgba(13, 106, 102, 0.5);
 }
 
-.model-btn
-{
+.review-textarea {
+  height: 100px;
+  resize: vertical;
+}
+
+.model-btn {
   text-align: center;
 }
 
@@ -179,14 +182,64 @@
   z-index: 999;
 }
 
-.confirmation
-{
+.confirmation {
   text-align: center;
 }
 
-.error-message
-{
-  color:red;
+.error-message {
+  color: red;
   font-size: 1rem;
   font-weight: bold;
+}
+
+/* Profile List */
+.profile-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 300px; /* Set a maximum height for the profile list */
+  overflow-y: auto; /* Enable vertical scrolling for the list */
+}
+
+.profile-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.share-review-btn {
+  background-color: #0D6A66;
+  color: white;
+  font-size: 1rem;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.share-review-btn:hover {
+  background-color: #0b5ed7;
+}
+
+/* Loading Popup */
+.loading-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  text-align: center;
+  padding: 20px;
+}
+
+.loading-popup .popup-content {
+  font-size: 1.2rem;
+  color: #333;
 }
