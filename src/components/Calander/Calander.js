@@ -14,35 +14,38 @@ const Calendar = () => {
   const { user } = useContext(UserContext);
   const [events, setEvents] = useState([]);
   const [showChart, setShowChart] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   useEffect(() => {
     if (!user?.id) return;
-  
+
     fetch(`https://localhost:7046/api/SessionScheduling/CoachId?coachid=${user.id}`)
-      .then(response => {
+      .then((response) => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return response.json();
       })
-      .then(data => {
-        const eventsArray = Array.isArray(data) 
-          ? data 
-          : (data?.events || data?.data || [data]); 
-  
+      .then((data) => {
+        const eventsArray = Array.isArray(data)
+          ? data
+          : data?.events || data?.data || [data];
+
         console.log("Raw API Response:", eventsArray);
-        
-        const formattedEvents = eventsArray.map(event => ({
-          id: event.id?.toString() || Math.random().toString(36).substr(2, 9), 
-          title: event.title || `Session with ${event.clientName || 'Client'}`,
-          start: event.startDateTime || event.start, 
+
+        const formattedEvents = eventsArray.map((event) => ({
+          id: event.id?.toString() || Math.random().toString(36).substr(2, 9),
+          title: event.title || `Session with ${event.clientName || "Client"}`,
+          start: event.startDateTime || event.start,
           end: event.endDateTime || event.end,
           color: "#4A90E2",
-          tag: event.tag || ""
+          tag: event.tag || "",
         }));
-  
+
         console.log("Formatted Events:", formattedEvents);
         setEvents(formattedEvents);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error fetching sessions:", error);
         setEvents([]); // Clear events on error
       });
@@ -66,14 +69,12 @@ const Calendar = () => {
       const roundedDuration = Math.ceil(duration);
 
       if (event.tag) {
-        hoursByTag[event.tag] =
-          (hoursByTag[event.tag] || 0) + roundedDuration;
+        hoursByTag[event.tag] = (hoursByTag[event.tag] || 0) + roundedDuration;
       } else {
-        hoursByTag.Personal += roundedDuration; 
+        hoursByTag.Personal += roundedDuration;
       }
     });
 
-    // Calculate remaining hours
     const totalLoggedHours =
       hoursByTag.Session +
       hoursByTag.Planning +
@@ -123,6 +124,47 @@ const Calendar = () => {
 
   const toggleChart = () => setShowChart((prev) => !prev);
 
+  const openConfirmModal = (clickInfo) => {
+    setSelectedEvent(clickInfo.event);
+    setModalContent({
+      title: "Confirm Deletion",
+      message: `Are you sure you want to delete '${clickInfo.event.title}'?`,
+      onConfirm: () => {
+        clickInfo.event.remove();
+        setIsModalOpen(false);
+      },
+      onCancel: () => setIsModalOpen(false),
+    });
+    setIsModalOpen(true);
+  };
+
+  const openAddEventModal = (selectInfo) => {
+    setModalContent({
+      title: "Add Event",
+      message: "Enter a title for your event:",
+      input: true,
+      onConfirm: (title) => {
+        if (title) {
+          const calendarApi = selectInfo.view.calendar;
+          calendarApi.unselect();
+
+          const newEvent = {
+            id: String(events.length + 1),
+            title,
+            start: selectInfo.startStr,
+            end: selectInfo.endStr,
+            color: "#3498DB",
+          };
+
+          setEvents([...events, newEvent]);
+        }
+        setIsModalOpen(false);
+      },
+      onCancel: () => setIsModalOpen(false),
+    });
+    setIsModalOpen(true);
+  };
+
   const hoursByTag = calculateHours();
 
   return (
@@ -154,32 +196,8 @@ const Calendar = () => {
           editable
           selectable
           events={events}
-          select={(selectInfo) => {
-            const title = prompt("Enter a title for your event:");
-            if (title) {
-              const calendarApi = selectInfo.view.calendar;
-              calendarApi.unselect();
-
-              const newEvent = {
-                id: String(events.length + 1),
-                title,
-                start: selectInfo.startStr,
-                end: selectInfo.endStr,
-                color: "#3498DB",
-              };
-
-              setEvents([...events, newEvent]);
-            }
-          }}
-          eventClick={(clickInfo) => {
-            if (
-              window.confirm(
-                `Are you sure you want to delete '${clickInfo.event.title}'?`
-              )
-            ) {
-              clickInfo.event.remove();
-            }
-          }}
+          select={(selectInfo) => openAddEventModal(selectInfo)}
+          eventClick={(clickInfo) => openConfirmModal(clickInfo)}
           slotDuration="01:00:00"
           slotLabelInterval="01:00:00"
         />
@@ -204,6 +222,31 @@ const Calendar = () => {
               <li>Personal: {hoursByTag.Personal} hours</li>
               <li>Remaining: {hoursByTag.Remaining} hours</li>
             </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>{modalContent?.title}</h3>
+            <p>{modalContent?.message}</p>
+            {modalContent?.input && (
+              <input
+                type="text"
+                placeholder="Enter title"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") modalContent.onConfirm(e.target.value);
+                }}
+              />
+            )}
+            <div className="modal-actions">
+              <button onClick={() => modalContent?.onConfirm(modalContent.input ? document.querySelector("input").value : null)}>
+                Confirm
+              </button>
+              <button onClick={modalContent?.onCancel}>Cancel</button>
+            </div>
           </div>
         </div>
       )}
