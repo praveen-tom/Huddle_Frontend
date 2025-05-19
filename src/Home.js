@@ -11,6 +11,7 @@ import Client from "./components/Client/Client";
 import PlanSession from "./components/Client/PlanSession"; 
 import { UserContext } from "./Context/UserContext";
 import { Icon } from "@iconify/react";
+import UploadPreview from "./components/TextToSpeech/TextToSpeech/UploadPreview";
 
 export default function Home() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -65,7 +66,14 @@ export default function Home() {
       case "Payments Settings":
         return <div>Payments Settings Page</div>;
       case "The Huddle Heap":
-        return <div>The Huddle Heap Page</div>;
+        return (
+          <div style={{ padding: '2rem', maxWidth: 600, margin: '0 auto' }}>
+            <h2>Resource Upload & Text-to-Speech</h2>
+            <div style={{ margin: '2rem 0', padding: '1rem', border: '1px solid #ccc', borderRadius: 8, background: '#fafbfc' }}>
+              <UploadPreview onContentExtracted={() => {}} />
+            </div>
+          </div>
+        );
       default:
         return <div>Page Not Found</div>;
     }

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./YourHuddle.css";
+import UploadPreview from "../TextToSpeech/TextToSpeech/UploadPreview";
 
 const YourHuddle = () => {
   // Assign unique IDs to each huddle item
@@ -27,9 +28,11 @@ const HuddleItem = ({ item }) => {
   const [tasks, setTasks] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
 
   const handleBellClick = async () => {
     setShowPopup(true);
+    setShowUpload(false); // Reset upload view on each open
     setLoading(true);
 
     try {
@@ -181,11 +184,16 @@ const HuddleItem = ({ item }) => {
                 <button className="close-btn" onClick={handleClosePopup}>
                   &times;
                 </button>
+                <button className="send-all-btn" onClick={() => setShowUpload((v) => !v)}>
+                  {showUpload ? "Hide Upload" : "Show Upload"}
+                </button>
               </div>
             </div>
             <div className="popup-content">
-              {loading ? (
-                <p>Loading...</p>
+              {showUpload ? (
+                <UploadPreview onContentExtracted={() => {}} />
+              ) : loading ? (
+                <p>Loading...</p> 
               ) : item.id === 1 ? (
                 tasks.length > 0 ? (
                   <table className="datagrid">

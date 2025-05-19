@@ -13,12 +13,14 @@ import { UserContext } from "./Context/UserContext";
 import { Icon } from "@iconify/react";
 import TextToSpeech from "./components/TextToSpeech/TextToSpeech";
 import UploadPreview from "./components/TextToSpeech/UploadPreview";
+import PDFViewer from "./components/TextToSpeech/PDFViewer";
 
 export default function Home() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isCoachProfileOpen, setIsCoachProfileOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("Daily Huddle"); 
     const [selectedProfileData, setSelectedProfileData] = useState(null);
+  const [pdfUrl, setPdfUrl] = useState(null);
   const { user } = useContext(UserContext);
   const { notificationCount } = useContext(UserContext);
 
@@ -69,11 +71,19 @@ export default function Home() {
       case "Payments Settings":
         return <div>Payments Settings Page</div>;
       case "The Huddle Heap":
-        return   <div>
-        <h2>Resource Upload & Text-to-Speech</h2>
-        <UploadPreview onContentExtracted={setContent} />
-       {content.length > 0 && <TextToSpeech content={content} />}
-      </div>;
+        return (
+          <div style={{ padding: '2rem', maxWidth: 600, margin: '0 auto' }}>
+            <h2>Resource Upload & Text-to-Speech</h2>
+            <div style={{ margin: '2rem 0', padding: '1rem', border: '1px solid #ccc', borderRadius: 8, background: '#fafbfc' }}>
+              <UploadPreview onContentExtracted={() => {}} onPdfSelected={setPdfUrl} />
+            </div>
+            {pdfUrl && (
+              <div style={{ marginTop: 32 }}>
+                <PDFViewer documentUrl={pdfUrl} />
+              </div>
+            )}
+          </div>
+        );
       default:
         return <div>Page Not Found</div>;
     }

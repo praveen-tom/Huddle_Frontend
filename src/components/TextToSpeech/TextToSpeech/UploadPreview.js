@@ -2,17 +2,25 @@ import React, { useState } from "react";
 import mammoth from "mammoth";
 import * as pdfjsLib from "pdfjs-dist"; // Import default build
 import JSZip from "jszip";
+import PDFViewer from "../PDFViewer";
 
-const UploadPreview = ({ onContentExtracted }) => {
-  const [file, setFile] = useState(null);
+const UploadPreview = ({ onContentExtracted, onPdfSelected = () => {} }) => {
+  const [pdfUrl, setPdfUrl] = useState(null);
 
   const handleFileUpload = async (event) => {
     const uploadedFile = event.target.files[0];
-    setFile(uploadedFile);
 
     if (uploadedFile) {
-      const extractedContent = await extractContent(uploadedFile);
-      onContentExtracted(extractedContent); // Pass extracted content to parent
+      if (uploadedFile.type === "application/pdf") {
+        const url = URL.createObjectURL(uploadedFile);
+        setPdfUrl(url); // Show PDFViewer below upload
+        onPdfSelected(url); // Still notify parent if needed
+        return;
+      } else {
+        setPdfUrl(null); // Hide PDFViewer for non-PDF files
+        const extractedContent = await extractContent(uploadedFile);
+        onContentExtracted(extractedContent); // Pass extracted content to parent
+      }
     }
   };
 
@@ -68,14 +76,10 @@ const UploadPreview = ({ onContentExtracted }) => {
 
         } else if (file.type === "application/pdf") {
           try {
-           // Dynamically import the worker script
-    const pdfjsWorker = await import(
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.worker.min.mjs"
-    );
-
-    // Set the worker script for PDF.js
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.0.375/pdf.worker.min.mjs";
+           // Set the worker script for PDF.js
+        // Use the same version as the installed pdfjs-dist package
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          `${process.env.PUBLIC_URL || ''}/pdf.worker.min.js`;
 
     // Load PDF document with the worker
     const pdfData = new Uint8Array(reader.result);
@@ -194,33 +198,14 @@ const UploadPreview = ({ onContentExtracted }) => {
     });
   };
 
-  // Helper function: Detect image type based on file signature
-  function detectImageType(data) {
-    const uint8Array = new Uint8Array(data);
-    if (uint8Array[0] === 0xff && uint8Array[1] === 0xd8) {
-      return "image/jpeg"; // JPEG signature
-    } else if (uint8Array[0] === 0x89 && uint8Array[1] === 0x50) {
-      return "image/png"; // PNG signature
-    } else if (uint8Array[0] === 0x47 && uint8Array[1] === 0x49) {
-      return "image/gif"; // GIF signature
-    } else {
-      return "application/octet-stream"; // Default fallback
-    }
-  }
-
-  // Helper function: Convert ArrayBuffer to Base64
-  function arrayBufferToBase64(buffer) {
-    let binary = "";
-    const bytes = new Uint8Array(buffer);
-    for (let i = 0; i < bytes.byteLength; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);
-  }
-
   return (
     <div>
       <input type="file" accept=".docx,.pdf" onChange={handleFileUpload} />
+      {pdfUrl && (
+        <div style={{ marginTop: 32 }}>
+          <PDFViewer documentUrl={pdfUrl} />
+        </div>
+      )}
     </div>
   );
 };
