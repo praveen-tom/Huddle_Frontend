@@ -12,17 +12,16 @@ import PlanSession from "./components/Client/PlanSession";
 import { UserContext } from "./Context/UserContext";
 import { Icon } from "@iconify/react";
 import UploadPreview from "./components/TextToSpeech/TextToSpeech/UploadPreview";
+import TextToSpeech from "./components/TextToSpeech/TextToSpeech";
 
 export default function Home() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isCoachProfileOpen, setIsCoachProfileOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("Daily Huddle"); 
-    const [selectedProfileData, setSelectedProfileData] = useState(null);
+  const [selectedProfileData, setSelectedProfileData] = useState(null);
+  const [ttsContent, setTtsContent] = useState("");
   const { user } = useContext(UserContext);
   const { notificationCount } = useContext(UserContext);
-
-  console.log("User context value in this component:", user); 
-  console.log("User context value in this Notification Count:", notificationCount);
 
   const toggleNotifications = () => {
     setIsNotificationOpen(!isNotificationOpen);
@@ -32,12 +31,11 @@ export default function Home() {
     setIsCoachProfileOpen(!isCoachProfileOpen);
   };
 
-    const handleSetCurrentPage = (page, profileData = null) => {
-        setCurrentPage(page);
-        setSelectedProfileData(profileData);
-    };
+  const handleSetCurrentPage = (page, profileData = null) => {
+    setCurrentPage(page);
+    setSelectedProfileData(profileData);
+  };
 
-  
   const renderPage = () => {
     switch (currentPage) {
       case "Daily Huddle":
@@ -58,9 +56,9 @@ export default function Home() {
           </>
         );
       case "My Huddle":
-        return <Client setCurrentPage={handleSetCurrentPage} />; 
+        return <Client setCurrentPage={handleSetCurrentPage} />;
       case "Plan Session":
-        return <PlanSession profileData={selectedProfileData}/>; 
+        return <PlanSession profileData={selectedProfileData}/>;
       case "Chats":
         return <div>Chats Page</div>;
       case "Payments Settings":
@@ -70,7 +68,18 @@ export default function Home() {
           <div style={{ padding: '2rem', maxWidth: 600, margin: '0 auto' }}>
             <h2>Resource Upload & Text-to-Speech</h2>
             <div style={{ margin: '2rem 0', padding: '1rem', border: '1px solid #ccc', borderRadius: 8, background: '#fafbfc' }}>
-              <UploadPreview onContentExtracted={() => {}} />
+              <UploadPreview 
+                onContentExtracted={() => {}} 
+                onPlay={text => setTtsContent(text)}
+              />
+            </div>
+            {ttsContent && ttsContent.trim().length > 0 && (
+              <TextToSpeech content={ttsContent} />
+            )}
+            <div style={{margin: '1rem 0'}}>
+              <button onClick={() => window.speechSynthesis.speak(new window.SpeechSynthesisUtterance("Test speech from Home.js"))}>
+                Test Browser TTS
+              </button>
             </div>
           </div>
         );
@@ -78,6 +87,9 @@ export default function Home() {
         return <div>Page Not Found</div>;
     }
   };
+
+  // Add debug log for ttsContent
+  console.log('[Home.js] ttsContent:', ttsContent);
 
   return (
     <div className="app-container">

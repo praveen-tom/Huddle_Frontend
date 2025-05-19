@@ -4,7 +4,7 @@ import * as pdfjsLib from "pdfjs-dist"; // Import default build
 import JSZip from "jszip";
 import PDFViewer from "../PDFViewer";
 
-const UploadPreview = ({ onContentExtracted, onPdfSelected = () => {}, coachId, onPlay }) => {
+const UploadPreview = ({ onContentExtracted, onPdfSelected = () => {}, coachId, onPlay = () => {} }) => {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [lastUploadedContent, setLastUploadedContent] = useState(null); // Store last extracted content for TTS
   const [errorMsg, setErrorMsg] = useState(''); // Add error message state
@@ -251,11 +251,27 @@ const UploadPreview = ({ onContentExtracted, onPdfSelected = () => {}, coachId, 
     });
   };
 
+  // Use a ref to always get the latest onPlay prop
+  const onPlayRef = React.useRef(onPlay);
+  React.useEffect(() => { onPlayRef.current = onPlay; }, [onPlay]);
+
   const handlePlayClick = (e) => {
-    e.preventDefault && e.preventDefault(); // Prevent form submission if inside a form
-    console.log('[UploadPreview] Play button clicked. onPlay:', typeof onPlay, 'lastUploadedContent:', lastUploadedContent);
-    if (onPlay && lastUploadedContent) {
-      onPlay(lastUploadedContent);
+    e.preventDefault && e.preventDefault();
+    if (onPlayRef.current && lastUploadedContent) {
+      let combined = "";
+      if (typeof lastUploadedContent === 'string') {
+        combined = lastUploadedContent;
+      } else if (Array.isArray(lastUploadedContent)) {
+        // Always join all text values
+        combined = lastUploadedContent
+          .filter(item => item && (item.value || item.text || item.Text))
+          .map(item => item.value || item.text || item.Text || "")
+          .join(" ");
+      } else if (lastUploadedContent && lastUploadedContent.pages) {
+        combined = lastUploadedContent.pages.map(p => p.text || p.Text || '').join(' ');
+      }
+      console.log('[UploadPreview] handlePlayClick combined:', combined);
+      onPlayRef.current(combined);
     } else {
       console.warn('[UploadPreview] Play button: onPlay missing or lastUploadedContent is empty.', { onPlay, lastUploadedContent });
     }

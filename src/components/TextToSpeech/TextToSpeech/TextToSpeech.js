@@ -1,25 +1,25 @@
 import React, { useState, useRef, useEffect } from "react";
+import { FaPlay, FaPause } from 'react-icons/fa';
 
 const TextToSpeech = ({ content }) => {
   const [highlightedWordIndex, setHighlightedWordIndex] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isStarted, setIsStarted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const speechRef = useRef(null);
   const currentIndexRef = useRef(0);
 
-  // Support both old and new content formats
+  // Accept both string and array for content
   let textOnly = "";
-  if (Array.isArray(content) && content.length > 0 && content[0].PageNumber && content[0].Text !== undefined) {
-    // New format: [{ PageNumber, Text }]
+  if (typeof content === 'string') {
+    textOnly = content;
+  } else if (Array.isArray(content) && content.length > 0 && content[0].PageNumber && content[0].Text !== undefined) {
     textOnly = content.map(page => page.Text).join(" ");
-  } else {
-    // Old format: [{ type, value }]
+  } else if (Array.isArray(content)) {
     textOnly = content.filter((item) => item.type === "text").map((item) => item.value).join(" ");
   }
 
   // Play TTS
   const playTTS = () => {
-    console.log('[TTS] Play button clicked. textOnly:', textOnly);
     if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
       alert("Text-to-speech is not supported in this browser.");
       return;
@@ -28,62 +28,77 @@ const TextToSpeech = ({ content }) => {
       alert("No text to read.");
       return;
     }
-    window.speechSynthesis.cancel(); // Always cancel any previous utterance
+    // Only cancel if already speaking
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+    }
     let currentIndex = 0;
     currentIndexRef.current = 0;
     const utterance = new window.SpeechSynthesisUtterance(textOnly);
     utterance.rate = 1;
     utterance.onstart = () => {
       setIsPlaying(true);
-      setIsStarted(true);
-      console.log('[TTS] Speech started');
+      setIsPaused(false);
     };
     utterance.onerror = (e) => {
       setIsPlaying(false);
-      setIsStarted(false);
+      setIsPaused(false);
       setHighlightedWordIndex(null);
-      console.error("[TTS] Speech error:", e);
+      // Optionally log error
     };
     utterance.onboundary = (event) => {
       if (event.name === "word") {
         setHighlightedWordIndex(currentIndex);
         currentIndexRef.current = currentIndex;
         currentIndex++;
-        console.log('[TTS] Speaking word index:', currentIndex - 1, event);
       }
     };
     utterance.onend = () => {
       setHighlightedWordIndex(null);
       setIsPlaying(false);
-      setIsStarted(false);
-      console.log('[TTS] Speech ended');
+      setIsPaused(false);
     };
     speechRef.current = utterance;
     window.speechSynthesis.speak(utterance);
-    console.log('[TTS] Speech synthesis started with text:', textOnly);
+  };
+
+  const pauseTTS = () => {
+    if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+      window.speechSynthesis.pause();
+      setIsPaused(true);
+      setIsPlaying(true);
+    }
+  };
+
+  const resumeTTS = () => {
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+      setIsPaused(false);
+      setIsPlaying(true);
+    }
   };
 
   // Stop TTS
   const stopTTS = () => {
     window.speechSynthesis.cancel();
     setIsPlaying(false);
-    setIsStarted(false);
+    setIsPaused(false);
     setHighlightedWordIndex(null);
-    console.log('[TTS] Stop button clicked. Speech synthesis cancelled.');
   };
 
-  // If content changes, stop any ongoing TTS
+  // Stop TTS only when component unmounts
   useEffect(() => {
-    stopTTS();
-    setIsStarted(false);
-    setIsPlaying(false);
-    setHighlightedWordIndex(null);
+    return () => {
+      stopTTS();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content]);
+  }, []);
 
   // Render text with highlighting for both formats
   let renderContent = null;
-  if (Array.isArray(content) && content.length > 0 && content[0].PageNumber && content[0].Text !== undefined) {
+  if (typeof content === 'string') {
+    renderContent = <p>{content}</p>;
+  } else if (Array.isArray(content) && content.length > 0 && content[0].PageNumber && content[0].Text !== undefined) {
     // New format: [{ PageNumber, Text }]
     let wordCounter = 0;
     renderContent = content.map((page) => (
@@ -108,7 +123,7 @@ const TextToSpeech = ({ content }) => {
         </p>
       </div>
     ));
-  } else {
+  } else if (Array.isArray(content)) {
     // Old format: [{ type, value }]
     renderContent = content.map((item, index) => {
       if (item.type === "text") {
@@ -150,12 +165,38 @@ const TextToSpeech = ({ content }) => {
       <h2 style={{ textAlign: "center", color: "#333" }}>Article</h2>
       {renderContent}
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24, gap: 16 }}>
-        <button
-          onClick={isPlaying ? stopTTS : playTTS}
-          style={{ fontSize: 20, padding: '12px 32px', borderRadius: 8, background: isPlaying ? '#f44336' : '#4caf50', color: '#fff', border: 'none', cursor: 'pointer' }}
-        >
-          {isPlaying ? 'Stop' : 'Play'}
-        </button>
+        {!isPlaying && (
+          <button
+            onClick={playTTS}
+            style={{ fontSize: 20, padding: '12px 32px', borderRadius: 8, background: '#4caf50', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+          >
+            <FaPlay /> Play
+          </button>
+        )}
+        {isPlaying && !isPaused && (
+          <button
+            onClick={pauseTTS}
+            style={{ fontSize: 20, padding: '12px 32px', borderRadius: 8, background: '#fbc02d', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+          >
+            <FaPause /> Pause
+          </button>
+        )}
+        {isPlaying && isPaused && (
+          <button
+            onClick={resumeTTS}
+            style={{ fontSize: 20, padding: '12px 32px', borderRadius: 8, background: '#4caf50', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+          >
+            <FaPlay /> Resume
+          </button>
+        )}
+        {isPlaying && (
+          <button
+            onClick={stopTTS}
+            style={{ fontSize: 20, padding: '12px 32px', borderRadius: 8, background: '#f44336', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+          >
+            Stop
+          </button>
+        )}
       </div>
     </div>
   );
