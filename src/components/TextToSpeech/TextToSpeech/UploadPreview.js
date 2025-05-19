@@ -4,22 +4,75 @@ import * as pdfjsLib from "pdfjs-dist"; // Import default build
 import JSZip from "jszip";
 import PDFViewer from "../PDFViewer";
 
-const UploadPreview = ({ onContentExtracted, onPdfSelected = () => {} }) => {
+const UploadPreview = ({ onContentExtracted, onPdfSelected = () => {}, coachId, onPlay }) => {
   const [pdfUrl, setPdfUrl] = useState(null);
+  const [lastUploadedContent, setLastUploadedContent] = useState(null); // Store last extracted content for TTS
+  const [errorMsg, setErrorMsg] = useState(''); // Add error message state
 
   const handleFileUpload = async (event) => {
     const uploadedFile = event.target.files[0];
 
     if (uploadedFile) {
+      // Call backend API with file info and coachId (ArticleController)
+      // try {
+      //   await fetch('https://localhost:7046/api/Article/UploadInfo', {
+      //     method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //     },
+      //     body: JSON.stringify({
+      //       fileName: uploadedFile.name,
+      //       fileType: uploadedFile.type,
+      //     }),
+      //   });
+      // } catch (err) {
+      //   console.error('Failed to send file info to backend:', err);
+      // }
+
       if (uploadedFile.type === "application/pdf") {
+        // Send PDF file as FormData to backend PdfToJson endpoint
+        const formData = new FormData();
+        formData.append("file", uploadedFile);
+        try {
+          const response = await fetch("https://localhost:7046/api/Article/PdfToJson", {
+            method: "POST",
+            body: formData,
+          });
+          if (!response.ok) {
+            throw new Error("Failed to convert PDF to JSON");
+          }
+          const data = await response.json();
+          const normalizedPages = normalizeContent(data);
+          if (!normalizedPages.length) {
+            setLastUploadedContent(null);
+            onContentExtracted(null);
+            setErrorMsg('PDF extraction failed: No content found. Please try another file or contact support.');
+            console.error('[UploadPreview] PDF extraction error: No normalized content.', data);
+            return;
+          }
+          onContentExtracted(normalizedPages);
+          setLastUploadedContent(normalizedPages);
+          setErrorMsg('');
+          console.log('[UploadPreview] PDF extracted content set:', normalizedPages);
+        } catch (err) {
+          setLastUploadedContent(null);
+          onContentExtracted(null);
+          setErrorMsg('Failed to send PDF to backend: ' + err.message);
+          console.error("Failed to send PDF to backend:", err);
+        }
+        // Optionally, still show the PDF preview
         const url = URL.createObjectURL(uploadedFile);
-        setPdfUrl(url); // Show PDFViewer below upload
-        onPdfSelected(url); // Still notify parent if needed
+        setPdfUrl(url);
+        onPdfSelected(url);
         return;
       } else {
         setPdfUrl(null); // Hide PDFViewer for non-PDF files
+        setErrorMsg('');
         const extractedContent = await extractContent(uploadedFile);
-        onContentExtracted(extractedContent); // Pass extracted content to parent
+        const normalizedContent = normalizeContent(extractedContent);
+        onContentExtracted(normalizedContent); // Pass normalized content to parent
+        setLastUploadedContent(normalizedContent);
+        console.log('[UploadPreview] DOCX extracted content set:', normalizedContent);
       }
     }
   };
@@ -101,7 +154,7 @@ const UploadPreview = ({ onContentExtracted, onPdfSelected = () => {} }) => {
         if (text) {
           let y = Math.round(item.transform[5]); // Y-position
           let x = Math.round(item.transform[4]); // X-position
-          textFragments.push({ type: "text", value: text, x, y });
+          textFragments.push({ type: 'text', value: text, x, y });
         }
       });
 
@@ -198,9 +251,41 @@ const UploadPreview = ({ onContentExtracted, onPdfSelected = () => {} }) => {
     });
   };
 
+  const handlePlayClick = (e) => {
+    e.preventDefault && e.preventDefault(); // Prevent form submission if inside a form
+    console.log('[UploadPreview] Play button clicked. onPlay:', typeof onPlay, 'lastUploadedContent:', lastUploadedContent);
+    if (onPlay && lastUploadedContent) {
+      onPlay(lastUploadedContent);
+    } else {
+      console.warn('[UploadPreview] Play button: onPlay missing or lastUploadedContent is empty.', { onPlay, lastUploadedContent });
+    }
+  };
+
   return (
     <div>
-      <input type="file" accept=".docx,.pdf" onChange={handleFileUpload} />
+      <div style={{ marginBottom: 24 }}>
+        <label htmlFor="file-upload" style={{ fontWeight: 'bold', marginRight: 8 }}>Upload File:</label>
+        <input
+          id="file-upload"
+          type="file"
+          accept=".docx,.pdf"
+          onChange={handleFileUpload}
+          title="Choose a DOCX or PDF file to upload"
+          placeholder="Select a file"
+        />
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '24px 0' }}>
+        <button
+          onClick={handlePlayClick}
+          style={{ fontSize: 24, padding: '16px 40px', borderRadius: 50, background: '#4caf50', color: '#fff', border: 'none', cursor: 'pointer', marginBottom: 24 }}
+          disabled={!lastUploadedContent}
+        >
+          ▶ Play
+        </button>
+        <div style={{ color: 'red', marginTop: 8 }}>
+          {errorMsg ? errorMsg : (!lastUploadedContent ? 'Play button is disabled because no file was processed.' : null)}
+        </div>
+      </div>
       {pdfUrl && (
         <div style={{ marginTop: 32 }}>
           <PDFViewer documentUrl={pdfUrl} />
@@ -211,3 +296,41 @@ const UploadPreview = ({ onContentExtracted, onPdfSelected = () => {} }) => {
 };
 
 export default UploadPreview;
+
+// Utility: Normalize any API/file output to [{ type: 'text', value: ... }]
+function normalizeContent(raw) {
+  if (!raw) return [];
+  // If already in [{type, value}] format
+  if (Array.isArray(raw) && raw.every(item => item && typeof item === 'object' && 'type' in item && 'value' in item)) {
+    return raw;
+  }
+  // If array of strings
+  if (Array.isArray(raw) && raw.every(item => typeof item === 'string')) {
+    return raw.map(str => ({ type: 'text', value: str }));
+  }
+  // If array of objects with text/Text property
+  if (Array.isArray(raw) && raw.every(item => item && (item.text || item.Text))) {
+    return raw.map(item => ({ type: 'text', value: item.Text || item.text }));
+  }
+  // If object with Pages/pages property
+  if (raw.Pages || raw.pages) {
+    const pages = raw.Pages || raw.pages;
+    return Array.isArray(pages)
+      ? pages.map(p => ({ type: 'text', value: p.Text || p.text || '' }))
+      : [];
+  }
+  // If single string
+  if (typeof raw === 'string') {
+    return [{ type: 'text', value: raw }];
+  }
+  // Fallback: try to extract all string values
+  if (Array.isArray(raw)) {
+    return raw.map(item => ({ type: 'text', value: String(item) }));
+  }
+  return [];
+}
+
+/* If you use backdrop-filter in this file, add -webkit-backdrop-filter as well:
+Example:
+style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+*/

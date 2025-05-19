@@ -14,7 +14,7 @@ const PDFViewer = ({ documentUrl }) => {
   };
 
   return (
-    <div style={{ height: '600px', width: '100%', overflow: 'auto', border: '1px solid #ccc' }}>
+    <div>
       <Document
         file={documentUrl}
         onLoadSuccess={onDocumentLoadSuccess}
@@ -25,7 +25,7 @@ const PDFViewer = ({ documentUrl }) => {
           <Page
             key={`page_${index + 1}`}
             pageNumber={index + 1}
-            width={800}
+            width={undefined} // Let the page take natural width
           />
         ))}
       </Document>

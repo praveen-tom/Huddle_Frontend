@@ -11,8 +11,8 @@ import Client from "./components/Client/Client";
 import PlanSession from "./components/Client/PlanSession"; 
 import { UserContext } from "./Context/UserContext";
 import { Icon } from "@iconify/react";
-import TextToSpeech from "./components/TextToSpeech/TextToSpeech";
-import UploadPreview from "./components/TextToSpeech/UploadPreview";
+import TextToSpeech from "./components/TextToSpeech/TextToSpeech/TextToSpeech";
+import UploadPreview from "./components/TextToSpeech/TextToSpeech/UploadPreview";
 import PDFViewer from "./components/TextToSpeech/PDFViewer";
 
 export default function Home() {
@@ -75,8 +75,21 @@ export default function Home() {
           <div style={{ padding: '2rem', maxWidth: 600, margin: '0 auto' }}>
             <h2>Resource Upload & Text-to-Speech</h2>
             <div style={{ margin: '2rem 0', padding: '1rem', border: '1px solid #ccc', borderRadius: 8, background: '#fafbfc' }}>
-              <UploadPreview onContentExtracted={() => {}} onPdfSelected={setPdfUrl} />
+              <UploadPreview
+                onContentExtracted={setContent}
+                onPdfSelected={setPdfUrl}
+                onPlay={(data) => {
+                  console.log('[Home] onPlay called with content:', data);
+                  setContent(data);
+                }}
+              />
             </div>
+            {content && content.length > 0 && (
+              <>
+                {console.log('[Home] Rendering TextToSpeech with content:', content)}
+                <TextToSpeech content={content} />
+              </>
+            )}
             {pdfUrl && (
               <div style={{ marginTop: 32 }}>
                 <PDFViewer documentUrl={pdfUrl} />
