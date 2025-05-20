@@ -6,11 +6,14 @@ import "react-pdf/dist/esm/Page/TextLayer.css";
 // Set workerSrc for pdfjs
 pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL || ''}/pdf.worker.min.js`;
 
-const PDFViewer = ({ documentUrl }) => {
+const PDFViewer = ({ documentUrl, onLoaded }) => {
   const [numPages, setNumPages] = React.useState(null);
+  const [loaded, setLoaded] = React.useState(false);
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
+    setLoaded(true);
+    if (onLoaded) onLoaded();
   };
 
   return (
