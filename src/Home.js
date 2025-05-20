@@ -12,6 +12,7 @@ import PlanSession from "./components/Client/PlanSession";
 import { UserContext } from "./Context/UserContext";
 import { Icon } from "@iconify/react";
 import UploadPreview from "./components/TextToSpeech/TextToSpeech/UploadPreview";
+import ArticleContent from './components/TextToSpeech/ArticleContent';
 
 export default function Home() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -63,11 +64,8 @@ export default function Home() {
         return <div>Payments Settings Page</div>;
       case "The Huddle Heap":
         return (
-          <div style={{ padding: '2rem', maxWidth: 600, margin: '0 auto' }}>
-            <h2>Resource Upload & Text-to-Speech</h2>
-            <div style={{ margin: '2rem 0', padding: '1rem', border: '1px solid #ccc', borderRadius: 8, background: '#fafbfc' }}>
-              <UploadPreview />
-            </div>
+          <div style={{ padding: '2rem', maxWidth: 900, margin: '0 auto' }}>
+            <ArticleContent />
           </div>
         );
       default:

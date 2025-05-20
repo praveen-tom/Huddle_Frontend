@@ -1,0 +1,47 @@
+.upload-content-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #fafbfc;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.tile {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  transition: box-shadow 0.2s;
+}
+
+.tile:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.tile-thumbnail {
+  width: 100px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+  background: #f0f0f0;
+}
+
+.tile-filename {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+  word-break: break-all;
+}
