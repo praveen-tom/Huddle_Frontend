@@ -98,53 +98,71 @@ const ArticleContent = () => {
     }
   };
 
-  const handlePlay = () => {
+  const handlePlay = async () => {
     if (!selectedDoc) return;
-    const text = getDocText(selectedDoc);
-    if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
-      alert('Text-to-speech is not supported in this browser.');
-      return;
-    }
-    if (!text.trim()) {
-      alert('No text to read.');
-      return;
-    }
-    window.speechSynthesis.cancel();
-    clearPDFHighlights();
-    const words = text.split(/\s+/).filter(Boolean);
-    let wordIdx = 0;
-    const utterance = new window.SpeechSynthesisUtterance(text);
-    utterance.onboundary = (event) => {
-      if (event.name === 'word' && event.charIndex !== undefined) {
-        // Find the word being spoken by char index
-        let charCount = 0;
-        for (let i = 0; i < words.length; i++) {
-          charCount += words[i].length + 1; // +1 for space
-          if (charCount > event.charIndex) {
-            wordIdx = i;
-            break;
-          }
-        }
-        highlightPDFWord(words[wordIdx] || '');
+    // Call PdfConvertion API to get PDF text (POST method, form data)
+    try {
+      const formData = new FormData();
+      formData.append('ArticleName', selectedDoc.fileName);
+      const response = await fetch('https://localhost:7046/api/Article/PdfConvertion', {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) {
+        alert('Failed to fetch PDF text for TTS.');
+        return;
       }
-    };
-    utterance.onend = () => {
-      setIsPlaying(false);
-      setIsPaused(false);
-      setTtsUtterance(null);
+      const data = await response.json();
+      // Use lowercase 'pages' and 'text' as in backend response
+      const text = data.pages && Array.isArray(data.pages)
+        ? data.pages.map(p => p.text || p.Text || '').join(' ')
+        : '';
+      if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
+        alert('Text-to-speech is not supported in this browser.');
+        return;
+      }
+      if (!text.trim()) {
+        alert('No text to read.');
+        return;
+      }
+      window.speechSynthesis.cancel();
       clearPDFHighlights();
-    };
-    utterance.onerror = () => {
-      setIsPlaying(false);
+      const words = text.split(/\s+/).filter(Boolean);
+      let wordIdx = 0;
+      const utterance = new window.SpeechSynthesisUtterance(text);
+      utterance.onboundary = (event) => {
+        if (event.name === 'word' && event.charIndex !== undefined) {
+          let charCount = 0;
+          for (let i = 0; i < words.length; i++) {
+            charCount += words[i].length + 1;
+            if (charCount > event.charIndex) {
+              wordIdx = i;
+              break;
+            }
+          }
+          highlightPDFWord(words[wordIdx] || '');
+        }
+      };
+      utterance.onend = () => {
+        setIsPlaying(false);
+        setIsPaused(false);
+        setTtsUtterance(null);
+        clearPDFHighlights();
+      };
+      utterance.onerror = () => {
+        setIsPlaying(false);
+        setIsPaused(false);
+        setTtsUtterance(null);
+        clearPDFHighlights();
+      };
+      setTtsUtterance(utterance);
+      ttsRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
+      setIsPlaying(true);
       setIsPaused(false);
-      setTtsUtterance(null);
-      clearPDFHighlights();
-    };
-    setTtsUtterance(utterance);
-    ttsRef.current = utterance;
-    window.speechSynthesis.speak(utterance);
-    setIsPlaying(true);
-    setIsPaused(false);
+    } catch (err) {
+      alert('TTS error: ' + err.message);
+    }
   };
 
   const handlePause = () => {
