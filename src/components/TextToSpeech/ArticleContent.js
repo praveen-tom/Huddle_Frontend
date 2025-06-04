@@ -18,19 +18,33 @@ const ArticleContent = () => {
   const [uploadError, setUploadError] = useState('');
 
   useEffect(() => {
-    fetch(process.env.PUBLIC_URL + '/mock.json')
-      .then((res) => res.json())
-      .then((data) => setDocs(data))
-      .catch((err) => console.error('Failed to load mock.json', err));
+    const fetchDocs = async () => {
+      try {
+        const response = await fetch('https://localhost:7046/api/Article/AllHeapDocuments');
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+        const result = await response.json();
+        // Support both { status, data } and plain array
+        let docsArray = Array.isArray(result) ? result : result.data || [];
+        if (!Array.isArray(docsArray)) {
+          throw new Error("Invalid API response format for documents.");
+        }
+        setDocs(docsArray);
+      } catch (err) {
+        console.error("Failed to fetch heap documents:", err.message);
+        setDocs([]);
+      }
+    };
+    fetchDocs();
   }, []);
 
   const handleTileClick = async (doc) => {
     setSelectedDoc(null);
     setPresignedUrl(null);
     try {
-      console.log('Requesting presigned URL for:', doc.ObjectKey);
-      // Use ObjectKey for the API, not FileName
-      const res = await fetch(`https://localhost:7046/api/Article/GetPresignedPdfUrl?fileKey=${encodeURIComponent(doc.ObjectKey)}`);
+      console.log('Requesting presigned URL for:', doc.objectKey);
+      const res = await fetch(`https://localhost:7046/api/Article/GetPresignedPdfUrl?fileKey=${encodeURIComponent(doc.objectKey)}`);
       console.log('Presigned URL response status:', res.status);
       if (!res.ok) {
         const text = await res.text();
@@ -40,7 +54,7 @@ const ArticleContent = () => {
       const data = await res.json();
       console.log('Presigned URL data:', data);
       setSelectedDoc(doc);
-      setPresignedUrl(data.url); // Use the presigned URL from the API response
+      setPresignedUrl(data.url);
     } catch (err) {
       console.error('Error in handleTileClick:', err);
       alert('Could not load PDF: ' + err.message);
@@ -238,17 +252,22 @@ const ArticleContent = () => {
     setUploadError('');
   };
 
+  // Update PDF details view to use correct property names
   if (selectedDoc && presignedUrl) {
     return (
       <div className="article-details-container">
         <div className="article-details-inner">
           {/* Section 1: Image */}
           <div className="article-section image-section">
-            <img src={selectedDoc.ThumbnailImage} alt={selectedDoc.FileName} className="tile-thumbnail" style={{ width: 200, height: 240 }} />
+            {selectedDoc.thumbnailImage ? (
+              <img src={selectedDoc.thumbnailImage} alt={selectedDoc.fileName} className="tile-thumbnail" style={{ width: 200, height: 240 }} />
+            ) : (
+              <div className="tile-thumbnail" style={{ width: 200, height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e0e0', color: '#555', fontWeight: 600, fontSize: '0.95rem' }}>{selectedDoc.fileName}</div>
+            )}
           </div>
           {/* Section 2: Filename and Play/Pause/Stop Buttons */}
           <div className="article-section info-section">
-            <div className="tile-filename" style={{ fontSize: '1.2rem', marginBottom: 16 }}>{selectedDoc.FileName}</div>
+            <div className="tile-filename" style={{ fontSize: '1.2rem', marginBottom: 16 }}>{selectedDoc.fileName}</div>
             {(!isPlaying || isPaused) && (
               <button className="play-btn" onClick={isPaused ? handleResume : handlePlay}>
                 ▶ {isPaused ? 'Resume' : 'Play'}
@@ -340,15 +359,21 @@ const ArticleContent = () => {
       </div>
       <div className="tiles-grid">
         {docs
-          .filter((doc) => doc.FileName.toLowerCase().includes(search.toLowerCase()))
+          .filter((doc) => doc.fileName && doc.fileName.toLowerCase().includes(search.toLowerCase()))
           .map((doc) => (
-            <div className="tile" key={doc.Id} onClick={() => handleTileClick(doc)} style={{ cursor: 'pointer' }}>
-              <img
-                src={doc.ThumbnailImage}
-                alt={doc.FileName}
-                className="tile-thumbnail"
-              />
-              <div className="tile-filename">{doc.FileName}</div>
+            <div className="tile" key={doc.id} onClick={() => handleTileClick(doc)} style={{ cursor: 'pointer' }}>
+              {doc.thumbnailImage ? (
+                <img
+                  src={doc.thumbnailImage}
+                  alt={doc.fileName}
+                  className="tile-thumbnail"
+                />
+              ) : (
+                <div className="tile-thumbnail" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e0e0', color: '#555', fontWeight: 600, fontSize: '0.95rem' }}>
+                  {doc.fileName}
+                </div>
+              )}
+              <div className="tile-filename">{doc.fileName}</div>
             </div>
           ))}
       </div>
