@@ -43,8 +43,14 @@ const ArticleContent = () => {
     setSelectedDoc(null);
     setPresignedUrl(null);
     try {
-      console.log('Requesting presigned URL for:', doc.objectKey);
-      const res = await fetch(`https://localhost:7046/api/Article/GetPresignedPdfUrl?fileKey=${encodeURIComponent(doc.objectKey)}`);
+      // Use fileName instead of objectKey for presigned URL
+      const fileKey = doc.fileName;
+      if (!fileKey) {
+        alert('No file name found for this document.');
+        return;
+      }
+      console.log('Requesting presigned URL for fileName:', fileKey);
+      const res = await fetch(`https://localhost:7046/api/Article/GetPresignedPdfUrl?fileKey=${encodeURIComponent(fileKey)}`);
       console.log('Presigned URL response status:', res.status);
       if (!res.ok) {
         const text = await res.text();
@@ -245,6 +251,38 @@ const ArticleContent = () => {
     }
   };
 
+  // Upload PDF to PdfConvertion API and show in viewer (for preview, not saving)
+  const handlePdfConvertionSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedFile) {
+      setUploadError('Please select a PDF file.');
+      return;
+    }
+    try {
+      // Use GET request with ArticleName as query param (per backend expectation)
+      const articleName = encodeURIComponent(selectedFile.name);
+      const response = await fetch(`https://localhost:7046/api/Article/PdfConvertion?ArticleName=${articleName}`);
+      if (!response.ok) {
+        const text = await response.text();
+        setUploadError('Preview failed: ' + text);
+        return;
+      }
+      const data = await response.json();
+      setShowUploadModal(false);
+      setSelectedFile(null);
+      setUploadError('');
+      setSelectedDoc({
+        fileName: selectedFile.name,
+        thumbnailImage: null,
+        id: 'uploaded-preview',
+        objectKey: null,
+      });
+      setPresignedUrl(data.url);
+    } catch (err) {
+      setUploadError('Preview error: ' + err.message);
+    }
+  };
+
   const handleCloseModal = () => {
     console.log('Upload modal closed');
     setShowUploadModal(false);
@@ -314,7 +352,7 @@ const ArticleContent = () => {
                 )}
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
                   <button type="submit" className="play-btn" style={{ background: '#4caf50' }}>
-                    Submit
+                    Upload
                   </button>
                   <button type="button" className="play-btn" style={{ background: '#aaa' }} onClick={handleCloseModal}>
                     Cancel
