@@ -1,8 +1,10 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
+import { UserContext } from '../../Context/UserContext';
 import './ArticleContent.css';
 import PDFViewer from './PDFViewer';
 
 const ArticleContent = () => {
+  const { user } = useContext(UserContext);
   const [docs, setDocs] = useState([]);
   const [search, setSearch] = useState('');
   const [selectedDoc, setSelectedDoc] = useState(null);
@@ -11,6 +13,9 @@ const ArticleContent = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [ttsUtterance, setTtsUtterance] = useState(null);
   const ttsRef = useRef(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadError, setUploadError] = useState('');
 
   useEffect(() => {
     fetch(process.env.PUBLIC_URL + '/mock.json')
@@ -50,6 +55,29 @@ const ArticleContent = () => {
     return doc.Text || doc.Content || doc.FileName || '';
   };
 
+  // Helper to highlight a word in the PDF text layer
+  const highlightPDFWord = (word) => {
+    // Find all spans in the text layer
+    const spans = document.querySelectorAll('.react-pdf__Page__textContent span');
+    let found = false;
+    for (let span of spans) {
+      // Remove previous highlight
+      span.style.background = '';
+      // Compare text content (case-insensitive, trimmed)
+      if (!found && span.textContent && span.textContent.trim().replace(/\s+/g, ' ') === word.trim().replace(/\s+/g, ' ')) {
+        span.style.background = '#ffe082';
+        found = true;
+      }
+    }
+  };
+
+  const clearPDFHighlights = () => {
+    const spans = document.querySelectorAll('.react-pdf__Page__textContent span');
+    for (let span of spans) {
+      span.style.background = '';
+    }
+  };
+
   const handlePlay = () => {
     if (!selectedDoc) return;
     const text = getDocText(selectedDoc);
@@ -62,16 +90,35 @@ const ArticleContent = () => {
       return;
     }
     window.speechSynthesis.cancel();
+    clearPDFHighlights();
+    const words = text.split(/\s+/).filter(Boolean);
+    let wordIdx = 0;
     const utterance = new window.SpeechSynthesisUtterance(text);
+    utterance.onboundary = (event) => {
+      if (event.name === 'word' && event.charIndex !== undefined) {
+        // Find the word being spoken by char index
+        let charCount = 0;
+        for (let i = 0; i < words.length; i++) {
+          charCount += words[i].length + 1; // +1 for space
+          if (charCount > event.charIndex) {
+            wordIdx = i;
+            break;
+          }
+        }
+        highlightPDFWord(words[wordIdx] || '');
+      }
+    };
     utterance.onend = () => {
       setIsPlaying(false);
       setIsPaused(false);
       setTtsUtterance(null);
+      clearPDFHighlights();
     };
     utterance.onerror = () => {
       setIsPlaying(false);
       setIsPaused(false);
       setTtsUtterance(null);
+      clearPDFHighlights();
     };
     setTtsUtterance(utterance);
     ttsRef.current = utterance;
@@ -101,6 +148,7 @@ const ArticleContent = () => {
     setIsPlaying(false);
     setIsPaused(false);
     setTtsUtterance(null);
+    clearPDFHighlights();
   };
 
   // Keep state in sync if user uses browser controls
@@ -120,6 +168,75 @@ const ArticleContent = () => {
     }, 300);
     return () => clearInterval(interval);
   }, [isPlaying, isPaused]);
+
+  const handleUploadClick = () => {
+    console.log('Upload Article button clicked');
+    setShowUploadModal(true);
+    setSelectedFile(null);
+    setUploadError('');
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    console.log('File selected:', file);
+    if (!file) {
+      setSelectedFile(null);
+      setUploadError('');
+      return;
+    }
+    if (file.type !== 'application/pdf') {
+      setUploadError('Only PDF files are allowed.');
+      setSelectedFile(null);
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError('File size must be less than 10MB.');
+      setSelectedFile(null);
+      return;
+    }
+    setSelectedFile(file);
+    setUploadError('');
+  };
+
+  const handleUploadSubmit = async (e) => {
+    e.preventDefault();
+    console.log('Upload submit clicked');
+    if (!selectedFile) {
+      setUploadError('Please select a PDF file.');
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      if (user && user.id) {
+        formData.append('coachId', user.id);
+      }
+      const response = await fetch('https://localhost:7046/api/Article/PdfToJson', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        setUploadError('Upload failed: ' + text);
+        return;
+      }
+      const data = await response.json();
+      alert('PDF uploaded and parsed! Page count: ' + data.PageCount);
+      // Optionally: add to docs, close modal, etc.
+      setShowUploadModal(false);
+      setSelectedFile(null);
+      setUploadError('');
+    } catch (err) {
+      setUploadError('Upload error: ' + err.message);
+    }
+  };
+
+  const handleCloseModal = () => {
+    console.log('Upload modal closed');
+    setShowUploadModal(false);
+    setSelectedFile(null);
+    setUploadError('');
+  };
 
   if (selectedDoc && presignedUrl) {
     return (
@@ -159,6 +276,36 @@ const ArticleContent = () => {
 
   return (
     <div className="upload-content-container">
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <>
+          <div className="modal-backdrop" onClick={handleCloseModal}></div>
+          <div className="popup">
+            <div className="popup-content">
+              <h3>Upload PDF Article</h3>
+              <form onSubmit={handleUploadSubmit}>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileChange}
+                  style={{ marginBottom: 12 }}
+                />
+                {uploadError && (
+                  <div style={{ color: 'red', marginBottom: 8 }}>{uploadError}</div>
+                )}
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                  <button type="submit" className="play-btn" style={{ background: '#4caf50' }}>
+                    Submit
+                  </button>
+                  <button type="button" className="play-btn" style={{ background: '#aaa' }} onClick={handleCloseModal}>
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
         <input
           type="text"
@@ -186,6 +333,7 @@ const ArticleContent = () => {
             cursor: 'pointer',
             whiteSpace: 'nowrap',
           }}
+          onClick={handleUploadClick}
         >
           Upload Article
         </button>
