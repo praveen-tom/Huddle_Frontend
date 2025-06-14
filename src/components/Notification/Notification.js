@@ -3,6 +3,7 @@ import "./Notification.css";
 import axios from "axios";
 import { HubConnectionBuilder } from "@microsoft/signalr";
 import { UserContext } from "../../Context/UserContext";
+import { Icon } from "@iconify/react";
  
 export default function Notification({ isOpen, onClose }) {
   const [notifications, setNotifications] = useState([]);
@@ -16,7 +17,7 @@ export default function Notification({ isOpen, onClose }) {
     const fetchNotifications = async () => {
       try {
         const response = await axios.get(
-          `https://huddleapi-production.up.railway.app/api/Notification/${CoachId}`
+          `https://localhost:7046/api/Notification/${CoachId}`
         );
         setNotifications(response.data);
       } catch (error) {
@@ -27,7 +28,7 @@ export default function Notification({ isOpen, onClose }) {
     const setupSignalRConnection = async () => {
       try {
         connection = new HubConnectionBuilder()
-.withUrl(`https://huddleapi-production.up.railway.app/notificationHub?CoachId=${CoachId}`, {
+.withUrl(`https://localhost:7046/notificationHub?CoachId=${CoachId}`, {
             withCredentials: true,
           })
           .configureLogging("debug") 
@@ -62,12 +63,10 @@ export default function Notification({ isOpen, onClose }) {
   const markAllAsRead = async () => {
     try {
       
-await fetch(`https://localhost:7046/api/Notification/mark-all-read`, {
-        method: "POST",
+await fetch(`https://localhost:7046/api/Notification/mark-all-read?id=${CoachId}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(CoachId),
       });
- 
       
       setNotifications((prev) =>
         prev.map((notif) => ({ ...notif, isRead: true }))
@@ -76,9 +75,26 @@ await fetch(`https://localhost:7046/api/Notification/mark-all-read`, {
       console.error("Error marking notifications as read:", error);
     }
   };
+
+  const markAsRead = async (notificationId) => {
+    try {
+      await fetch(`https://localhost:7046/api/Notification/markasread?id=${notificationId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+      });
+      setNotifications((prev) =>
+        prev.map((notif) =>
+          notif.id === notificationId ? { ...notif, isRead: true } : notif
+        )
+      );
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
+  }
  
   const MAX_NOTIFICATIONS = 50;
   const displayedNotifications = notifications.slice(-MAX_NOTIFICATIONS);
+  console.log("displayedNotifications",displayedNotifications);
   const unreadCount = notifications.filter((notif) => !notif.isRead).length;
   console.log("notification count",unreadCount,user.id);
   useEffect(() => {
@@ -96,16 +112,22 @@ await fetch(`https://localhost:7046/api/Notification/mark-all-read`, {
         </button>
       </div>
       <div className="notification-content">
-        <ul className="noti-list">
-          {displayedNotifications.map((item, index) => (
-            <li key={index} className={`list-item ${item.isRead ? "read" : ""}`}>
-              <div className="title">{item.message}</div>
-              <div className="time">
-                {item.createdAt
-                  ? new Date(item.createdAt).toLocaleString()
-                  : "Just now"}
-              </div>
-            </li>
+        <ul className="noti-list-panel">
+        {displayedNotifications
+      .filter((item) => !item.isRead) // Filter notifications where isRead is false
+      .map((item, index) => (
+        <li key={index} className="list-item">
+          <div className="title">
+            <div className="message-content">{item.message}</div>
+            <div className="mark-as-read-icon">
+          <Icon icon="mdi:tick-outline" width="24" height="24" onClick={() => markAsRead(item.id)} /></div>
+          </div>
+          <div className="time">
+            {item.createdAt
+              ? new Date(item.createdAt).toLocaleString()
+              : "Just now"}
+          </div>
+        </li>
           ))}
         </ul>
       </div>

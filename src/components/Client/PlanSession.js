@@ -4,7 +4,23 @@ import { Icon } from '@iconify/react';
 import { v4 as uuidv4 } from 'uuid';
 
 const PlanSession = ({ profileData, setCurrentPage }) => {
-  const [activeTab, setActiveTab] = useState("plan");
+  const [activeTab, setActiveTab] = useState(profileData.tab);
+
+  console.log("setcurrentPage", setCurrentPage);
+
+  const [selectedGoals, setSelectedGoals] = useState([]);
+
+  console.log("Selected Goals:", selectedGoals);
+
+  const formatDateToDayMonthYear = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString); // Convert the string to a Date object
+    const options = { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' };
+    const formattedDate = new Intl.DateTimeFormat('en-US', options).format(date);
+  
+    // Ensure the format is "Mon, 10-Mar-2025"
+    return formattedDate.replace(/, /g, '-').replace('-', ', ');
+  };
 
   // Log the received profileData for debugging
   console.log("Profile Data in PlanSession:", profileData);
@@ -44,7 +60,9 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
   const [newTask, setNewTask] = useState('');
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [taskEditIndex, setTaskEditIndex] = useState(null);
-
+  const [planHistory, setPlanHistory] = useState([]);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [templateTitle, setTemplateTitle] = useState("");
   // Sync objectives and tasks with localStorage
   useEffect(() => {
     const storedObjectives = JSON.parse(localStorage.getItem('objectives')) || [];
@@ -52,6 +70,9 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
     setObjectives(storedObjectives);
     setPlannedTasks(storedTasks);
   }, []);
+  console.log(planHistory, "planHistory")
+  console.log(objectives, "templateobjectives")
+  console.log(plannedTasks, "templateplannedTasks")
 
   useEffect(() => {
     localStorage.setItem('objectives', JSON.stringify(objectives));
@@ -61,64 +82,140 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
     localStorage.setItem('plannedTasks', JSON.stringify(plannedTasks));
   }, [plannedTasks]);
 
-  // Form submission handler
-  const handleSubmit = async (e) => {
-    e.preventDefault();
 
-    if (!title.trim()) {
-      alert('Title is required');
-      return;
-    }
-    if (!overview.trim()) {
-      alert('Overview is required');
-      return;
-    }
-    if (objectives.length === 0) {
-      alert('Add at least 1 objective');
-      return;
-    }
-    if (plannedTasks.length === 0) {
-      alert('Add at least 1 planned task');
-      return;
-    }
+  useEffect(() => {
+    localStorage.setItem('planHistory', JSON.stringify(planHistory));
+  }, [planHistory]);
 
-    const plannedSessionData = {
-      Id: uuidv4(),
-      schedulesession: selectedSession?.id || uuidv4(),
-      title,
-      notes: overview,
-      planneddate: date,
-      plannedtime: time,
-      status: 'Not Completed',
-      CreatedBy: profileData.coachId || uuidv4(),
-      CreatedDatetime: new Date().toISOString(),
-      ModifiedBy: profileData.coachId || uuidv4(),
-      ModifiedDatetime: new Date().toISOString(),
-      tasks: plannedTasks,
-      objectives: objectives,
-    };
+// Form submission handler
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      const response = await fetch('https://localhost:7046/api/PlannedSession', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(plannedSessionData),
-      });
+  if (!title.trim()) {
+    alert("Title is required");
+    return;
+  }
+  if (!overview.trim()) {
+    alert("Overview is required");
+    return;
+  }
+  if (objectives.length === 0) {
+    alert("Add at least 1 objective");
+    return;
+  }
+  if (plannedTasks.length === 0) {
+    alert("Add at least 1 planned task");
+    return;
+  }
 
-      if (response.ok) {
-        alert('Session planned successfully!');
-        localStorage.removeItem('objectives');
-        localStorage.removeItem('plannedTasks');
-        setCurrentPage("ClientProfile");
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Unknown error'}`);
-      }
-    } catch (error) {
-      alert(`Failed: ${error.message}`);
-    }
+  // Ask the user if they want to save as a template
+  const saveAsTemplate = window.confirm("Do you want to save this as a template?");
+  if (saveAsTemplate) {
+    // Open the modal to enter the template title
+    setIsTemplateModalOpen(true);
+  } else {
+    // Directly submit the form
+    await submitPlannedSession();
+  }
+};
+
+// Function to handle template submission
+const handleTemplateSubmit = async () => {
+  if (!templateTitle.trim()) {
+    alert("Template title is required");
+    return;
+  }
+
+  const templateData = {
+    templatetitle: templateTitle,
+    isTemplate: true,
+    Id: uuidv4(),
+    schedulesession: selectedSession?.id || uuidv4(),
+    title,
+    notes: overview,
+    planneddate: date,
+    plannedtime: time,
+    status: "Not Completed",
+    CreatedBy: profileData.coachId || uuidv4(),
+    CreatedDatetime: new Date().toISOString(),
+    ModifiedBy: profileData.coachId || uuidv4(),
+    ModifiedDatetime: new Date().toISOString(),
+    tasks: plannedTasks,
+    objectives: objectives,
+    goalid: selectedGoals,
   };
 
+  console.log("Template Data:", templateData); // Log the request body
+
+  try {
+    const response = await fetch("https://localhost:7046/api/PlannedSession", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(templateData),
+    });
+
+    if (response.ok) {
+      alert("Template saved successfully!");
+      setIsTemplateModalOpen(false);
+      localStorage.removeItem("objectives");
+      localStorage.removeItem("plannedTasks");
+      if (typeof setCurrentPage === "function") {
+        setCurrentPage("Daily Huddle");
+      } else {
+        console.error("❌ setCurrentPage is not defined or not a function");
+      }
+    } else {
+      const errorData = await response.json();
+      console.error("Error Response:", errorData); // Log server error response
+      alert(`Error: ${errorData.message || "Unknown error"}`);
+    }
+  } catch (error) {
+    console.error("Error:", error); // Log the error
+    alert(`Failed: ${error.message}`);
+  }
+};
+// Function to submit the planned session
+const submitPlannedSession = async () => {
+  const plannedSessionData = {
+    Id: uuidv4(),
+    schedulesession: selectedSession?.id || uuidv4(),
+    title,
+    notes: overview,
+    planneddate: date,
+    plannedtime: time,
+    status: "Not Completed",
+    CreatedBy: profileData.coachId || uuidv4(),
+    CreatedDatetime: new Date().toISOString(),
+    ModifiedBy: profileData.coachId || uuidv4(),
+    ModifiedDatetime: new Date().toISOString(),
+    tasks: plannedTasks,
+    objectives: objectives,
+  };
+
+  try {
+    const response = await fetch("https://localhost:7046/api/PlannedSession", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(plannedSessionData),
+    });
+
+    if (response.ok) {
+      alert("Session planned successfully!");
+      localStorage.removeItem("objectives");
+      localStorage.removeItem("plannedTasks");
+      if (typeof setCurrentPage === "function") {
+        setCurrentPage("Daily Huddle");
+      } else {
+        console.error("❌ setCurrentPage is not defined or not a function");
+      }
+    } else {
+      const errorData = await response.json();
+      alert(`Error: ${errorData.message || "Unknown error"}`);
+    }
+  } catch (error) {
+    alert(`Failed: ${error.message}`);
+  }
+};
   // Objective handlers
   const handleAddObjective = () => {
     if (objectives.length < 5) {
@@ -219,6 +316,31 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
     setPlannedTasks(plannedTasks.filter((_, i) => i !== index));
   };
 
+  // Handler for checkbox selection
+const handleGoalSelection = (e, goal) => {
+  if (e.target.checked) {
+    // Add the goal to the selectedGoals array
+    setSelectedGoals((prev) => [...prev, goal]);
+  } else {
+    // Remove the goal from the selectedGoals array
+    setSelectedGoals((prev) => prev.filter((g) => g !== goal));
+  }
+};
+
+const handleTemplateSelection = (template) => {
+  // Set the active tab to "plan"
+  setActiveTab("plan");
+  console.log("Selected Template:", template);
+  // Populate the fields with the template's details
+  setTitle(template.templatetitle || "");
+  setOverview(template.notes || "");
+  setObjectives(template.objectives || []);
+  setPlannedTasks(template.tasks || []);
+  setSelectedGoals(template.goalid || []);
+  setDate(template.planneddate || "");
+  setTime(template.plannedtime || "");
+};
+
   return (
     <div className="plan-session-page">
       {/* Navigation tabs */}
@@ -299,6 +421,32 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
                 className="form-group-textarea"
               />
             </div>
+            {/* Goals: */}
+            <div className="form-group">
+              <label>Goals:</label>
+              <div className="form-group-dropdown">
+  <label>Select Goals:</label>
+  <div className="dropdown">
+    <button className="dropdown-button">
+      Select Goals
+      <Icon icon="mdi:chevron-down" className="dropdown-icon" />
+    </button>
+    <div className="dropdown-content">
+      {profileData.goalslist.map((goal, index) => (
+        <div key={index} className="dropdown-item">
+          <input
+            type="checkbox"
+            id={`goal-${index}`}
+            value={goal._id}
+            onChange={(e) => handleGoalSelection(e, goal._id)}
+          />
+          <label htmlFor={`goal-${index}`}>{goal.goalTitle}</label>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+            </div>
 
             {/* Objectives section */}
             <div className="form-group">
@@ -308,7 +456,7 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
                   <ul>
                     {objectives.map((obj, index) => (
                       <li key={obj.Id} className="goal-item">
-                        <div className="goal-label">{obj.Objective}</div>
+                        <div className="goal-label">{obj.objective}</div>
                         <div className="goal-actions">
                           <Icon
                             icon="mdi:pencil"
@@ -433,9 +581,197 @@ const PlanSession = ({ profileData, setCurrentPage }) => {
         )}
 
         {/* Other tabs (to be implemented) */}
-        {activeTab === "goals" && <div>Goals content...</div>}
-        {activeTab === "history" && <div>History content...</div>}
-        {activeTab === "inspiration" && <div>Inspiration content...</div>}
+        {activeTab === "goals" && <div>
+          <label className='tab-heading'>Coaching Plan</label>
+           <div className="section3">
+              <div className="coachplan-goal-box">
+                <div className="coachplan-goals-header">
+                  <h4>GOALS</h4>
+                </div>
+                <div className="coachplan-goal-details">
+                  <div className="coachplan-goals-content">
+                  {profileData.goals.length === 0 && <p>No goals</p>}
+                  {profileData.goals.map((goal, index) => (
+                  <div key={index} className="coachplan-goal-item">
+                  <div className="goal-icon">
+                  <Icon
+                  icon="mage:goals"
+                  style={{ color: "#25376f", fontSize: "2.7rem" }}
+                  />
+                  </div>
+                  <div className="goal-text">{goal}</div>
+                   <button
+                className="add-goal-button"
+                >
+               Add to plan
+              </button>
+                  </div>
+                  ))}
+                  </div>
+                </div>
+              </div>
+          </div>
+        </div>
+         
+      }
+        {activeTab === "history" && <div>
+          <label className='tab-heading'>Session History</label>
+          {profileData.planHistory.length === 0 ? (
+  <p>No data</p>
+) : (
+  profileData.planHistory.map((history, index) => (
+    <div className="section3">
+             <div className="notes-box">
+               <div className="notes-header">
+                 <h4>{history.sessionTitle}</h4>
+               </div>
+               <div className="history-content">
+                 
+                 <div className="history-header">
+                     <p  className="">
+                       <span className="header-title">{formatDateToDayMonthYear(history.plannedDate)}</span>
+                     </p>
+                     <p  className="">
+                       <span className="header-client">{profileData.name}</span>
+                     </p>
+                     </div>
+                     <div className='history-body'>
+                     <div className="history-objectives">
+                       <label className='obj-title'>Objectives:</label>
+         {history.objective.map((obj, i) => (
+           <li key={i} className="objective-item">{obj.objective}</li>
+         ))}
+       </div>
+       <div className='history-notes'>
+         <label className='noted-title'>Notes:</label>
+         <p className="notes">{history.notes}</p>
+       </div>
+       </div>
+                 
+               </div>
+             </div>
+           </div>
+           ))
+)}
+          </div>}
+        {activeTab === "inspiration" && <div>
+          <label className='tab-heading'>Inspiration</label>
+          {/* Discssion Box */}
+           <div className="section3">
+                    <div className="discussion-box">
+                      <div className="dicussion-header">
+                        <h4>DISCUSSION</h4>
+                      </div>
+                      <div className="discssion-content">
+                        <p className='discssion-content-title'>Client not too chatty? Here are some topics to get discussions flowing in your sessions:</p>
+                        <div className='discssion-details'>
+                  {profileData.goals.length === 0 && <p>No goals</p>}
+                  {profileData.goals.map((goal, index) => (
+                  <div key={index} className="discssion-item">
+                  <div className="goal-icon">
+                  <Icon
+                  icon="mage:goals"
+                  style={{ color: "#25376f", fontSize: "2.7rem" }}
+                  />
+                  </div>
+                  <div className="goal-text">{goal}</div>
+                   <button
+                className="add-goal-button"
+                >
+               Add to plan
+              </button>
+                  </div>
+                  ))}
+                  </div>
+                      
+                     
+                      </div>
+                    </div>
+                  </div>
+
+          {/* GAMES Box */}
+          <div className="section3">
+                    <div className="game-box">
+                      <div className="game-header">
+                        <h4>GAMES</h4>
+                      </div>
+                      <div className="game-content">
+                        <p className='game-content-title'>Need to make your sessions a bit more fun? Check out these 15 minute games:</p>
+                        <div className='game-details'>
+                  {profileData.goals.length === 0 && <p>No goals</p>}
+                  {profileData.goals.map((goal, index) => (
+                  <div key={index} className="game-item">
+                  <div className="goal-icon">
+                  <Icon
+                  icon="mage:goals"
+                  style={{ color: "#25376f", fontSize: "2.7rem" }}
+                  />
+                  </div>
+                  <div className="goal-text">{goal}</div>
+                   
+                  </div>
+                  ))}
+                  </div>
+                      
+                     
+                      </div>
+                    </div>
+                  </div>
+
+          {/* TEMPLATES Box */}
+          
+          <div className="section3">
+                    <div className="template-box">
+                      <div className="template-header">
+                        <h4>TEMPLATES</h4>
+                      </div>
+                      <div className="template-content">
+                        <p className='template-content-title'>Bit bored of your coaching style? Check out these templates to switch up your sessions:</p>
+                        <div className='template-details'>
+                  {profileData.goals.length === 0 && <p>No Template</p>}
+                  {profileData.Plantemplate.map((template, index) => (
+                  <div key={index} className="template-item" onClick={() => handleTemplateSelection(template)}>
+                  <div className="goal-icon">
+                  <Icon
+                  icon="mage:goals"
+                  style={{ color: "#25376f", fontSize: "2.7rem" }}
+                  />
+                  </div>
+                  <div className="goal-text">{template.templatetitle}</div>
+                   
+                  </div>
+                  ))}
+                  </div>
+                      </div>
+                    </div>
+                  </div>
+          </div>}
+
+          {isTemplateModalOpen && (
+  <div className="savetemplate-modal">
+    <div className="savetemplate-modal-content">
+      <h3>Save as Template</h3>
+      <input
+        type="text"
+        placeholder="Enter template title"
+        value={templateTitle}
+        onChange={(e) => setTemplateTitle(e.target.value)}
+        className="form-group-input"
+      />
+      <div className="savetemplate-modal-actions">
+        <button className="button button-primary" onClick={handleTemplateSubmit}>
+          Submit
+        </button>
+        <button
+          className="button button-danger"
+          onClick={() => setIsTemplateModalOpen(false)}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );

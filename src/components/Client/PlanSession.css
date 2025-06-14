@@ -467,3 +467,437 @@ ul li {
 width: 100%;
 text-align: center;
 }
+
+.history-objectives
+{
+  max-width: 330px;
+}
+
+.history-body
+{
+  display: flex;
+  flex-direction: row;
+  /* width: 100%; */
+  padding: 9px;
+  gap: 70px;
+}
+
+.header-title
+{
+  font-size: 20px;
+  font-weight: bold;
+  color: #1A274F;
+  margin-bottom: 10px;
+}
+.header-client
+{
+  font-size: 18px;
+  font-weight: bold;
+  color: #1A274F;
+  margin-bottom: 10px;
+}
+.obj-title
+{
+  font-size: 15px;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 10px;
+}
+.objective-item
+{
+  list-style-type:circle;
+}
+
+.history-notes
+{
+  max-width: 200px;
+}
+.noted-title
+{
+  font-size: 15px;
+  font-weight: bold;
+  color: #000;
+  margin: 6px 0px 0px 0px;
+}
+.notes
+{
+  font-size: 14px;
+  color: #000;
+  margin: 6px 0px 0px 0px;
+}
+.tab-heading
+{
+  font-size: 20px;
+  font-weight: bold;
+  color: #1A274F;
+  margin-bottom: 10px;
+}
+.coachplan-goal-box
+{
+  background-color: #f4f5f7;
+  border-radius: 6px;
+  padding: 0px;
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  margin-bottom: 15px;
+  height: 227px;
+  width: 100%;
+}
+.coachplan-goals-header
+{
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 0px;
+  writing-mode: tb-rl;
+  text-align: center;
+  background-color: #25376f;
+  border-radius: 0px 6px 6px 0px;
+  width: 60px;
+  writing-mode: tb-rl;
+  transform: rotate(180deg);
+}
+.coachplan-goals-header h4 ,
+.dicussion-header h4,
+.game-header h4,
+.template-header h4
+{
+  margin: 0px;
+  padding: 10px;
+}
+.coachplan-goal-details
+{
+  font-size: 14px;
+  color: #5C262A;
+  text-align: justify;
+  width: 100%;
+}
+.coachplan-goals-content
+{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+  padding: 14px 16px 15px 0px
+}
+.add-goal-button
+{
+  padding: 6px 10px;
+  margin:10px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #25376f;
+  background-color: #fff;
+  border: 2px solid #25376f;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.coachplan-goal-item
+{display: flex;
+ flex-direction: column;
+justify-content: space-between;
+align-items: center;
+padding: 10px;
+margin-top:20px;
+background-color: #f0f4f8;
+border-radius: 8px;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+.add-goal-button
+{
+  padding: 6px 10px;
+    margin: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #25376f;
+    border: 2px solid #25376f;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+ /* Discssion Box */
+.discussion-box
+{
+  background-color: #f4f5f7;
+    border-radius: 6px;
+    padding: 0px;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    margin-bottom: 15px;
+    height: 260px;
+    width: 100%
+}
+
+.dicussion-header
+{
+  font-size: 1.5rem;
+    font-weight: bold;
+    color: #BBB2CB;
+    margin-bottom: 0px;
+    writing-mode: tb-rl;
+    text-align: center;
+    background-color: #473C5F;
+    border-radius: 0px 6px 6px 0px;
+    width: 60px;
+    writing-mode: tb-rl;
+    transform: rotate(180deg)
+}
+
+.discssion-content-title
+{
+  font-weight:bold
+}
+
+.discssion-details{
+  display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    width: 100%;
+    max-width: 350px;
+    padding: 0px 16px 15px 0px;
+}
+.discssion-item{
+  display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-top: 20px;
+    background-color: #f0f4f8;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0,0.1)
+}
+ /* GAMES BOX */
+ .game-box
+ {
+   background-color: #f4f5f7;
+     border-radius: 6px;
+     padding: 0px;
+     display: flex;
+     flex-direction: row;
+     gap: 15px;
+     margin-bottom: 15px;
+     height: 260px;
+     width: 100%
+ }
+ 
+ .game-header
+ {
+   font-size: 1.5rem;
+     font-weight: bold;
+     color: #9BCBC9;
+     margin-bottom: 0px;
+     writing-mode: tb-rl;
+     text-align: center;
+     background-color: #0D6A66;
+     border-radius: 0px 6px 6px 0px;
+     width: 60px;
+     writing-mode: tb-rl;
+     transform: rotate(180deg)
+ }
+ 
+ .game-content-title
+ {
+   font-weight:bold
+ }
+ 
+ .game-details{
+   display: grid;
+     grid-template-columns: repeat(2, 1fr);
+     gap: 16px;
+     width: 100%;
+     max-width: 350px;
+     padding: 0px 16px 15px 0px;
+ }
+ .game-item{
+   display: flex;
+     flex-direction: column;
+     justify-content: space-between;
+     align-items: center;
+     padding: 10px;
+     margin-top: 20px;
+     background-color: #f0f4f8;
+     border-radius: 8px;
+     box-shadow: 0 2px 4px rgba(0, 0, 0,0.1)
+ }
+
+ /* TEMPLATE BOX */
+
+ .template-box
+ {
+   background-color: #f4f5f7;
+     border-radius: 6px;
+     padding: 0px;
+     display: flex;
+     flex-direction: row;
+     gap: 15px;
+     margin-bottom: 15px;
+     height: 260px;
+     width: 100%
+ }
+ 
+ .template-header
+ {
+   font-size: 1.5rem;
+     font-weight: bold;
+     color: #BBB2CB;
+     margin-bottom: 0px;
+     writing-mode: tb-rl;
+     text-align: center;
+     background-color: #473C5F;
+     border-radius: 0px 6px 6px 0px;
+     width: 60px;
+     writing-mode: tb-rl;
+     transform: rotate(180deg)
+ }
+ 
+ .template-content-title
+ {
+   font-weight:bold
+ }
+ 
+ .template-details{
+   display: grid;
+     grid-template-columns: repeat(2, 1fr);
+     gap: 16px;
+     width: 100%;
+     max-width: 350px;
+     padding: 0px 16px 15px 0px;
+ }
+ .template-item{
+   display: flex;
+     flex-direction: column;
+     justify-content: space-between;
+     align-items: center;
+     padding: 10px;
+     margin-top: 20px;
+     background-color: #f0f4f8;
+     border-radius: 8px;
+     box-shadow: 0 2px 4px rgba(0, 0, 0,0.1);
+     cursor: pointer;
+ }
+
+ /* Dropdown container */
+.form-group-dropdown {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+/* Dropdown button */
+.dropdown-button {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Dropdown icon */
+.dropdown-icon {
+  font-size: 16px;
+  color: #333;
+}
+
+/* Dropdown content */
+.dropdown-content {
+  display: none; /* Hidden by default */
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 100%;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  z-index: 1;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Show dropdown content when dropdown is active */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Dropdown item */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+/* Checkbox styling */
+.dropdown-item input {
+  margin-right: 10px;
+}
+
+/* Modal container */
+.savetemplate-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensure it appears above other elements */
+}
+
+/* Modal content */
+.savetemplate-modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+/* Modal input field */
+.savetemplate-modal-content input {
+  width: 90%;
+  padding: 10px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+/* Modal actions (buttons) */
+.savetemplate-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.savetemplate-modal-actions .button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.savetemplate-modal-actions .button-primary {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.savetemplate-modal-actions .button-danger {
+  background-color: #dc3545;
+  color: #fff;
+}

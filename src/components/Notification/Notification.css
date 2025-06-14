@@ -34,7 +34,7 @@
     border: none;
     color: #007bff;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 18px;
   }
 
   .notification-header .close-btn {
@@ -42,9 +42,24 @@
     border: none;
     font-size: 20px;
     cursor: pointer;
+    color: #000;
   }
   .notification-content {
-    padding: 16px;
+    /* padding: 16px; */
     overflow-y: auto;
     height: calc(100% - 50px);
+    margin:-14px 11px 8px 17px
+  }
+  .noti-list-pane
+  {
+    margin-bottom: 0px;
+    margin-top: 0px;
+  }
+  .message-content{
+    position: absolute;
+  }
+  .mark-as-read-icon
+  {
+    text-align: right;
+    cursor: pointer;
   }

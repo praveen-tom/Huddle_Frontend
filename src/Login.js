@@ -37,7 +37,8 @@ function Login() {
 
         if (data.status === 200) {
           // Log in the user and navigate to the home page
-          login({ name: data.data.name, id: data.data.id });
+          console.log("Login response data:", data);
+          login({ name: data.data.name, id: data.data.id , clientlist: data.data.clientlist});
           navigate("/app");
         } else {
           setError("Invalid credentials. Please try again.");
