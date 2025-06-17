@@ -3,6 +3,7 @@ import { Icon } from "@iconify/react";
 import "./Client.css";
 import SchedulePopup from "./SchedulePopup";
 import GoalPopup from "./GoalPopup";
+import API_ENDPOINTS from "../../apiconfig";
 
 const ClientProfile = ({
   profileData,
@@ -40,7 +41,7 @@ const ClientProfile = ({
   
 
   const handleDocumentDownload = (fileName) => {
-    const url = `https://localhost:7046/api/CoachProfile/DownloadFile/${clientId}/${fileName}`;
+    const url = `${API_ENDPOINTS.baseurl}/CoachProfile/DownloadFile/${clientId}/${fileName}`;
     const link = document.createElement("a");
     link.href = url;
     link.download = fileName;
@@ -53,7 +54,7 @@ const ClientProfile = ({
 
 
   const handlePlanSessionOpen = async (session,tab) => { 
-      const response = await fetch(`https://localhost:7046/api/Client/GetPlanHistory/${profileData.coachId}/${profileData.clientId}`);
+      const response = await fetch(`${API_ENDPOINTS.baseurl}/Client/GetPlanHistory/${profileData.coachId}/${profileData.clientId}`);
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }

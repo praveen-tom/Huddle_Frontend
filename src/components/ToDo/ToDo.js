@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 import "./ToDo.css";
 import { toast } from "react-toastify";
+import API_ENDPOINTS from "../../apiconfig";
 
 function ToDo() {
   const [tasks, setTasks] = useState([
@@ -57,7 +58,7 @@ function ToDo() {
     };
     try {
       console.log("Sending invite request:", requestOptions);
-      const response = await fetch("https://localhost:7046/api/Client", requestOptions);
+      const response = await fetch(`${API_ENDPOINTS.baseurl}/Client`, requestOptions);
       if (response.ok) {
         setIsInviteSent(true);
       } else {
@@ -92,7 +93,7 @@ function ToDo() {
     try {
       console.log(`Fetching profiles for coachId: ${coachId}`);
       const response = await fetch(
-        `https://localhost:7046/api/Coach/getCompletedSessionByCoachId/${coachId}`
+        `${API_ENDPOINTS.baseurl}/Coach/getCompletedSessionByCoachId/${coachId}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -140,7 +141,7 @@ function ToDo() {
     try {
       console.log("Sending review request:", requestOptions);
       const response = await fetch(
-        `https://localhost:7046/api/SessionScheduling/shareReview`, // Adjust endpoint if needed
+        `${API_ENDPOINTS.baseurl}/SessionScheduling/shareReview`, // Adjust endpoint if needed
         requestOptions
       );
 

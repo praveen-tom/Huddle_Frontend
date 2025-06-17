@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './PlanSession.css';
 import { Icon } from '@iconify/react';
 import { v4 as uuidv4 } from 'uuid';
+import API_ENDPOINTS from '../../apiconfig';
 
 const PlanSession = ({ profileData, setCurrentPage }) => {
   const [activeTab, setActiveTab] = useState(profileData.tab);
@@ -148,7 +149,7 @@ const handleTemplateSubmit = async () => {
   console.log("Template Data:", templateData); // Log the request body
 
   try {
-    const response = await fetch("https://localhost:7046/api/PlannedSession", {
+    const response = await fetch(`${API_ENDPOINTS.baseurl}/PlannedSession`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(templateData),
@@ -193,7 +194,7 @@ const submitPlannedSession = async () => {
   };
 
   try {
-    const response = await fetch("https://localhost:7046/api/PlannedSession", {
+    const response = await fetch(`${API_ENDPOINTS.baseurl}/PlannedSession`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(plannedSessionData),

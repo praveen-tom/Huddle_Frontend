@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import './CoachProfile.css';
 import { UserContext } from "../../Context/UserContext";
+import API_ENDPOINTS from "../../apiconfig";
 
 export default function CoachProfile({ isOpen, onClose }) {
     const [notification, setNotification] = useState({});
@@ -24,7 +25,7 @@ export default function CoachProfile({ isOpen, onClose }) {
                     throw new Error("User ID is not available.");
                 }
                 const response = await fetch(
-                    `https://localhost:7046/api/CoachProfile/GetCoachById/${user.id}`
+                    `${API_ENDPOINTS.baseurl}/CoachProfile/GetCoachById/${user.id}`
                 );
                 if (!response.ok) {
                     const errorData = await response.json();
@@ -76,7 +77,7 @@ export default function CoachProfile({ isOpen, onClose }) {
             mobile: notification.mobile,
         };
         try {
-            const response = await fetch("https://localhost:7046/api/CoachProfile/UpdateCoachInfo", {
+            const response = await fetch(`${API_ENDPOINTS.baseurl}/CoachProfile/UpdateCoachInfo`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -119,7 +120,7 @@ export default function CoachProfile({ isOpen, onClose }) {
         console.log("Payload being sent:", payload);
         try {
             const response = await fetch(
-                "https://localhost:7046/api/CoachProfile/SaveTimeslots",
+                `${API_ENDPOINTS.baseurl}/CoachProfile/SaveTimeslots`,
                 {
                     method: "POST",
                     headers: {
@@ -174,7 +175,7 @@ export default function CoachProfile({ isOpen, onClose }) {
             console.log("Payload being sent:", payload);
     
             // Send the request to the backend
-            const response = await fetch("https://localhost:7046/api/Coach/UploadProfileImage", {
+            const response = await fetch(`${API_ENDPOINTS.baseurl}/Coach/UploadProfileImage`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json", // Use JSON for sending the payload

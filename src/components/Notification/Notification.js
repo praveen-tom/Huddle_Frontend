@@ -4,6 +4,7 @@ import axios from "axios";
 import { HubConnectionBuilder } from "@microsoft/signalr";
 import { UserContext } from "../../Context/UserContext";
 import { Icon } from "@iconify/react";
+import API_ENDPOINTS from "../../apiconfig";
  
 export default function Notification({ isOpen, onClose }) {
   const [notifications, setNotifications] = useState([]);
@@ -17,7 +18,7 @@ export default function Notification({ isOpen, onClose }) {
     const fetchNotifications = async () => {
       try {
         const response = await axios.get(
-          `https://localhost:7046/api/Notification/${CoachId}`
+          `${API_ENDPOINTS.baseurl}/Notification/${CoachId}`
         );
         setNotifications(response.data);
       } catch (error) {
@@ -28,7 +29,7 @@ export default function Notification({ isOpen, onClose }) {
     const setupSignalRConnection = async () => {
       try {
         connection = new HubConnectionBuilder()
-.withUrl(`https://localhost:7046/notificationHub?CoachId=${CoachId}`, {
+.withUrl(`${API_ENDPOINTS.url}/notificationHub?CoachId=${CoachId}`, {
             withCredentials: true,
           })
           .configureLogging("debug") 
@@ -63,7 +64,7 @@ export default function Notification({ isOpen, onClose }) {
   const markAllAsRead = async () => {
     try {
       
-await fetch(`https://localhost:7046/api/Notification/mark-all-read?id=${CoachId}`, {
+await fetch(`${API_ENDPOINTS.baseurl}/Notification/mark-all-read?id=${CoachId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
       });
@@ -78,7 +79,7 @@ await fetch(`https://localhost:7046/api/Notification/mark-all-read?id=${CoachId}
 
   const markAsRead = async (notificationId) => {
     try {
-      await fetch(`https://localhost:7046/api/Notification/markasread?id=${notificationId}`, {
+      await fetch(`${API_ENDPOINTS.baseurl}/Notification/markasread?id=${notificationId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
       });

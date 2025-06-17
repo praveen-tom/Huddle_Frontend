@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./YourHuddle.css";
+import API_ENDPOINTS from "../../apiconfig";
 
 const YourHuddle = () => {
   // Assign unique IDs to each huddle item
@@ -38,7 +39,7 @@ const HuddleItem = ({ item }) => {
       if (item.id === 1) {
         // Fetch tasks logic remains unchanged
         const response = await fetch(
-          `https://localhost:7046/api/Coach/gettaskbycoachid/${coachId}`
+          `${API_ENDPOINTS.baseurl}/Coach/gettaskbycoachid/${coachId}`
         );
 
         if (!response.ok) {
@@ -56,7 +57,7 @@ const HuddleItem = ({ item }) => {
       } else if (item.id === 2) {
         // Fetch sessions
         const response = await fetch(
-          `https://localhost:7046/api/Coach/getsessionbycoachid/${coachId}`
+          `${API_ENDPOINTS.baseurl}/Coach/getsessionbycoachid/${coachId}`
         );
 
         if (!response.ok) {
@@ -113,7 +114,7 @@ const HuddleItem = ({ item }) => {
 
       console.log("Sending reminder payload:", payload);
 
-      const response = await fetch("https://localhost:7046/api/Coach/sendRemainderEmail", {
+      const response = await fetch(`${API_ENDPOINTS.baseurl}/Coach/sendRemainderEmail`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

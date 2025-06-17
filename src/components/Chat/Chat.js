@@ -2,6 +2,8 @@ import React, { useEffect, useContext, useState } from 'react';
 import { UIKitProvider, Chat, useClient, rootStore } from 'agora-chat-uikit';
 import 'agora-chat-uikit/style.css';
 import { UserContext } from '../../Context/UserContext';
+import API_ENDPOINTS from '../../apiconfig';
+
 
 const appKey = '611327058#1529103';
 const defaultAvatar = 'https://via.placeholder.com/40';
@@ -9,14 +11,14 @@ const defaultAvatar = 'https://via.placeholder.com/40';
 const getConversationId = (a, b) => [a, b].sort().join('_');
 
 const fetchFromBackend = async (userId) => {
-  const res = await fetch(`https://localhost:7046/api/ChatConversation/${userId}`);
+  const res = await fetch(`${API_ENDPOINTS.baseurl}/ChatConversation/${userId}`);
   if (!res.ok) throw new Error('Failed to fetch conversations');
   return await res.json();
 };
 
 const updateBackendConversation = async (from, to, lastMessage) => {
   try {
-    await fetch('https://localhost:7046/api/ChatConversation/update', {
+    await fetch(`${API_ENDPOINTS.baseurl}/ChatConversation/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -32,7 +34,7 @@ const updateBackendConversation = async (from, to, lastMessage) => {
 
 const resetUnreadOnBackend = async (conversationId, userId) => {
   try {
-    await fetch(`https://localhost:7046/api/ChatConversation/${conversationId}/read`, {
+    await fetch(`${API_ENDPOINTS.baseurl}/ChatConversation/${conversationId}/read`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userId),
@@ -227,7 +229,7 @@ const ChatWrapper = () => {
   const fetchToken = async (userAccount) => {
     try {
       const response = await fetch(
-        `https://localhost:7046/api/AgoraToken/generateUserToken?userAccount=${userAccount}`
+        `${API_ENDPOINTS.baseurl}/AgoraToken/generateUserToken?userAccount=${userAccount}`
       );
       if (response.ok) {
         const data = await response.json();

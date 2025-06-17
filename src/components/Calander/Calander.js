@@ -7,6 +7,7 @@ import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { UserContext } from "../../Context/UserContext";
 import "./Calendar.css";
+import API_ENDPOINTS from "../../apiconfig";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -18,7 +19,7 @@ const Calendar = () => {
   useEffect(() => {
     if (!user?.id) return;
   
-    fetch(`https://localhost:7046/api/SessionScheduling/CoachId?coachid=${user.id}`)
+    fetch(`${API_ENDPOINTS.baseurl}/SessionScheduling/CoachId?coachid=${user.id}`)
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return response.json();
