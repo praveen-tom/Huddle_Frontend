@@ -14,7 +14,7 @@ function Login() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-
+console.log("api",API_ENDPOINTS.getCoachProfile)
     const fetchData = async () => {
       try {
         const response = await fetch(`${API_ENDPOINTS.getCoachProfile}/login`, {

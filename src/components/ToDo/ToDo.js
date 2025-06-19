@@ -141,7 +141,7 @@ function ToDo() {
     try {
       console.log("Sending review request:", requestOptions);
       const response = await fetch(
-        `${API_ENDPOINTS.baseurl}/SessionScheduling/shareReview`, // Adjust endpoint if needed
+        `${API_ENDPOINTS.baseurl}/PlannedSession/shareReview`, // Adjust endpoint if needed
         requestOptions
       );
 
