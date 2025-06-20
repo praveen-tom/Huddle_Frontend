@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import ClientProfile from "./ClientProfile";
 import "./Client.css";
 import { Icon } from "@iconify/react";
+import API_ENDPOINTS from "../../apiconfig";
+
 
 const Client = ({ setCurrentPage }) => {
   const [clientList, setClientList] = useState([]);
@@ -19,7 +21,7 @@ const Client = ({ setCurrentPage }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("https://localhost:7046/api/Client");
+        const response = await fetch(`${API_ENDPOINTS.baseurl}/Client`);
         if (!response.ok) {
           throw new Error(`❌ API Error: ${response.status} ${response.statusText}`);
         }
@@ -52,7 +54,7 @@ const Client = ({ setCurrentPage }) => {
 
   const handleClientClick = async (client) => {
     try {
-      const response = await fetch(`https://localhost:7046/api/Client/GetClientProfileforCoach/${client.id}`);
+      const response = await fetch(`${API_ENDPOINTS.baseurl}/Client/GetClientProfileforCoach/${client.id}`);
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }
@@ -108,7 +110,7 @@ const Client = ({ setCurrentPage }) => {
       body: JSON.stringify(formData),
     };
     try {
-      const response = await fetch("https://localhost:7046/api/Client", requestOptions);
+      const response = await fetch(`${API_ENDPOINTS.baseurl}/Client`, requestOptions);
       if (response.ok) {
         setIsInviteSent(true);
         setFormData({ name: "", mobile: "", email: "" });

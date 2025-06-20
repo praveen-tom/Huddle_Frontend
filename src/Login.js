@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import API_ENDPOINTS from "./apiconfig";
 
+
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,7 +14,7 @@ function Login() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-
+console.log("api",API_ENDPOINTS.getCoachProfile)
     const fetchData = async () => {
       try {
         const response = await fetch(`${API_ENDPOINTS.getCoachProfile}/login`, {
@@ -37,7 +38,8 @@ function Login() {
 
         if (data.status === 200) {
           // Log in the user and navigate to the home page
-          login({ name: data.data.name, id: data.data.id });
+          console.log("Login response data:", data);
+          login({ name: data.data.name, id: data.data.id , clientlist: data.data.clientlist});
           navigate("/app");
         } else {
           setError("Invalid credentials. Please try again.");

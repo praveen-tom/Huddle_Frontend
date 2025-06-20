@@ -9,6 +9,7 @@ import CoachProfile from "./components/CoachProfile/CoachProfile";
 import Calendar from "./components/Calander/Calander";
 import Client from "./components/Client/Client";
 import PlanSession from "./components/Client/PlanSession"; 
+import Chat from "./components/Chat/Chat"; // Import the Chat component
 import { UserContext } from "./Context/UserContext";
 import { Icon } from "@iconify/react";
 import UploadPreview from "./components/TextToSpeech/TextToSpeech/UploadPreview";
@@ -57,9 +58,9 @@ export default function Home() {
       case "My Huddle":
         return <Client setCurrentPage={handleSetCurrentPage} />;
       case "Plan Session":
-        return <PlanSession profileData={selectedProfileData}/>;
+        return <PlanSession profileData={selectedProfileData}  setCurrentPage={handleSetCurrentPage} />; 
       case "Chats":
-        return <div>Chats Page</div>;
+        return <Chat setCurrentPage={handleSetCurrentPage}/>
       case "Payments Settings":
         return <div>Payments Settings Page</div>;
       case "The Huddle Heap":

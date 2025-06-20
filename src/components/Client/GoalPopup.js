@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import "./GoalPopup.css";
 import { UserContext } from "../../Context/UserContext";
+import API_ENDPOINTS from "../../apiconfig";
 
 const GoalPopup = ({ onClose, onSave, profileData }) => {
   const { user } = useContext(UserContext); 
@@ -43,7 +44,7 @@ const GoalPopup = ({ onClose, onSave, profileData }) => {
 
     try {
       
-      const response = await fetch("https://localhost:7046/api/Client/AddGoals", {
+      const response = await fetch(`${API_ENDPOINTS.baseurl}/Client/AddGoals`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(goalData),  

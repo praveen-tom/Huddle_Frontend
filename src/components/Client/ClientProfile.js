@@ -3,6 +3,7 @@ import { Icon } from "@iconify/react";
 import "./Client.css";
 import SchedulePopup from "./SchedulePopup";
 import GoalPopup from "./GoalPopup";
+import API_ENDPOINTS from "../../apiconfig";
 
 const ClientProfile = ({
   profileData,
@@ -34,11 +35,13 @@ const ClientProfile = ({
     (session) => session.status !== "Completed"
   );
   const pastSessions = profileData?.upcomingSchedule?.filter(
-    (session) => session.status === "Completed"
-  );
+    (session) => session.status === "Completed")
+    .slice(0, 3)
+    .sort((a, b) => new Date(a.plannedDate) - new Date(b.plannedDate));
+  
 
   const handleDocumentDownload = (fileName) => {
-    const url = `https://localhost:7046/api/CoachProfile/DownloadFile/${clientId}/${fileName}`;
+    const url = `${API_ENDPOINTS.baseurl}/CoachProfile/DownloadFile/${clientId}/${fileName}`;
     const link = document.createElement("a");
     link.href = url;
     link.download = fileName;
@@ -49,9 +52,16 @@ const ClientProfile = ({
     setGoals([...goals, newGoal]);
   };
 
-  const handlePlanSessionOpen = (session) => {
+
+  const handlePlanSessionOpen = async (session,tab) => { 
+      const response = await fetch(`${API_ENDPOINTS.baseurl}/Client/GetPlanHistory/${profileData.coachId}/${profileData.clientId}`);
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+      const planHistoryData = await response.json();
+      console.log("✅ Plan session history data:", planHistoryData.data);
     if (typeof setCurrentPage === "function") {
-      setCurrentPage("Plan Session", { ...profileData, upcomingSchedule: [session] });
+      setCurrentPage("Plan Session", { ...profileData, upcomingSchedule: [session], planHistory: planHistoryData.data.planHistories,Plantemplate:planHistoryData.data.planTemplate,tab });
     } else {
       console.error("❌ setCurrentPage is not defined or not a function");
     }
@@ -111,8 +121,8 @@ const ClientProfile = ({
               <div className="session-buttons">
                 {/* Upcoming Button */}
                 <button
-                  className={`session-btn upcoming ${
-                    activeSessionTab === "upcoming" ? "active" : ""
+                  className={`upcoming ${
+                    activeSessionTab === "upcoming" ? "btn active" : "btn"
                   }`}
                   onClick={() => setActiveSessionTab("upcoming")}
                 >
@@ -120,8 +130,8 @@ const ClientProfile = ({
                 </button>
                 {/* Past Button */}
                 <button
-                  className={`session-btn past ${
-                    activeSessionTab === "past" ? "active" : ""
+                  className={`past ${
+                    activeSessionTab === "past" ? "btn active" : "btn"
                   }`}
                   onClick={() => setActiveSessionTab("past")}
                 >
@@ -132,12 +142,12 @@ const ClientProfile = ({
                 upcomingSessions?.length > 0 ? (
                   upcomingSessions.map((session, index) => (
                     <div key={index} className="session-info">
-                      <p className="session-title">
+                      <p className="session-list">
                         {`${session.sessiontitle} - ${session.plannedDate} at ${session.plannedTime}`}
                       </p>
                       <button
                         className="session-btn plan"
-                        onClick={() => handlePlanSessionOpen(session)}
+                        onClick={() => handlePlanSessionOpen(session,"plan")}
                       >
                         Plan
                       </button>
@@ -150,8 +160,8 @@ const ClientProfile = ({
                 {activeSessionTab === "past" &&
                 pastSessions?.length > 0 ? (
                   pastSessions.map((session, index) => (
-                    <div key={index} className="session-info">
-                      <p className="session-title">
+                    <div key={index} className="session-information">
+                      <p className="session-list">
                         {`${session.plannedDate} - ${session.sessiontitle}`}
                       </p>
                     </div>
@@ -159,6 +169,9 @@ const ClientProfile = ({
                 ) : activeSessionTab === "past" ? (
                   <p>No past sessions</p>
                 ) : null}
+                {activeSessionTab ==="past" && pastSessions?.length > 0 ? (
+                <button className="session-viewmore"  onClick={() => handlePlanSessionOpen("","history")}>View more</button>
+                ) :  null}
               </div>
               {/* Schedule Button */}
               <div className="schedule-btn">

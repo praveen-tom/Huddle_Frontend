@@ -3,6 +3,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "./SchedulePopup.css";
 import { UserContext } from "../../Context/UserContext";
+import API_ENDPOINTS from "../../apiconfig";
 
 const SchedulePopup = ({ clientName, onClose, profileData }) => {
   const { user } = useContext(UserContext);
@@ -62,7 +63,7 @@ const SchedulePopup = ({ clientName, onClose, profileData }) => {
     
     console.log(sessionData);
     try {
-      const response = await fetch("https://localhost:7046/api/SessionScheduling", {
+      const response = await fetch(`${API_ENDPOINTS.baseurl}/SessionScheduling`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(sessionData),
