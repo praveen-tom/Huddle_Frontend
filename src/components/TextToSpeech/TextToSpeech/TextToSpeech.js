@@ -91,7 +91,7 @@ const TextToSpeech = ({ content }) => {
     return () => {
       stopTTS();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, []);
 
   // Render text with highlighting for both formats

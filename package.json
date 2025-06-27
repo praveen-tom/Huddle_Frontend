@@ -63,6 +63,7 @@
     ]
   },
   "devDependencies": {
-    "@iconify/react": "^5.2.0"
+    "@iconify/react": "^5.2.0",
+    "eslint-plugin-react-hooks": "^4.6.2"
   }
 }
