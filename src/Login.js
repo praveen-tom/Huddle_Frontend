@@ -3,7 +3,6 @@ import { UserContext } from "./Context/UserContext";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import API_ENDPOINTS from "./apiconfig";
-import { authFetch } from "../../api";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -17,11 +16,17 @@ function Login() {
     console.log("api", API_ENDPOINTS.getCoachProfile);
     const fetchData = async () => {
       try {
-        const response = await authFetch.post(
+        const response = await fetch(
           `${API_ENDPOINTS.getCoachProfile}/login`,
           {
-            userName: email,
-            passWord: password,
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userName: email,
+              passWord: password,
+            }),
           }
         );
 
@@ -30,7 +35,7 @@ function Login() {
           return;
         }
 
-        const data = response.data;
+        const data = await response.json();
 
         if (data.status === 200) {
           // Log in the user and navigate to the home page
