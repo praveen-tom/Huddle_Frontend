@@ -1,6 +1,7 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { UIKitProvider, Chat, useClient, rootStore } from 'agora-chat-uikit';
 import 'agora-chat-uikit/style.css';
+import { authFetch } from '../../api';
 import { UserContext } from '../../Context/UserContext';
 import API_ENDPOINTS from '../../apiconfig';
 
@@ -9,40 +10,6 @@ const appKey = '611327058#1529103';
 const defaultAvatar = 'https://via.placeholder.com/40';
 
 const getConversationId = (a, b) => [a, b].sort().join('_');
-
-const fetchFromBackend = async (userId) => {
-  const res = await fetch(`${API_ENDPOINTS.baseurl}/ChatConversation/${userId}`);
-  if (!res.ok) throw new Error('Failed to fetch conversations');
-  return await res.json();
-};
-
-const updateBackendConversation = async (from, to, lastMessage) => {
-  try {
-    await fetch(`${API_ENDPOINTS.baseurl}/ChatConversation/update`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from,
-        to,
-        lastMessage,
-      }),
-    });
-  } catch (err) {
-    console.error('❌ Failed to update backend:', err);
-  }
-};
-
-const resetUnreadOnBackend = async (conversationId, userId) => {
-  try {
-    await fetch(`${API_ENDPOINTS.baseurl}/ChatConversation/${conversationId}/read`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userId),
-    });
-  } catch (err) {
-    console.error('❌ Failed to reset unread count:', err);
-  }
-};
 
 const ChatApp = ({ currentUser, token, clientList }) => {
   const client = useClient();
@@ -54,7 +21,7 @@ const ChatApp = ({ currentUser, token, clientList }) => {
   useEffect(() => {
     if (!currentUser) return;
 
-    fetchFromBackend(currentUser)
+    authFetch(`${API_ENDPOINTS.baseurl}/ChatConversation/${currentUser}`)
       .then((data) => {
         console.log('✅ Load from DB successful:', data);
         const messages = {};

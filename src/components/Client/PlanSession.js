@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './PlanSession.css';
 import { Icon } from '@iconify/react';
 import { v4 as uuidv4 } from 'uuid';
 import API_ENDPOINTS from '../../apiconfig';
+import { authFetch } from "../../api";
+import { UserContext } from "../../Context/UserContext";
 
 const PlanSession = ({ profileData, setCurrentPage }) => {
+  const { user } = useContext(UserContext);
   const [activeTab, setActiveTab] = useState(profileData.tab);
 
   console.log("setcurrentPage", setCurrentPage);
@@ -149,7 +152,7 @@ const handleTemplateSubmit = async () => {
   console.log("Template Data:", templateData); // Log the request body
 
   try {
-    const response = await fetch(`${API_ENDPOINTS.baseurl}/PlannedSession`, {
+    const response = await authFetch(`${API_ENDPOINTS.baseurl}/PlannedSession`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(templateData),
@@ -194,7 +197,7 @@ const submitPlannedSession = async () => {
   };
 
   try {
-    const response = await fetch(`${API_ENDPOINTS.baseurl}/PlannedSession`, {
+    const response = await authFetch(`${API_ENDPOINTS.baseurl}/PlannedSession`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(plannedSessionData),

@@ -5,6 +5,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { authFetch } from "../../api";
 import { UserContext } from "../../Context/UserContext";
 import "./Calendar.css";
 import API_ENDPOINTS from "../../apiconfig";
@@ -19,7 +20,7 @@ const Calendar = () => {
   useEffect(() => {
     if (!user?.id) return;
   
-    fetch(`${API_ENDPOINTS.baseurl}/SessionScheduling/CoachId?coachid=${user.id}`)
+    authFetch(`${API_ENDPOINTS.baseurl}/SessionScheduling/CoachId?coachid=${user.id}`)
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return response.json();

@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Icon } from "@iconify/react";
 import "./Client.css";
 import SchedulePopup from "./SchedulePopup";
 import GoalPopup from "./GoalPopup";
 import API_ENDPOINTS from "../../apiconfig";
+import { authFetch } from "../../api";
+import { UserContext } from "../../Context/UserContext";
 
 const ClientProfile = ({
   profileData,
@@ -13,6 +15,7 @@ const ClientProfile = ({
   clientId,
   setCurrentPage,
 }) => {
+  const { user } = useContext(UserContext);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isGoalPopupOpen, setIsGoalPopupOpen] = useState(false);
   const [goals, setGoals] = useState(profileData?.goals || []);
@@ -54,7 +57,7 @@ const ClientProfile = ({
 
 
   const handlePlanSessionOpen = async (session,tab) => { 
-      const response = await fetch(`${API_ENDPOINTS.baseurl}/Client/GetPlanHistory/${profileData.coachId}/${profileData.clientId}`);
+      const response = await authFetch(`${API_ENDPOINTS.baseurl}/Client/GetPlanHistory/${profileData.coachId}/${profileData.clientId}`, user);
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }

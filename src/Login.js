@@ -3,43 +3,44 @@ import { UserContext } from "./Context/UserContext";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import API_ENDPOINTS from "./apiconfig";
-
+import { authFetch } from "../../api";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { login } = useContext(UserContext);
+  const { login, user } = useContext(UserContext);
 
   const handleLogin = (e) => {
     e.preventDefault();
-console.log("api",API_ENDPOINTS.getCoachProfile)
+    console.log("api", API_ENDPOINTS.getCoachProfile);
     const fetchData = async () => {
       try {
-        const response = await fetch(`${API_ENDPOINTS.getCoachProfile}/login`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userName: email, passWord: password }),
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            setError("Invalid credentials. Please try again.");
-          } else {
-            throw new Error(`Error: ${response.status} ${response.statusText}`);
+        const response = await authFetch.post(
+          `${API_ENDPOINTS.getCoachProfile}/login`,
+          {
+            userName: email,
+            passWord: password,
           }
+        );
+
+        if (response.status !== 200) {
+          setError("Invalid credentials. Please try again.");
           return;
         }
 
-        const data = await response.json();
+        const data = response.data;
 
         if (data.status === 200) {
           // Log in the user and navigate to the home page
           console.log("Login response data:", data);
-          login({ name: data.data.name, id: data.data.id , clientlist: data.data.clientlist});
+          login({
+            name: data.data.name,
+            id: data.data.id,
+            clientlist: data.data.clientlist,
+            Token: data.data.token,
+          });
           navigate("/app");
         } else {
           setError("Invalid credentials. Please try again.");

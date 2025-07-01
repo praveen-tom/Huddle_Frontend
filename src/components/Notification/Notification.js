@@ -1,23 +1,23 @@
-import React, {useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./Notification.css";
-import axios from "axios";
 import { HubConnectionBuilder } from "@microsoft/signalr";
 import { UserContext } from "../../Context/UserContext";
 import { Icon } from "@iconify/react";
 import API_ENDPOINTS from "../../apiconfig";
- 
+import { authFetch } from "../../api";
+
 export default function Notification({ isOpen, onClose }) {
   const [notifications, setNotifications] = useState([]);
-  const{user} = useContext(UserContext);
-  const CoachId = user.id
-  console.log("CoachId",CoachId);
-  const {Notification} = useContext(UserContext);
+  const { user } = useContext(UserContext);
+  const CoachId = user.id;
+  console.log("CoachId", CoachId);
+  const { Notification } = useContext(UserContext);
   useEffect(() => {
     let connection;
- 
+
     const fetchNotifications = async () => {
       try {
-        const response = await axios.get(
+        const response = await authFetch.get(
           `${API_ENDPOINTS.baseurl}/Notification/${CoachId}`
         );
         setNotifications(response.data);
@@ -25,24 +25,22 @@ export default function Notification({ isOpen, onClose }) {
         console.error("Error fetching notifications:", error);
       }
     };
- 
+
     const setupSignalRConnection = async () => {
       try {
         connection = new HubConnectionBuilder()
-.withUrl(`${API_ENDPOINTS.url}/notificationHub?CoachId=${CoachId}`, {
+          .withUrl(`${API_ENDPOINTS.url}/notificationHub?CoachId=${CoachId}`, {
             withCredentials: true,
           })
-          .configureLogging("debug") 
-          .withAutomaticReconnect() 
+          .configureLogging("debug")
+          .withAutomaticReconnect()
           .build();
- 
-        
+
         connection.on("ReceiveNotification", (newNotification) => {
           console.log("New notification received:", newNotification);
-          setNotifications((prev) => [...prev, newNotification]); 
+          setNotifications((prev) => [...prev, newNotification]);
         });
- 
-        
+
         await connection.start();
         console.log("SignalR connection established");
       } catch (error) {
@@ -51,24 +49,24 @@ export default function Notification({ isOpen, onClose }) {
     };
     fetchNotifications();
     setupSignalRConnection();
- 
-    
+
     return () => {
       if (connection) {
-        connection.off("ReceiveNotification"); 
+        connection.off("ReceiveNotification");
         connection.stop().then(() => console.log("SignalR connection stopped"));
       }
     };
   }, [CoachId]);
- 
+
   const markAllAsRead = async () => {
     try {
-      
-await fetch(`${API_ENDPOINTS.baseurl}/Notification/mark-all-read?id=${CoachId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-      });
-      
+      await authFetch.put(
+        `${API_ENDPOINTS.baseurl}/Notification/mark-all-read?id=${CoachId}`,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
       setNotifications((prev) =>
         prev.map((notif) => ({ ...notif, isRead: true }))
       );
@@ -79,10 +77,12 @@ await fetch(`${API_ENDPOINTS.baseurl}/Notification/mark-all-read?id=${CoachId}`,
 
   const markAsRead = async (notificationId) => {
     try {
-      await fetch(`${API_ENDPOINTS.baseurl}/Notification/markasread?id=${notificationId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-      });
+      await authFetch.put(
+        `${API_ENDPOINTS.baseurl}/Notification/markasread?id=${notificationId}`,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       setNotifications((prev) =>
         prev.map((notif) =>
           notif.id === notificationId ? { ...notif, isRead: true } : notif
@@ -91,16 +91,16 @@ await fetch(`${API_ENDPOINTS.baseurl}/Notification/mark-all-read?id=${CoachId}`,
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
-  }
- 
+  };
+
   const MAX_NOTIFICATIONS = 50;
   const displayedNotifications = notifications.slice(-MAX_NOTIFICATIONS);
-  console.log("displayedNotifications",displayedNotifications);
+  console.log("displayedNotifications", displayedNotifications);
   const unreadCount = notifications.filter((notif) => !notif.isRead).length;
-  console.log("notification count",unreadCount,user.id);
+  console.log("notification count", unreadCount, user.id);
   useEffect(() => {
     Notification(unreadCount);
-  }, [unreadCount]); 
+  }, [unreadCount]);
   return (
     <div className={`notification-panel ${isOpen ? "open" : ""}`}>
       <div className="notification-header">
@@ -114,22 +114,28 @@ await fetch(`${API_ENDPOINTS.baseurl}/Notification/mark-all-read?id=${CoachId}`,
       </div>
       <div className="notification-content">
         <ul className="noti-list-panel">
-        {displayedNotifications
-      .filter((item) => !item.isRead) // Filter notifications where isRead is false
-      .map((item, index) => (
-        <li key={index} className="list-item">
-          <div className="title">
-            <div className="message-content">{item.message}</div>
-            <div className="mark-as-read-icon">
-          <Icon icon="mdi:tick-outline" width="24" height="24" onClick={() => markAsRead(item.id)} /></div>
-          </div>
-          <div className="time">
-            {item.createdAt
-              ? new Date(item.createdAt).toLocaleString()
-              : "Just now"}
-          </div>
-        </li>
-          ))}
+          {displayedNotifications
+            .filter((item) => !item.isRead) // Filter notifications where isRead is false
+            .map((item, index) => (
+              <li key={index} className="list-item">
+                <div className="title">
+                  <div className="message-content">{item.message}</div>
+                  <div className="mark-as-read-icon">
+                    <Icon
+                      icon="mdi:tick-outline"
+                      width="24"
+                      height="24"
+                      onClick={() => markAsRead(item.id)}
+                    />
+                  </div>
+                </div>
+                <div className="time">
+                  {item.createdAt
+                    ? new Date(item.createdAt).toLocaleString()
+                    : "Just now"}
+                </div>
+              </li>
+            ))}
         </ul>
       </div>
     </div>

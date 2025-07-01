@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Icon } from "@iconify/react";
 import "./ToDo.css";
 import { toast } from "react-toastify";
 import API_ENDPOINTS from "../../apiconfig";
+import { authFetch } from "../../api";
+import { UserContext } from "../../Context/UserContext";
 
 function ToDo() {
+  const { user } = useContext(UserContext);
   const [tasks, setTasks] = useState([
     { id: 1, text: "Invite new client to Huddle", clickable: true },
     { id: 2, text: "Upload session review", clickable: true },
@@ -58,7 +61,7 @@ function ToDo() {
     };
     try {
       console.log("Sending invite request:", requestOptions);
-      const response = await fetch(`${API_ENDPOINTS.baseurl}/Client`, requestOptions);
+      const response = await authFetch(`${API_ENDPOINTS.baseurl}/Client`, requestOptions, user);
       if (response.ok) {
         setIsInviteSent(true);
       } else {
@@ -92,8 +95,10 @@ function ToDo() {
     setLoading(true);
     try {
       console.log(`Fetching profiles for coachId: ${coachId}`);
-      const response = await fetch(
-        `${API_ENDPOINTS.baseurl}/Coach/getCompletedSessionByCoachId/${coachId}`
+      const response = await authFetch(
+        `${API_ENDPOINTS.baseurl}/Coach/getCompletedSessionByCoachId/${coachId}`,
+        {},
+        user
       );
       if (response.ok) {
         const data = await response.json();
@@ -140,9 +145,10 @@ function ToDo() {
 
     try {
       console.log("Sending review request:", requestOptions);
-      const response = await fetch(
+      const response = await authFetch(
         `${API_ENDPOINTS.baseurl}/PlannedSession/shareReview`, // Adjust endpoint if needed
-        requestOptions
+        requestOptions,
+        user
       );
 
       // Log raw response for debugging

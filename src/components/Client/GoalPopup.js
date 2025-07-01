@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import "./GoalPopup.css";
+import { authFetch } from "../../api";
 import { UserContext } from "../../Context/UserContext";
 import API_ENDPOINTS from "../../apiconfig";
 
@@ -44,21 +45,15 @@ const GoalPopup = ({ onClose, onSave, profileData }) => {
 
     try {
       
-      const response = await fetch(`${API_ENDPOINTS.baseurl}/Client/AddGoals`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(goalData),  
-      });
-
-      const result = await response.json();
+      const response = await authFetch.post(`${API_ENDPOINTS.baseurl}/Client/AddGoals`, goalData);
 
       
-      if (response.ok) {
-        setMessage(result.message || "Goal added successfully.");
+      if (response.status === 200) {
+        setMessage(response.data.message || "Goal added successfully.");
         setIsSuccess(true);
         onSave(goal); 
       } else {
-        setMessage(result.message || "Failed to add goal.");
+        setMessage(response.data.message || "Failed to add goal.");
         setIsSuccess(false);
       }
     } catch (error) {

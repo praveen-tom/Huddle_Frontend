@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
+import { authFetch } from '../../api';
 import { UserContext } from '../../Context/UserContext';
 import './ArticleContent.css';
 import PDFViewer from './PDFViewer';
@@ -20,7 +21,7 @@ const ArticleContent = () => {
   useEffect(() => {
     const fetchDocs = async () => {
       try {
-        const response = await fetch('https://localhost:7046/api/Article/AllHeapDocuments');
+        const response = await authFetch('https://localhost:7046/api/Article/AllHeapDocuments');
         if (!response.ok) {
           throw new Error(`API Error: ${response.status} ${response.statusText}`);
         }
@@ -50,7 +51,7 @@ const ArticleContent = () => {
         return;
       }
       console.log('Requesting presigned URL for fileName:', fileKey);
-      const res = await fetch(`https://localhost:7046/api/Article/GetPresignedPdfUrl?fileKey=${encodeURIComponent(fileKey)}`);
+      const res = await authFetch(`https://localhost:7046/api/Article/GetPresignedPdfUrl?fileKey=${encodeURIComponent(fileKey)}`);
       console.log('Presigned URL response status:', res.status);
       if (!res.ok) {
         const text = await res.text();
@@ -104,7 +105,7 @@ const ArticleContent = () => {
     try {
       const formData = new FormData();
       formData.append('ArticleName', selectedDoc.fileName);
-      const response = await fetch('https://localhost:7046/api/Article/PdfConvertion', {
+      const response = await authFetch('https://localhost:7046/api/Article/PdfConvertion', {
         method: 'POST',
         body: formData
       });
@@ -249,7 +250,7 @@ const ArticleContent = () => {
       if (user && user.id) {
         formData.append('coachId', user.id);
       }
-      const response = await fetch('https://localhost:7046/api/Article/PdfToJson', {
+      const response = await authFetch('https://localhost:7046/api/Article/PdfToJson', {
         method: 'POST',
         body: formData,
       });
@@ -279,7 +280,7 @@ const ArticleContent = () => {
     try {
       // Use GET request with ArticleName as query param (per backend expectation)
       const articleName = encodeURIComponent(selectedFile.name);
-      const response = await fetch(`https://localhost:7046/api/Article/PdfConvertion?ArticleName=${articleName}`);
+      const response = await authFetch(`https://localhost:7046/api/Article/PdfConvertion?ArticleName=${articleName}`);
       if (!response.ok) {
         const text = await response.text();
         setUploadError('Preview failed: ' + text);

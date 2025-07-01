@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import './CoachProfile.css';
 import { UserContext } from "../../Context/UserContext";
 import API_ENDPOINTS from "../../apiconfig";
+import { authFetch } from "../../api";
 
 export default function CoachProfile({ isOpen, onClose }) {
     const [notification, setNotification] = useState({});
@@ -24,8 +25,10 @@ export default function CoachProfile({ isOpen, onClose }) {
                 if (!user?.id) {
                     throw new Error("User ID is not available.");
                 }
-                const response = await fetch(
-                    `${API_ENDPOINTS.baseurl}/CoachProfile/GetCoachById/${user.id}`
+                const response = await authFetch(
+                    `${API_ENDPOINTS.baseurl}/CoachProfile/GetCoachById/${user.id}`,
+                    {},
+                    user
                 );
                 if (!response.ok) {
                     const errorData = await response.json();
@@ -77,13 +80,13 @@ export default function CoachProfile({ isOpen, onClose }) {
             mobile: notification.mobile,
         };
         try {
-            const response = await fetch(`${API_ENDPOINTS.baseurl}/CoachProfile/UpdateCoachInfo`, {
+            const response = await authFetch(`${API_ENDPOINTS.baseurl}/CoachProfile/UpdateCoachInfo`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(updatedCoachInfo),
-            });
+            }, user);
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || "Failed to update coach info.");
@@ -119,7 +122,7 @@ export default function CoachProfile({ isOpen, onClose }) {
         };
         console.log("Payload being sent:", payload);
         try {
-            const response = await fetch(
+            const response = await authFetch(
                 `${API_ENDPOINTS.baseurl}/CoachProfile/SaveTimeslots`,
                 {
                     method: "POST",
@@ -127,7 +130,8 @@ export default function CoachProfile({ isOpen, onClose }) {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify(payload),
-                }
+                },
+                user
             );
             if (!response.ok) {
                 const errorData = await response.json();
@@ -175,13 +179,13 @@ export default function CoachProfile({ isOpen, onClose }) {
             console.log("Payload being sent:", payload);
     
             // Send the request to the backend
-            const response = await fetch(`${API_ENDPOINTS.baseurl}/Coach/UploadProfileImage`, {
+            const response = await authFetch(`${API_ENDPOINTS.baseurl}/Coach/UploadProfileImage`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json", // Use JSON for sending the payload
                 },
                 body: JSON.stringify(payload),
-            });
+            }, user);
     
             if (!response.ok) {
                 let errorText;

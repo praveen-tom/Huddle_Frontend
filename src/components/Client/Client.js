@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import ClientProfile from "./ClientProfile";
 import "./Client.css";
 import { Icon } from "@iconify/react";
 import API_ENDPOINTS from "../../apiconfig";
-
+import { authFetch } from "../../api";
+import { UserContext } from "../../Context/UserContext";
 
 const Client = ({ setCurrentPage }) => {
+  const { user } = useContext(UserContext);
   const [clientList, setClientList] = useState([]);
   const [filteredClients, setFilteredClients] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -21,7 +23,7 @@ const Client = ({ setCurrentPage }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${API_ENDPOINTS.baseurl}/Client`);
+        const response = await authFetch(`${API_ENDPOINTS.baseurl}/Client`, user);
         if (!response.ok) {
           throw new Error(`❌ API Error: ${response.status} ${response.statusText}`);
         }
@@ -41,7 +43,7 @@ const Client = ({ setCurrentPage }) => {
       }
     };
     fetchData();
-  }, []);
+  }, [user]);
 
   const handleSearch = (event) => {
     const term = event.target.value.toLowerCase();
@@ -54,7 +56,7 @@ const Client = ({ setCurrentPage }) => {
 
   const handleClientClick = async (client) => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.baseurl}/Client/GetClientProfileforCoach/${client.id}`);
+      const response = await authFetch(`${API_ENDPOINTS.baseurl}/Client/GetClientProfileforCoach/${client.id}`, user);
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }
@@ -110,7 +112,7 @@ const Client = ({ setCurrentPage }) => {
       body: JSON.stringify(formData),
     };
     try {
-      const response = await fetch(`${API_ENDPOINTS.baseurl}/Client`, requestOptions);
+      const response = await authFetch(`${API_ENDPOINTS.baseurl}/Client`, user, requestOptions);
       if (response.ok) {
         setIsInviteSent(true);
         setFormData({ name: "", mobile: "", email: "" });

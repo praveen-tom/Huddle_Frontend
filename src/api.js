@@ -19,3 +19,18 @@ export const fetchData = async (endpointKey) => {
     throw error;
   }
 };
+
+// Helper to get token from user context or localStorage
+export function getAuthToken(user) {
+  return (user && (user.Token || user.token)) || localStorage.getItem('token');
+}
+
+// Universal fetch wrapper for Bearer token
+export async function authFetch(url, options = {}, user) {
+  const token = getAuthToken(user);
+  const headers = {
+    ...(options.headers || {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+  return fetch(url, { ...options, headers });
+}

@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import "./YourHuddle.css";
 import API_ENDPOINTS from "../../apiconfig";
 import UploadPreview from "../TextToSpeech/TextToSpeech/UploadPreview";
+import { UserContext } from "../../Context/UserContext";
+import { authFetch } from "../../api";
 
 const YourHuddle = () => {
   // Assign unique IDs to each huddle item
@@ -30,6 +32,7 @@ const HuddleItem = ({ item }) => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const { user } = useContext(UserContext);
 
   const handleBellClick = async () => {
     setShowPopup(true);
@@ -37,12 +40,14 @@ const HuddleItem = ({ item }) => {
     setLoading(true);
 
     try {
-      const coachId = "11631c17-8bc5-49f2-8a10-45238ebf5424";
+      const coachId = user?.id || "11631c17-8bc5-49f2-8a10-45238ebf5424";
 
       if (item.id === 1) {
         // Fetch tasks logic remains unchanged
-        const response = await fetch(
-          `${API_ENDPOINTS.baseurl}/Coach/gettaskbycoachid/${coachId}`
+        const response = await authFetch(
+          `${API_ENDPOINTS.baseurl}/Coach/gettaskbycoachid/${coachId}`,
+          {},
+          user
         );
 
         if (!response.ok) {
@@ -59,8 +64,10 @@ const HuddleItem = ({ item }) => {
         }
       } else if (item.id === 2) {
         // Fetch sessions
-        const response = await fetch(
-          `${API_ENDPOINTS.baseurl}/Coach/getsessionbycoachid/${coachId}`
+        const response = await authFetch(
+          `${API_ENDPOINTS.baseurl}/Coach/getsessionbycoachid/${coachId}`,
+          {},
+          user
         );
 
         if (!response.ok) {
@@ -117,20 +124,28 @@ const HuddleItem = ({ item }) => {
 
       console.log("Sending reminder payload:", payload);
 
-      const response = await fetch(`${API_ENDPOINTS.baseurl}/Coach/sendRemainderEmail`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await authFetch(
+        `${API_ENDPOINTS.baseurl}/Coach/sendRemainderEmail`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      });
+        user
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to send reminder");
       }
 
-      alert(`Reminder sent successfully for ${item.name.toLowerCase()} ID: ${itemData.sessionId || itemData.plannedTaskId}`);
+      alert(
+        `Reminder sent successfully for ${item.name.toLowerCase()} ID: ${
+          itemData.sessionId || itemData.plannedTaskId
+        }`
+      );
     } catch (error) {
       console.error(error.message);
       alert(`Error sending reminder: ${error.message}`);
@@ -179,13 +194,19 @@ const HuddleItem = ({ item }) => {
             <div className="popup-header">
               <h3>{item.name}</h3>
               <div className="popup-actions">
-                <button className="send-all-btn" onClick={handleSendAllReminders}>
+                <button
+                  className="send-all-btn"
+                  onClick={handleSendAllReminders}
+                >
                   Send All
                 </button>
                 <button className="close-btn" onClick={handleClosePopup}>
                   &times;
                 </button>
-                <button className="send-all-btn" onClick={() => setShowUpload((v) => !v)}>
+                <button
+                  className="send-all-btn"
+                  onClick={() => setShowUpload((v) => !v)}
+                >
                   {showUpload ? "Hide Upload" : "Show Upload"}
                 </button>
               </div>
@@ -194,7 +215,7 @@ const HuddleItem = ({ item }) => {
               {showUpload ? (
                 <UploadPreview onContentExtracted={() => {}} />
               ) : loading ? (
-                <p>Loading...</p> 
+                <p>Loading...</p>
               ) : item.id === 1 ? (
                 tasks.length > 0 ? (
                   <table className="datagrid">
