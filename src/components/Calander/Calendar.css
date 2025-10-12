@@ -1,3 +1,69 @@
+i .fc-daygrid-day, .fc-timegrid-slot {
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  min-height: 60px;
+  transition: background 0.2s;
+}
+
+.fc-daygrid-day:hover, .fc-timegrid-slot:hover {
+  background: #f1f3f6;
+}
+
+.fc-event {
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(71, 60, 95, 0.10);
+  padding: 6px 18px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 1rem;
+  color: #473c5f;
+  border: none;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: box-shadow 0.2s, background 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fc-event:hover {
+  box-shadow: 0 4px 16px rgba(71, 60, 95, 0.18);
+  background: #ece9f6;
+  transform: scale(1.02);
+}
+
+.fc-event-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #473c5f;
+}
+
+.fc-event-time {
+  font-size: 0.95rem;
+  color: #6c5b7b;
+  margin-left: 6px;
+}
+
+.fc-daygrid-day-number {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #473c5f;
+  margin-bottom: 2px;
+}
+
+@media (max-width: 700px) {
+  .fc-daygrid-day, .fc-timegrid-slot {
+    min-height: 40px;
+    font-size: 0.95rem;
+  }
+  .fc-event {
+    padding: 4px 10px;
+    font-size: 0.95rem;
+  }
+  .fc-daygrid-day-number {
+    font-size: 1rem;
+  }
+}
 .calendar-layout {
   display: flex;
   gap: 15px;
@@ -131,4 +197,68 @@
  
 .hours-summary li {
   margin: 8px 0; /* Add vertical spacing */
+}
+
+.rbc-event {
+  padding: 0 !important;
+  border: none;
+}
+
+.calendar-event-week {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+
+.calendar-event-week-client {
+  font-weight: 500;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.calendar-event-month {
+  --event-accent: #4a90e2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: rgba(71, 60, 95, 0.08);
+  border-radius: 12px;
+  border-left: 4px solid var(--event-accent);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+}
+
+.calendar-event-month-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--event-accent);
+  background: #f7f7fb;
+  flex-shrink: 0;
+}
+
+.calendar-event-month-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.calendar-event-month-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2f3142;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendar-event-month-client {
+  font-size: 0.82rem;
+  color: #5f6368;
 }
