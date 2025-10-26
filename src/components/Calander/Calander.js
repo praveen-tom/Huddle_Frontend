@@ -4,12 +4,41 @@ import format from 'date-fns/format';
 import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
+import addMinutes from 'date-fns/addMinutes';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { UserContext } from "../../Context/UserContext";
 import "./Calendar.css";
 import API_ENDPOINTS from "../../apiconfig";
+
+const sniffMimeTypeFromBase64 = (base64Value) => {
+  if (!base64Value) return "image/png";
+  const trimmed = `${base64Value}`.trim();
+  if (trimmed.startsWith("iVBOR")) return "image/png";
+  if (trimmed.startsWith("/9j")) return "image/jpeg";
+  if (trimmed.startsWith("R0lGOD")) return "image/gif";
+  return "image/png";
+};
+
+const normalizeProfileImageSrc = (rawValue, mimeTypeHint) => {
+  if (!rawValue) return null;
+  const serialized = `${rawValue}`.trim();
+  if (!serialized) return null;
+
+  if (/^data:/i.test(serialized) || /^https?:\/\//i.test(serialized)) {
+    return serialized;
+  }
+
+  const hintedMime = mimeTypeHint ? `${mimeTypeHint}`.trim().toLowerCase() : "";
+  const inferredMime = sniffMimeTypeFromBase64(serialized);
+  const candidateMime = hintedMime || inferredMime;
+  const safeMime = candidateMime.startsWith("image/")
+    ? candidateMime
+    : `image/${candidateMime.replace(/[^a-z0-9+.-]/g, "") || "png"}`;
+
+  return `data:${safeMime};base64,${serialized}`;
+};
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -34,6 +63,22 @@ const Calendar = () => {
   const [showEventModal, setShowEventModal] = useState(false);
   const [newEventInfo, setNewEventInfo] = useState({ title: "", start: null, end: null });
   const [currentView, setCurrentView] = useState('week');
+  const calendarMinTime = React.useMemo(() => {
+    const start = new Date();
+    start.setHours(5, 0, 0, 0);
+    return start;
+  }, []);
+
+  const calendarMaxTime = React.useMemo(() => {
+    const end = new Date();
+    end.setHours(17, 0, 0, 0);
+    return end;
+  }, []);
+
+  const calendarHeight = React.useMemo(
+    () => (currentView === 'month' ? 600 : 880),
+    [currentView]
+  );
 
   useEffect(() => {
     if (!user?.id) return;
@@ -53,20 +98,52 @@ const Calendar = () => {
         // Format events for react-big-calendar
         const formattedEvents = eventsArray.map((event) => {
           const accent = event.color || "#4A90E2";
+          const startDate = new Date(event.startDateTime || event.start);
+          const proposedEnd = event.endDateTime || event.end;
+          let endDate = proposedEnd ? new Date(proposedEnd) : null;
+          const rawProfileImage =
+            event.profileImage ||
+            event.clientProfileImage ||
+            event.clientProfilePicture ||
+            event.avatar ||
+            event.photo;
+          const normalizedProfileImage = normalizeProfileImageSrc(
+            rawProfileImage,
+            event.profileImageMimeType ||
+              event.profileImageType ||
+              event.clientProfileImageType ||
+              event.imageContentType
+          );
+
+          if (!startDate || Number.isNaN(startDate.getTime())) {
+            return null;
+          }
+
+          if (!endDate || Number.isNaN(endDate.getTime()) || endDate <= startDate) {
+            endDate = addMinutes(startDate, 30);
+          }
+
+          const startHour = startDate.getHours() + startDate.getMinutes() / 60;
+          const endHour = endDate.getHours() + endDate.getMinutes() / 60;
+          const isOutsideVisibleRange = startHour < 5 || endHour > 16;
+
           return {
             id: event.id?.toString() || Math.random().toString(36).substr(2, 9),
             title: event.title || `Session with ${event.clientName || 'Client'}`,
-            start: new Date(event.startDateTime || event.start),
-            end: new Date(event.endDateTime || event.end),
-            allDay: false,
+            start: startDate,
+            end: endDate,
+            allDay: isOutsideVisibleRange,
             color: accent,
             resource: {
               color: accent,
               clientName: event.clientName,
-              profileImage: event.profileImage,
+              profileImage: normalizedProfileImage,
+              originalStart: startDate,
+              originalEnd: endDate,
+              isOutsideVisibleRange,
             },
           };
-        });
+        }).filter(Boolean);
         setEvents(formattedEvents);
       })
       .catch(error => {
@@ -78,10 +155,12 @@ const Calendar = () => {
   const CalendarEvent = ({ event }) => {
     const accent = event.resource?.color || "#4A90E2";
     const clientName = event.resource?.clientName?.trim();
-    const hasImage = currentView === 'month';
-    const profileImage = event.resource?.profileImage?.trim()
-      ? event.resource.profileImage
-      : defaultAvatar;
+    const profileImage = event.resource?.profileImage || defaultAvatar;
+    const originalStart = event.resource?.originalStart;
+    const originalEnd = event.resource?.originalEnd;
+    const timeLabel = originalStart && originalEnd
+      ? `${format(originalStart, 'p')} - ${format(originalEnd, 'p')}`
+      : null;
 
     if (currentView === 'month') {
       return (
@@ -89,13 +168,11 @@ const Calendar = () => {
           className="calendar-event-month"
           style={{ '--event-accent': accent }}
         >
-          {hasImage && (
-            <img
-              className="calendar-event-month-avatar"
-              src={profileImage}
-              alt={clientName || event.title}
-            />
-          )}
+          <img
+            className="calendar-event-month-avatar"
+            src={profileImage}
+            alt={clientName || event.title}
+          />
           <div className="calendar-event-month-text">
             <span className="calendar-event-month-title" title={event.title}>
               {event.title}
@@ -112,14 +189,26 @@ const Calendar = () => {
 
     return (
       <div className="calendar-event-week">
-        <span className="calendar-event-week-title" title={event.title}>
-          {event.title}
-        </span>
-        {clientName && (
-          <span className="calendar-event-week-client" title={clientName}>
-            {clientName}
+        <img
+          className="calendar-event-week-avatar"
+          src={profileImage}
+          alt={clientName || event.title}
+        />
+        <div className="calendar-event-week-details">
+          <span className="calendar-event-week-title" title={event.title}>
+            {event.title}
           </span>
-        )}
+          {timeLabel && (
+            <span className="calendar-event-week-time" title={timeLabel}>
+              {timeLabel}
+            </span>
+          )}
+          {clientName && (
+            <span className="calendar-event-week-client" title={clientName}>
+              {clientName}
+            </span>
+          )}
+        </div>
       </div>
     );
   };
@@ -220,10 +309,13 @@ const Calendar = () => {
           events={events}
           startAccessor="start"
           endAccessor="end"
-          style={{ height: 600 }}
+          style={{ height: calendarHeight }}
           views={['month', 'week', 'day']}
           view={currentView}
           defaultView="week"
+          min={calendarMinTime}
+          max={calendarMaxTime}
+          scrollToTime={calendarMinTime}
           popup
           selectable
           onSelectSlot={(slotInfo) => {

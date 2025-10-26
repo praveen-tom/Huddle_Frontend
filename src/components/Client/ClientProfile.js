@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
 import "./Client.css";
 import SchedulePopup from "./SchedulePopup";
@@ -16,6 +16,9 @@ const ClientProfile = ({
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isGoalPopupOpen, setIsGoalPopupOpen] = useState(false);
   const [goals, setGoals] = useState(profileData?.goals || []);
+  const [documentList, setDocumentList] = useState(profileData?.documents || []);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const moods = profileData?.moods || [];
   const today = new Date().toISOString().split("T")[0];
   const todayIndex = moods.findIndex((mood) => mood.createdDate === today);
@@ -28,7 +31,9 @@ const ClientProfile = ({
     return <div>Loading...</div>;
   }
 
-  const documents = profileData?.documents || [];
+  useEffect(() => {
+    setDocumentList(profileData?.documents || []);
+  }, [profileData]);
 
   // Filter upcoming and past sessions based on status
   const upcomingSessions = profileData?.upcomingSchedule?.filter(
@@ -46,6 +51,67 @@ const ClientProfile = ({
     link.href = url;
     link.download = fileName;
     link.click();
+  };
+
+  const openFilePicker = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleDocumentUpload = async (event) => {
+    const [file] = Array.from(event.target.files || []);
+
+    if (!file) {
+      return;
+    }
+
+    const selectedClientId =
+      clientId ?? profileData?.clientId ?? profileData?.id ?? profileData?.clientID;
+    if (!selectedClientId) {
+      console.error("❌ Missing client identifier for upload.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      setIsUploading(true);
+      const response = await fetch(
+        `${API_ENDPOINTS.baseurl}/Client/upload?clientId=${encodeURIComponent(
+          String(selectedClientId)
+        )}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+
+      let data = null;
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        data = await response.json();
+      }
+
+      if (Array.isArray(data?.data?.documents)) {
+        setDocumentList(data.data.documents);
+      } else {
+        setDocumentList((prev) => [...prev, file.name]);
+      }
+    } catch (error) {
+      console.error("❌ Failed to upload documents:", error);
+    } finally {
+      setIsUploading(false);
+      if (event.target) {
+        event.target.value = "";
+      }
+    }
   };
 
   const handleAddGoal = (newGoal) => {
@@ -303,11 +369,29 @@ const ClientProfile = ({
               <h4>DOCS</h4>
             </div>
             <div className="document-content">
-              {documents.length === 0 ? (
+              <div className="document-actions">
+              <button
+                type="button"
+                className="document-upload-btn"
+                onClick={openFilePicker}
+                disabled={isUploading}
+              >
+                <Icon icon="mdi:plus" width="20" height="20" />
+                <span className="document-upload-label">Upload</span>
+              </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleDocumentUpload}
+                  style={{ display: "none" }}
+                />
+              </div>
+              {isUploading && <p className="document-status">Uploading...</p>}
+              {documentList.length === 0 ? (
                 <p>No documents available.</p>
               ) : (
                 <ul>
-                  {documents.map((doc, index) => (
+                  {documentList.map((doc, index) => (
                     <li key={index}>
                       <button
                         onClick={() => handleDocumentDownload(doc)}

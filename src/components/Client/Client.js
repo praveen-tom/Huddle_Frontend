@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import ClientProfile from "./ClientProfile";
 import "./Client.css";
 import { Icon } from "@iconify/react";
@@ -17,6 +17,111 @@ const Client = ({ setCurrentPage }) => {
   const [isInviteSent, setIsInviteSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorPopup, setErrorPopup] = useState(false);
+  const [sortConfig, setSortConfig] = useState({ key: "name", direction: "asc" });
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+
+  const sortOptions = useMemo(
+    () => [
+      {
+        id: "name-asc",
+        label: "Name A → Z",
+        config: { key: "name", direction: "asc" },
+        icon: "ph:sort-ascending",
+      },
+      {
+        id: "name-desc",
+        label: "Name Z → A",
+        config: { key: "name", direction: "desc" },
+        icon: "ph:sort-descending",
+      },
+      {
+        id: "lastSession-most",
+        label: "Most Recent Session",
+        config: { key: "lastSession", direction: "asc" },
+        icon: "mdi:history",
+      },
+      {
+        id: "lastSession-least",
+        label: "Least Recent Session",
+        config: { key: "lastSession", direction: "desc" },
+        icon: "mdi:history-toggle-off",
+      },
+      {
+        id: "planned-first",
+        label: "Planned Sessions First",
+        config: { key: "planned", direction: "asc" },
+        icon: "mdi:calendar-check",
+      },
+      {
+        id: "unplanned-first",
+        label: "Unplanned Sessions First",
+        config: { key: "planned", direction: "desc" },
+        icon: "mdi:calendar-remove",
+      },
+    ],
+    []
+  );
+
+  const getComparableValue = (client, key) => {
+    switch (key) {
+      case "name":
+        return (client?.name || "").toLowerCase();
+      case "lastSession": {
+        if (client?.lastSession === null || client?.lastSession === undefined) {
+          return Number.POSITIVE_INFINITY;
+        }
+        const numericValue = Number(client.lastSession);
+        return Number.isNaN(numericValue) ? Number.POSITIVE_INFINITY : numericValue;
+      }
+      case "nextSession":
+        return (client?.nextSession || "").toString().toLowerCase();
+      case "paymentstatus":
+        return (client?.paymentstatus || "").toString().toLowerCase();
+      case "planned":
+        return client?.nextSession ? 0 : 1;
+      default:
+        return "";
+    }
+  };
+
+  const applySort = (clients, config = sortConfig) => {
+    if (!config?.key) {
+      return [...clients];
+    }
+
+    const directionMultiplier = config.direction === "asc" ? 1 : -1;
+
+    return [...clients].sort((a, b) => {
+      const valueA = getComparableValue(a, config.key);
+      const valueB = getComparableValue(b, config.key);
+
+      if (typeof valueA === "number" && typeof valueB === "number") {
+        const aIsMissing = !Number.isFinite(valueA);
+        const bIsMissing = !Number.isFinite(valueB);
+
+        if (aIsMissing && bIsMissing) return 0;
+        if (aIsMissing) return 1;
+        if (bIsMissing) return -1;
+        return (valueA - valueB) * directionMultiplier;
+      }
+
+      const stringA = String(valueA || "");
+      const stringB = String(valueB || "");
+      const aIsMissing = stringA.length === 0;
+      const bIsMissing = stringB.length === 0;
+
+      if (aIsMissing && bIsMissing) return 0;
+      if (aIsMissing) return 1;
+      if (bIsMissing) return -1;
+
+      return (
+        stringA.localeCompare(stringB, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        }) * directionMultiplier
+      );
+    });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,8 +136,8 @@ const Client = ({ setCurrentPage }) => {
           console.warn("⚠️ Unexpected API response format. Expected an array in 'data'.");
           throw new Error("Invalid API response format.");
         }
-        setClientList(clientArray);
-        setFilteredClients(clientArray);
+  setClientList(clientArray);
+  setFilteredClients(applySort(clientArray, { key: "name", direction: "asc" }));
         console.log("✅ Clients stored in state:", clientArray);
       } catch (err) {
         console.error("🚀 Failed to fetch clients:", err.message);
@@ -49,7 +154,7 @@ const Client = ({ setCurrentPage }) => {
     const filtered = clientList.filter((client) =>
       client.name.toLowerCase().includes(term)
     );
-    setFilteredClients(filtered);
+  setFilteredClients(applySort(filtered));
   };
 
   const handleClientClick = async (client) => {
@@ -128,6 +233,21 @@ const Client = ({ setCurrentPage }) => {
 
   const handleErrorPopupClose = () => setErrorPopup(false);
 
+  const toggleSortMenu = () => {
+    setIsSortMenuOpen((prev) => !prev);
+  };
+
+  const applySortOption = (option) => {
+    setSortConfig(option.config);
+    setFilteredClients((current) => applySort(current, option.config));
+    setIsSortMenuOpen(false);
+  };
+
+  const activeSortOption = sortOptions.find(
+    (option) =>
+      option.config.key === sortConfig.key && option.config.direction === sortConfig.direction
+  );
+
   return (
     <div className="client-container">
       {!isProfileVisible && (
@@ -143,6 +263,39 @@ const Client = ({ setCurrentPage }) => {
             <button className="add-client" onClick={handleOpenModal}>
               + Add a new Client
             </button>
+          </div>
+          <div className="table-actions">
+            <button
+              className="sort-button"
+              onClick={toggleSortMenu}
+              aria-haspopup="menu"
+              aria-expanded={isSortMenuOpen}
+            >
+              <Icon icon="mdi:filter-variant" className="sort-button-icon" />
+              {activeSortOption ? activeSortOption.label : "Sort & Filter"}
+              <Icon icon={isSortMenuOpen ? "mdi:chevron-up" : "mdi:chevron-down"} />
+            </button>
+            {isSortMenuOpen && (
+              <div className="sort-menu" role="menu">
+                {sortOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    className={`sort-menu-item ${
+                      activeSortOption?.id === option.id ? "active" : ""
+                    }`}
+                    onClick={() => applySortOption(option)}
+                    role="menuitemradio"
+                    aria-checked={activeSortOption?.id === option.id}
+                  >
+                    <Icon icon={option.icon} className="sort-menu-item-icon" />
+                    {option.label}
+                    {activeSortOption?.id === option.id && (
+                      <Icon icon="mdi:check" className="sort-menu-item-check" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <table className="client-table">
             <thead>

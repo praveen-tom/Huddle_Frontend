@@ -23,6 +23,85 @@
   cursor: pointer;
 }
 
+.table-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  color: #1a274f;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.sort-button:hover {
+  background-color: #f5f6fb;
+  border-color: #aab3c5;
+}
+
+.sort-button-icon {
+  font-size: 1.2rem;
+}
+
+.sort-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 240px;
+  background-color: #fff;
+  border: 1px solid #d6d9e3;
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(26, 39, 79, 0.15);
+  z-index: 10;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sort-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  color: #1a274f;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.sort-menu-item:hover {
+  background-color: #f5f6fb;
+}
+
+.sort-menu-item-icon {
+  font-size: 1.2rem;
+  color: #45517a;
+}
+
+.sort-menu-item-check {
+  margin-left: auto;
+  font-size: 1rem;
+  color: #455817;
+}
+
+.sort-menu-item.active {
+  background-color: #eef2ff;
+  font-weight: 600;
+}
+
 .client-table {
   width: 100%;
   height: auto;
@@ -555,6 +634,70 @@ ul li {
   writing-mode: tb-rl;
   transform: rotate(180deg);
 }
+
+.document-content {
+  flex: 1;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.document-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.document-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 18px;
+  border: 2px solid #5C262A;
+  background-color: #fff;
+  color: #5C262A;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.document-upload-btn:hover {
+  background-color: #5C262A;
+  color: #fff;
+}
+
+.document-upload-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.document-status {
+  font-size: 14px;
+  color: #5C262A;
+  margin-bottom: 8px;
+}
+
+.document-upload-label {
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.document-link {
+  background: none;
+  border: none;
+  color: #25376f;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 4px 0px;
+  text-align: left;
+}
+
+.document-link:hover {
+  text-decoration: underline;
+}
+
 
 /* General styling */
 .modal-content {

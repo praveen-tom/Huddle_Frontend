@@ -206,12 +206,41 @@ i .fc-daygrid-day, .fc-timegrid-slot {
 
 .calendar-event-week {
   display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.calendar-event-week-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.calendar-event-week-details {
+  display: flex;
   flex-direction: column;
   gap: 2px;
   color: #fff;
   font-weight: 600;
   font-size: 0.92rem;
   line-height: 1.2;
+}
+
+.calendar-event-week-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.calendar-event-week-time {
+  font-weight: 500;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .calendar-event-week-client {
@@ -261,4 +290,8 @@ i .fc-daygrid-day, .fc-timegrid-slot {
 .calendar-event-month-client {
   font-size: 0.82rem;
   color: #5f6368;
+}
+
+.rbc-time-slot {
+  min-height: 52px;
 }
