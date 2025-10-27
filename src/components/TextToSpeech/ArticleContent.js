@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { UserContext } from '../../Context/UserContext';
 import './ArticleContent.css';
-import PDFViewer from './PDFViewer';
+// import PDFViewer from './PDFViewer';
+import TextToSpeech from './TextToSpeech/TextToSpeech';
 
 const ArticleContent = () => {
   const { user } = useContext(UserContext);
@@ -9,10 +10,15 @@ const ArticleContent = () => {
   const [search, setSearch] = useState('');
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [presignedUrl, setPresignedUrl] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [ttsUtterance, setTtsUtterance] = useState(null);
-  const ttsRef = useRef(null);
+  const [ttsContent, setTtsContent] = useState(null);
+  const [isTtsLoading, setIsTtsLoading] = useState(false);
+  const [ttsError, setTtsError] = useState('');
+  const [ttsPlayTrigger, setTtsPlayTrigger] = useState(null);
+  const [ttsPauseTrigger, setTtsPauseTrigger] = useState(null);
+  const [ttsResumeTrigger, setTtsResumeTrigger] = useState(null);
+  const [ttsStopTrigger, setTtsStopTrigger] = useState(null);
+  const [isTtsPlaying, setIsTtsPlaying] = useState(false);
+  const [isTtsPaused, setIsTtsPaused] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadError, setUploadError] = useState('');
@@ -42,6 +48,14 @@ const ArticleContent = () => {
   const handleTileClick = async (doc) => {
     setSelectedDoc(null);
     setPresignedUrl(null);
+    setTtsContent(null);
+    setTtsError('');
+    setTtsPlayTrigger(null);
+    setTtsPauseTrigger(null);
+    setTtsResumeTrigger(null);
+    setTtsStopTrigger(null);
+    setIsTtsPlaying(false);
+    setIsTtsPaused(false);
     try {
       // Use fileName instead of objectKey for presigned URL
       const fileKey = doc.fileName;
@@ -61,151 +75,142 @@ const ArticleContent = () => {
       console.log('Presigned URL data:', data);
       setSelectedDoc(doc);
       setPresignedUrl(data.url);
+      setTtsPlayTrigger(null);
+      setTtsPauseTrigger(null);
+      setTtsResumeTrigger(null);
+      setTtsStopTrigger(null);
+      setIsTtsPlaying(false);
+      setIsTtsPaused(false);
+      await fetchTtsContent(doc);
     } catch (err) {
       console.error('Error in handleTileClick:', err);
       alert('Could not load PDF: ' + err.message);
     }
   };
 
-  // Extract text from selectedDoc (prefer Pages array)
-  const getDocText = (doc) => {
-    if (doc.Pages && Array.isArray(doc.Pages) && doc.Pages.length > 0) {
-      return doc.Pages.map(p => p.text || p.Text || '').join(' ');
+  const fetchTtsContent = async (doc) => {
+    if (!doc || !doc.fileName) {
+      setTtsContent(null);
+      return null;
     }
-    return doc.Text || doc.Content || doc.FileName || '';
-  };
 
-  // Helper to highlight a word in the PDF text layer
-  const highlightPDFWord = (word) => {
-    // Find all spans in the text layer
-    const spans = document.querySelectorAll('.react-pdf__Page__textContent span');
-    let found = false;
-    for (let span of spans) {
-      // Remove previous highlight
-      span.style.background = '';
-      // Compare text content (case-insensitive, trimmed)
-      if (!found && span.textContent && span.textContent.trim().replace(/\s+/g, ' ') === word.trim().replace(/\s+/g, ' ')) {
-        span.style.background = '#ffe082';
-        found = true;
-      }
-    }
-  };
-
-  const clearPDFHighlights = () => {
-    const spans = document.querySelectorAll('.react-pdf__Page__textContent span');
-    for (let span of spans) {
-      span.style.background = '';
-    }
-  };
-
-  const handlePlay = async () => {
-    if (!selectedDoc) return;
-    // Call PdfConvertion API to get PDF text (POST method, form data)
+    setIsTtsLoading(true);
+    setTtsError('');
     try {
       const formData = new FormData();
-      formData.append('ArticleName', selectedDoc.fileName);
+      formData.append('ArticleName', doc.fileName);
       const response = await fetch('https://localhost:7046/api/Article/PdfConvertion', {
         method: 'POST',
-        body: formData
+        body: formData,
       });
+
       if (!response.ok) {
-        alert('Failed to fetch PDF text for TTS.');
-        return;
+        const details = await response.text();
+        throw new Error(details || 'Failed to prepare text-to-speech content.');
       }
+
       const data = await response.json();
-      // Use lowercase 'pages' and 'text' as in backend response
-      const text = data.pages && Array.isArray(data.pages)
-        ? data.pages.map(p => p.text || p.Text || '').join(' ')
-        : '';
-      if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
-        alert('Text-to-speech is not supported in this browser.');
-        return;
+      const rawPages = Array.isArray(data.pages) ? data.pages : [];
+      const normalizedPages = rawPages
+        .map((page, index) => ({
+          PageNumber: page.pageNumber ?? page.PageNumber ?? index + 1,
+          Text: (page.text ?? page.Text ?? '').trim(),
+        }))
+        .filter((page) => page.Text);
+
+      if (!normalizedPages.length) {
+        throw new Error('No readable text returned from the document.');
       }
-      if (!text.trim()) {
-        alert('No text to read.');
-        return;
-      }
-      window.speechSynthesis.cancel();
-      clearPDFHighlights();
-      const words = text.split(/\s+/).filter(Boolean);
-      let wordIdx = 0;
-      const utterance = new window.SpeechSynthesisUtterance(text);
-      utterance.onboundary = (event) => {
-        if (event.name === 'word' && event.charIndex !== undefined) {
-          let charCount = 0;
-          for (let i = 0; i < words.length; i++) {
-            charCount += words[i].length + 1;
-            if (charCount > event.charIndex) {
-              wordIdx = i;
-              break;
-            }
-          }
-          highlightPDFWord(words[wordIdx] || '');
-        }
-      };
-      utterance.onend = () => {
-        setIsPlaying(false);
-        setIsPaused(false);
-        setTtsUtterance(null);
-        clearPDFHighlights();
-      };
-      utterance.onerror = () => {
-        setIsPlaying(false);
-        setIsPaused(false);
-        setTtsUtterance(null);
-        clearPDFHighlights();
-      };
-      setTtsUtterance(utterance);
-      ttsRef.current = utterance;
-      window.speechSynthesis.speak(utterance);
-      setIsPlaying(true);
-      setIsPaused(false);
+
+      setTtsContent(normalizedPages);
+      return normalizedPages;
     } catch (err) {
-      alert('TTS error: ' + err.message);
+      console.error('Failed to prepare text-to-speech content:', err);
+      setTtsContent(null);
+      setTtsError(err.message || 'Unable to prepare text-to-speech content.');
+      setTtsPlayTrigger(null);
+      setTtsPauseTrigger(null);
+      setTtsResumeTrigger(null);
+      setTtsStopTrigger(null);
+      setIsTtsPlaying(false);
+      setIsTtsPaused(false);
+      return null;
+    } finally {
+      setIsTtsLoading(false);
     }
   };
 
-  const handlePause = () => {
-    if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
-      window.speechSynthesis.pause();
-      setIsPaused(true);
-      setIsPlaying(true);
+  const handleBackToLibrary = () => {
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    setSelectedDoc(null);
+    setPresignedUrl(null);
+    setTtsContent(null);
+    setTtsError('');
+    setTtsPlayTrigger(null);
+    setTtsPauseTrigger(null);
+    setTtsResumeTrigger(null);
+    setTtsStopTrigger(null);
+    setIsTtsPlaying(false);
+    setIsTtsPaused(false);
+  };
+
+  const handleStartPlayback = () => {
+    if (isTtsLoading) {
+      alert('Reader is still preparing the text. Please wait a moment.');
+      return;
+    }
+
+    if (ttsError) {
+      alert('Unable to play this document. Try selecting another one.');
+      return;
+    }
+
+    if (!ttsContent || !ttsContent.length) {
+      alert('No readable content available for this document.');
+      return;
+    }
+
+    setTtsPauseTrigger(null);
+    setTtsResumeTrigger(null);
+    setTtsStopTrigger(null);
+    setTtsPlayTrigger(Date.now());
+  };
+
+  const handlePausePlayback = () => {
+    if (!isTtsPlaying || isTtsPaused) {
+      return;
+    }
+    setTtsPauseTrigger(Date.now());
+  };
+
+  const handleResumePlayback = () => {
+    if (!isTtsPaused) {
+      return;
+    }
+    setTtsResumeTrigger(Date.now());
+  };
+
+  const handleStopPlayback = () => {
+    if (!isTtsPlaying && !isTtsPaused) {
+      return;
+    }
+    setTtsStopTrigger(Date.now());
+  };
+
+  const handlePlaybackStatusChange = (status) => {
+    if (status === 'playing') {
+      setIsTtsPlaying(true);
+      setIsTtsPaused(false);
+    } else if (status === 'paused') {
+      setIsTtsPlaying(true);
+      setIsTtsPaused(true);
+    } else {
+      setIsTtsPlaying(false);
+      setIsTtsPaused(false);
     }
   };
-
-  const handleResume = () => {
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
-      setIsPaused(false);
-      setIsPlaying(true);
-    }
-  };
-
-  const handleStop = () => {
-    window.speechSynthesis.cancel();
-    setIsPlaying(false);
-    setIsPaused(false);
-    setTtsUtterance(null);
-    clearPDFHighlights();
-  };
-
-  // Keep state in sync if user uses browser controls
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (window.speechSynthesis) {
-        if (window.speechSynthesis.speaking && window.speechSynthesis.paused && isPlaying && !isPaused) {
-          setIsPaused(true);
-        } else if (window.speechSynthesis.speaking && !window.speechSynthesis.paused && (!isPlaying || isPaused)) {
-          setIsPlaying(true);
-          setIsPaused(false);
-        } else if (!window.speechSynthesis.speaking && isPlaying) {
-          setIsPlaying(false);
-          setIsPaused(false);
-        }
-      }
-    }, 300);
-    return () => clearInterval(interval);
-  }, [isPlaying, isPaused]);
 
   const handleUploadClick = () => {
     console.log('Upload Article button clicked');
@@ -321,29 +326,101 @@ const ArticleContent = () => {
               <div className="tile-thumbnail" style={{ width: 200, height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e0e0', color: '#555', fontWeight: 600, fontSize: '0.95rem' }}>{selectedDoc.fileName}</div>
             )}
           </div>
-          {/* Section 2: Filename and Play/Pause/Stop Buttons */}
+          {/* Section 2: Metadata and navigation */}
           <div className="article-section info-section">
             <div className="tile-filename" style={{ fontSize: '1.2rem', marginBottom: 16 }}>{selectedDoc.fileName}</div>
-            {(!isPlaying || isPaused) && (
-              <button className="play-btn" onClick={isPaused ? handleResume : handlePlay}>
-                ▶ {isPaused ? 'Resume' : 'Play'}
+            <button className="play-btn" onClick={handleBackToLibrary} style={{ background: '#1976d2' }}>
+              ⟵ Back to Library
+            </button>
+            {!isTtsPlaying && (
+              <button
+                className="play-btn"
+                onClick={handleStartPlayback}
+                style={{ background: '#4caf50', opacity: isTtsLoading || ttsError || !ttsContent ? 0.6 : 1 }}
+                disabled={isTtsLoading || Boolean(ttsError) || !ttsContent}
+              >
+                ▶ Play Article
               </button>
             )}
-            {isPlaying && !isPaused && (
-              <button className="play-btn" style={{ background: '#fbc02d' }} onClick={handlePause}>
-                ❚❚ Pause
-              </button>
+            {isTtsPlaying && !isTtsPaused && (
+              <>
+                <button
+                  className="play-btn"
+                  onClick={handlePausePlayback}
+                  style={{ background: '#fbc02d' }}
+                >
+                  ❚❚ Pause
+                </button>
+                <button
+                  className="play-btn"
+                  onClick={handleStopPlayback}
+                  style={{ background: '#f44336' }}
+                >
+                  ■ Stop
+                </button>
+              </>
             )}
-            {isPlaying && (
-              <button className="play-btn" style={{ background: '#f44336', marginLeft: 8 }} onClick={handleStop}>
-                ■ Stop
-              </button>
+            {isTtsPlaying && isTtsPaused && (
+              <>
+                <button
+                  className="play-btn"
+                  onClick={handleResumePlayback}
+                  style={{ background: '#4caf50' }}
+                >
+                  ▶ Resume
+                </button>
+                <button
+                  className="play-btn"
+                  onClick={handleStopPlayback}
+                  style={{ background: '#f44336' }}
+                >
+                  ■ Stop
+                </button>
+              </>
+            )}
+            {isTtsLoading && (
+              <div style={{ color: '#555' }}>Preparing text reader…</div>
+            )}
+            {ttsError && (
+              <div style={{ color: '#d32f2f' }}>{ttsError}</div>
+            )}
+            {!isTtsLoading && !ttsError && ttsContent && !isTtsPlaying && (
+              <div style={{ color: '#4caf50' }}>Ready to play. Use the reader below.</div>
+            )}
+            {isTtsPlaying && !isTtsPaused && (
+              <div style={{ color: '#4caf50' }}>Playing…</div>
+            )}
+            {isTtsPaused && (
+              <div style={{ color: '#fbc02d' }}>Paused. Resume or stop playback.</div>
             )}
           </div>
-          {/* Section 3: PDF Viewer */}
+          {/*
           <div className="article-section pdf-section">
             <PDFViewer documentUrl={presignedUrl} />
           </div>
+          */}
+        </div>
+        <div className="article-tts-section">
+          {isTtsLoading && (
+            <div className="tts-placeholder">Preparing text-to-speech content…</div>
+          )}
+          {ttsError && (
+            <div className="tts-placeholder" style={{ color: '#d32f2f' }}>{ttsError}</div>
+          )}
+          {!isTtsLoading && !ttsError && ttsContent && (
+            <TextToSpeech
+              content={ttsContent}
+              autoPlay
+              autoPlayTrigger={ttsPlayTrigger}
+              pauseTrigger={ttsPauseTrigger}
+              resumeTrigger={ttsResumeTrigger}
+              stopTrigger={ttsStopTrigger}
+              onStatusChange={handlePlaybackStatusChange}
+              showControls={false}
+              heading={selectedDoc.fileName}
+              containerStyle={{ width: '100%', maxWidth: '900px', margin: '0 auto' }}
+            />
+          )}
         </div>
       </div>
     );

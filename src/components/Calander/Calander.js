@@ -61,7 +61,9 @@ const Calendar = () => {
   const [events, setEvents] = useState([]);
   const [showChart, setShowChart] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
-  const [newEventInfo, setNewEventInfo] = useState({ title: "", start: null, end: null });
+  const [newEventInfo, setNewEventInfo] = useState({ title: "", start: null, end: null, tag: "Planning" });
+  const [manualStartTime, setManualStartTime] = useState("05:00");
+  const [manualEndTime, setManualEndTime] = useState("06:00");
   const [currentView, setCurrentView] = useState('week');
   const calendarMinTime = React.useMemo(() => {
     const start = new Date();
@@ -319,7 +321,11 @@ const Calendar = () => {
           popup
           selectable
           onSelectSlot={(slotInfo) => {
-            setNewEventInfo({ title: '', start: slotInfo.start, end: slotInfo.end });
+            const slotStart = slotInfo.start || new Date();
+            const slotEnd = slotInfo.end || addMinutes(slotStart, 60);
+            setNewEventInfo({ title: '', start: slotStart, end: slotEnd, tag: "Planning" });
+            setManualStartTime(format(slotStart, "HH:mm"));
+            setManualEndTime(format(slotEnd, "HH:mm"));
             setShowEventModal(true);
           }}
           onSelectEvent={(event) => {
@@ -393,19 +399,69 @@ const Calendar = () => {
                 className="modal-input"
                 autoFocus
               />
+              <select
+                name="eventType"
+                value={newEventInfo.tag}
+                onChange={e => setNewEventInfo({ ...newEventInfo, tag: e.target.value })}
+                className="modal-input"
+              >
+                <option value="Planning">Planing</option>
+                <option value="Personal">Personal</option>
+              </select>
+              <div className="time-input-group">
+                <label className="time-input-label">
+                  Start Time
+                  <input
+                    type="time"
+                    min="05:00"
+                    max="16:00"
+                    value={manualStartTime}
+                    onChange={(e) => setManualStartTime(e.target.value)}
+                    className="modal-input"
+                  />
+                </label>
+                <label className="time-input-label">
+                  End Time
+                  <input
+                    type="time"
+                    min="05:00"
+                    max="16:00"
+                    value={manualEndTime}
+                    onChange={(e) => setManualEndTime(e.target.value)}
+                    className="modal-input"
+                  />
+                </label>
+              </div>
               <div className="model-btn">
                 <button
                   type="button"
                   className="modal-submit"
                   onClick={() => {
                     if (newEventInfo.title) {
+                      const [startHour, startMinute] = manualStartTime.split(":").map(Number);
+                      const [endHour, endMinute] = manualEndTime.split(":").map(Number);
+                      const updatedStart = new Date(newEventInfo.start || new Date());
+                      const updatedEnd = new Date(newEventInfo.end || new Date());
+
+                      updatedStart.setHours(startHour, startMinute, 0, 0);
+                      updatedEnd.setHours(endHour, endMinute, 0, 0);
+
+                      if (updatedEnd <= updatedStart) {
+                        alert("End time must be after start time.");
+                        return;
+                      }
+
+                      const typeColors = {
+                        Planning: "#3498DB",
+                        Personal: "#9B59B6",
+                      };
                       const newEvent = {
                         id: String(events.length + 1),
                         title: newEventInfo.title,
-                        start: newEventInfo.start,
-                        end: newEventInfo.end,
-                        color: "#3498DB",
-                        tag: "Session"
+                        start: updatedStart,
+                        end: updatedEnd,
+                        color: typeColors[newEventInfo.tag] || "#3498DB",
+                        tag: newEventInfo.tag
                       };
                       setEvents([...events, newEvent]);
                       setShowEventModal(false);
