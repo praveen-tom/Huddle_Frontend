@@ -3,6 +3,7 @@ import { Icon } from "@iconify/react";
 import "./Client.css";
 import SchedulePopup from "./SchedulePopup";
 import GoalPopup from "./GoalPopup";
+import ShareDocumentPopup from "./ShareDocumentPopup";
 import API_ENDPOINTS from "../../apiconfig";
 
 const ClientProfile = ({
@@ -15,6 +16,8 @@ const ClientProfile = ({
 }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isGoalPopupOpen, setIsGoalPopupOpen] = useState(false);
+  const [isSharePopupOpen, setIsSharePopupOpen] = useState(false);
+  const [documentToShare, setDocumentToShare] = useState(null);
   const [goals, setGoals] = useState(profileData?.goals || []);
   const [documentList, setDocumentList] = useState(profileData?.documents || []);
   const [isUploading, setIsUploading] = useState(false);
@@ -145,7 +148,8 @@ const ClientProfile = ({
     }
 
     if (action === "share") {
-      console.info("ℹ️ Share action pending implementation for", docName);
+      setDocumentToShare(docName);
+      setIsSharePopupOpen(true);
       setActiveDocumentMenu(null);
       return;
     }
@@ -575,6 +579,18 @@ const ClientProfile = ({
           onClose={() => setIsGoalPopupOpen(false)}
           onSave={handleAddGoal}
           profileData={profileData}
+        />
+      )}
+
+      {isSharePopupOpen && documentToShare && (
+        <ShareDocumentPopup
+          currentClientId={resolveClientId()}
+          currentClientName={profileData.name}
+          documentName={documentToShare}
+          onClose={() => {
+            setIsSharePopupOpen(false);
+            setDocumentToShare(null);
+          }}
         />
       )}
     </div>
