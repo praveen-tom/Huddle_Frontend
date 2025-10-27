@@ -199,6 +199,16 @@ i .fc-daygrid-day, .fc-timegrid-slot {
   margin: 8px 0; /* Add vertical spacing */
 }
 
+.hours-summary-color {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  margin-right: 8px;
+  vertical-align: middle;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
 .rbc-event {
   padding: 0 !important;
   border: none;

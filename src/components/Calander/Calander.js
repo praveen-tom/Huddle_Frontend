@@ -57,6 +57,56 @@ const localizer = dateFnsLocalizer({
 
 const defaultAvatar = "/ProfilePic/default-avatar.png";
 
+const DEFAULT_EVENT_COLOR = "#4A90E2";
+const TAG_CONFIG = {
+  sessionscheduling: { color: "#3498DB", label: "Session Scheduling" },
+  planning: { color: "#E67E22", label: "Planning" },
+  important: { color: "#9B59B6", label: "Important" },
+  personal: { color: "#4CAF50", label: "Personal" },
+  others: { color: "#795548", label: "Others" },
+};
+
+const normalizeTag = (tag) => (tag ? `${tag}`.trim().toLowerCase() : "");
+
+const getTagConfig = (tag) => TAG_CONFIG[normalizeTag(tag)] || TAG_CONFIG.others;
+
+const getTagColor = (tag) => getTagConfig(tag).color || DEFAULT_EVENT_COLOR;
+
+const getTagLabel = (tag) => getTagConfig(tag).label || (tag || "Others");
+
+const hexToRgba = (hex, alpha = 1) => {
+  if (!hex) return `rgba(74, 144, 226, ${alpha})`;
+  const sanitized = hex.replace("#", "");
+  if (sanitized.length !== 6) {
+    return `rgba(74, 144, 226, ${alpha})`;
+  }
+  const bigint = parseInt(sanitized, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+const HIGHLIGHT_TAG_ORDER = [
+  "sessionscheduling",
+  "planning",
+  "important",
+  "personal",
+  "others",
+];
+
+const HIGHLIGHT_ITEMS = HIGHLIGHT_TAG_ORDER.map((tagKey) => ({
+  key: tagKey,
+  label: getTagLabel(tagKey),
+  color: getTagColor(tagKey),
+}));
+
+const REMAINING_HIGHLIGHT = {
+  key: "remaining",
+  label: "Remaining",
+  color: "#CBD5F5",
+};
+
 const Calendar = () => {
   const { user } = useContext(UserContext);
   const [events, setEvents] = useState([]);
@@ -180,7 +230,17 @@ const Calendar = () => {
 
         // Format events for react-big-calendar
         const formattedEvents = eventsArray.map((event) => {
-          const accent = event.color || "#4A90E2";
+          const tagValue =
+            event.tag ||
+            event.Tag ||
+            event.tagName ||
+            event.eventType ||
+            event.TagName ||
+            event.category ||
+            null;
+
+          const resolvedTag = tagValue || "SessionScheduling";
+          const accent = getTagColor(resolvedTag);
           const startDate = new Date(event.startDateTime || event.start);
           const proposedEnd = event.endDateTime || event.end;
           let endDate = proposedEnd ? new Date(proposedEnd) : null;
@@ -217,6 +277,7 @@ const Calendar = () => {
             end: endDate,
             allDay: isOutsideVisibleRange,
             color: accent,
+            tag: resolvedTag,
             resource: {
               color: accent,
               clientName: event.clientName,
@@ -224,6 +285,8 @@ const Calendar = () => {
               originalStart: startDate,
               originalEnd: endDate,
               isOutsideVisibleRange,
+              tag: resolvedTag,
+              tagLabel: getTagLabel(resolvedTag),
             },
           };
         }).filter(Boolean);
@@ -249,7 +312,10 @@ const Calendar = () => {
       return (
         <div
           className="calendar-event-month"
-          style={{ '--event-accent': accent }}
+          style={{
+            '--event-accent': accent,
+            backgroundColor: hexToRgba(accent, 0.18),
+          }}
         >
           <img
             className="calendar-event-month-avatar"
@@ -297,38 +363,42 @@ const Calendar = () => {
   };
 
   const calculateHours = () => {
+    const baseHours = HIGHLIGHT_TAG_ORDER.reduce((acc, key) => {
+      acc[key] = 0;
+      return acc;
+    }, {});
+
     const hoursByTag = {
-      Session: 0,
-      Planning: 0,
-      Others: 0,
-      Personal: 0,
-      Remaining: 0,
+      ...baseHours,
+      remaining: 0,
     };
 
     const totalDayHours = 24;
 
     events.forEach((event) => {
-      const duration =
+      const eventDuration =
         (new Date(event.end).getTime() - new Date(event.start).getTime()) /
         (1000 * 60 * 60);
-      const roundedDuration = Math.ceil(duration);
+      const roundedDuration = Math.max(0, Math.ceil(eventDuration));
 
-      if (event.tag) {
-        hoursByTag[event.tag] =
-          (hoursByTag[event.tag] || 0) + roundedDuration;
-      } else {
-        hoursByTag.Personal += roundedDuration; 
+      if (roundedDuration === 0) {
+        return;
       }
+
+      const normalizedTag = normalizeTag(event.tag || event.resource?.tag);
+      const bucket = HIGHLIGHT_TAG_ORDER.includes(normalizedTag)
+        ? normalizedTag
+        : "others";
+
+      hoursByTag[bucket] += roundedDuration;
     });
 
-    // Calculate remaining hours
-    const totalLoggedHours =
-      hoursByTag.Session +
-      hoursByTag.Planning +
-      hoursByTag.Others +
-      hoursByTag.Personal;
+    const totalLoggedHours = HIGHLIGHT_TAG_ORDER.reduce(
+      (sum, key) => sum + (hoursByTag[key] || 0),
+      0
+    );
 
-    hoursByTag.Remaining = Math.max(0, totalDayHours - totalLoggedHours);
+    hoursByTag.remaining = Math.max(0, totalDayHours - totalLoggedHours);
 
     return hoursByTag;
   };
@@ -343,8 +413,14 @@ const Calendar = () => {
             (new Date(event.end).getTime() - new Date(event.start).getTime()) /
             (1000 * 60 * 60)
         ),
-        backgroundColor: events.map((event) => event.color),
-        hoverOffset: 4,
+        backgroundColor: events.map((event) =>
+          getTagColor(event.tag || event.resource?.tag)
+        ),
+        borderColor: events.map((event) =>
+          getTagColor(event.tag || event.resource?.tag)
+        ),
+        borderWidth: 1,
+        hoverOffset: 6,
       },
     ],
   };
@@ -415,30 +491,38 @@ const Calendar = () => {
             }
           }}
           onView={(view) => setCurrentView(view)}
-          eventPropGetter={(event) => ({
-            style: currentView === 'month'
-              ? {
-                  backgroundColor: 'transparent',
+          components={{
+            event: ({ event }) => <CalendarEvent event={event} />
+          }}
+          eventPropGetter={(event) => {
+            const color = getTagColor(event.tag || event.resource?.tag);
+
+            if (currentView === 'month') {
+              return {
+                style: {
+                  backgroundColor: hexToRgba(color, 0.18),
                   border: 'none',
                   padding: 0,
                   boxShadow: 'none',
                   color: '#2f3142',
-                }
-              : {
-                  backgroundColor: event.resource?.color || '#4A90E2',
-                  borderRadius: '8px',
-                  color: '#fff',
-                  border: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  fontWeight: 500,
-                  fontSize: '1rem',
-                  boxShadow: '0 2px 8px rgba(71, 60, 95, 0.12)',
-                  padding: '6px 10px',
-                }
-          })}
-          components={{
-            event: ({ event }) => <CalendarEvent event={event} />
+                },
+              };
+            }
+
+            return {
+              style: {
+                backgroundColor: color,
+                borderRadius: '8px',
+                color: '#fff',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                fontWeight: 500,
+                fontSize: '1rem',
+                boxShadow: '0 2px 8px rgba(71, 60, 95, 0.12)',
+                padding: '6px 10px',
+              },
+            };
           }}
         />
       </div>
@@ -447,11 +531,22 @@ const Calendar = () => {
           <Doughnut data={chartData} options={chartOptions} />
           <div className="hours-summary">
             <ul>
-              <li>Session: {hoursByTag.Session} hours</li>
-              <li>Planning: {hoursByTag.Planning} hours</li>
-              <li>Others: {hoursByTag.Others} hours</li>
-              <li>Personal: {hoursByTag.Personal} hours</li>
-              <li>Remaining: {hoursByTag.Remaining} hours</li>
+              {HIGHLIGHT_ITEMS.map((item) => (
+                <li key={item.key}>
+                  <span
+                    className="hours-summary-color"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  {item.label}: {hoursByTag[item.key] || 0} hours
+                </li>
+              ))}
+              <li key={REMAINING_HIGHLIGHT.key}>
+                <span
+                  className="hours-summary-color"
+                  style={{ backgroundColor: REMAINING_HIGHLIGHT.color }}
+                />
+                {REMAINING_HIGHLIGHT.label}: {hoursByTag.remaining || 0} hours
+              </li>
             </ul>
           </div>
         </div>
@@ -486,8 +581,9 @@ const Calendar = () => {
                 onChange={e => setNewEventInfo({ ...newEventInfo, tag: e.target.value })}
                 className="modal-input"
               >
-                <option value="Planning">Planing</option>
+                <option value="Planning">Planning</option>
                 <option value="Personal">Personal</option>
+                <option value="Important">Important</option>
               </select>
               <div className="time-input-group">
                 <label className="time-input-label">
@@ -544,20 +640,26 @@ const Calendar = () => {
 
                       await saveEventToServer(payload);
 
-                      const typeColors = {
-                        Planning: "#3498DB",
-                        Personal: "#9B59B6",
-                        Session: "#4CAF50",
-                        Others: "#795548",
-                      };
+                      const resolvedTag = newEventInfo.tag || "Planning";
+                      const accentColor = getTagColor(resolvedTag);
 
                       const newEvent = {
                         id: `${Date.now()}`,
                         title: newEventInfo.title,
                         start: updatedStart,
                         end: updatedEnd,
-                        color: typeColors[newEventInfo.tag] || "#3498DB",
-                        tag: newEventInfo.tag,
+                        color: accentColor,
+                        tag: resolvedTag,
+                        resource: {
+                          color: accentColor,
+                          clientName: null,
+                          profileImage: null,
+                          originalStart: updatedStart,
+                          originalEnd: updatedEnd,
+                          isOutsideVisibleRange: false,
+                          tag: resolvedTag,
+                          tagLabel: getTagLabel(resolvedTag),
+                        },
                       };
 
                       setEvents((prev) => [...prev, newEvent]);
