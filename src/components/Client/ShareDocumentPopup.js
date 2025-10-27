@@ -305,14 +305,80 @@ const ShareDocumentPopup = ({
     }
   };
 
-  const handleRevokeAccess = (entry) => {
-    if (!entry?.id) {
+  const handleRevokeAccess = async (entry) => {
+    if (!entry?.id || !documentName || !currentClientId) {
+      toast.error("Missing information required to revoke access.");
       return;
     }
 
-    console.info("Revoke access requested for", entry);
-    updateClientAccessState(entry.id, false);
-    // TODO: Wire up revoke access API once available.
+    if (pendingClientId) {
+      return;
+    }
+
+    const primaryId = normalizeGuidCandidate(currentClientId);
+    const sharedId = normalizeGuidCandidate(entry.id);
+    if (!primaryId || !sharedId) {
+      toast.error("Invalid client identifiers.");
+      return;
+    }
+
+    const encodedUrl = `${API_ENDPOINTS.baseurl}/Client/RevokeSharedAccess?primaryClientId=${encodeURIComponent(
+      primaryId
+    )}&sharedClientId=${encodeURIComponent(sharedId)}&documentName=${encodeURIComponent(
+      documentName
+    )}`;
+
+    setPendingClientId(sharedId);
+
+    try {
+      const response = await fetch(encodedUrl, { method: "POST" });
+
+      if (!response.ok) {
+        let errorDetail = `${response.status} ${response.statusText}`;
+        try {
+          const errorJson = await response.json();
+          if (errorJson?.message) {
+            errorDetail = errorJson.message;
+          }
+        } catch (jsonError) {
+          try {
+            const errorText = await response.text();
+            if (errorText) {
+              errorDetail = errorText;
+            }
+          } catch (textError) {
+            // Ignore parsing issues, fall back to default detail.
+          }
+        }
+
+        throw new Error(errorDetail);
+      }
+
+      let successMessage = "Access revoked";
+      try {
+        const successJson = await response.clone().json();
+        if (successJson?.message) {
+          successMessage = successJson.message;
+        }
+      } catch (jsonError) {
+        try {
+          const successText = await response.text();
+          if (successText) {
+            successMessage = successText;
+          }
+        } catch (textError) {
+          // Ignore parsing issues, keep default success message.
+        }
+      }
+
+      updateClientAccessState(sharedId, false);
+      toast.success(successMessage);
+    } catch (error) {
+      console.error("Failed to revoke access:", error);
+      toast.error(error.message || "Unable to revoke access. Please try again.");
+    } finally {
+      setPendingClientId(null);
+    }
   };
 
   return (
@@ -353,6 +419,7 @@ const ShareDocumentPopup = ({
                       type="button"
                       className="share-document-modal__action share-document-modal__action--revoke"
                       onClick={() => handleRevokeAccess(entry)}
+                      disabled={pendingClientId === normalizeGuidCandidate(entry.id)}
                     >
                       Revoke access
                     </button>
