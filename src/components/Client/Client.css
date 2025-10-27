@@ -135,18 +135,6 @@
   align-items: center;
 }
 
-.profile-image {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 10px;
-}
-
-.last-session {
-  display: flex;
-  align-items: center;
-}
-
 .next-session {
   color: #000;
 }
@@ -155,6 +143,66 @@
   color: red;
 }
 
+
+.document-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.document-name {
+  color: #25376f;
+  font-size: 15px;
+  word-break: break-word;
+}
+
+.document-actions-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.document-options-btn {
+  background: none;
+  border: none;
+  color: #25376f;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.document-options-btn:hover {
+  background-color: rgba(37, 55, 111, 0.08);
+}
+
+.document-options-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background-color: #fff;
+  border: 1px solid rgba(37, 55, 111, 0.2);
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(20, 33, 61, 0.15);
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  z-index: 5;
+}
+
+.document-option {
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 14px;
+  color: #25376f;
+  cursor: pointer;
+}
+
+.document-option:hover {
+  background-color: rgba(37, 55, 111, 0.08);
+}
 .payment-status.paid {
   color: green;
 }
@@ -684,18 +732,65 @@ ul li {
   text-transform: uppercase;
 }
 
-.document-link {
+
+.document-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.document-name {
+  color: #25376f;
+  font-size: 15px;
+  word-break: break-word;
+}
+
+.document-actions-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.document-options-btn {
   background: none;
   border: none;
   color: #25376f;
-  font-size: 15px;
   cursor: pointer;
-  padding: 4px 0px;
-  text-align: left;
+  padding: 4px;
+  border-radius: 4px;
 }
 
-.document-link:hover {
-  text-decoration: underline;
+.document-options-btn:hover {
+  background-color: rgba(37, 55, 111, 0.08);
+}
+
+.document-options-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background-color: #fff;
+  border: 1px solid rgba(37, 55, 111, 0.2);
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(20, 33, 61, 0.15);
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  z-index: 5;
+}
+
+.document-option {
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 14px;
+  color: #25376f;
+  cursor: pointer;
+}
+
+.document-option:hover {
+  background-color: rgba(37, 55, 111, 0.08);
 }
 
 

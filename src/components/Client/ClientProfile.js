@@ -18,6 +18,7 @@ const ClientProfile = ({
   const [goals, setGoals] = useState(profileData?.goals || []);
   const [documentList, setDocumentList] = useState(profileData?.documents || []);
   const [isUploading, setIsUploading] = useState(false);
+  const [activeDocumentMenu, setActiveDocumentMenu] = useState(null);
   const fileInputRef = useRef(null);
   const moods = profileData?.moods || [];
   const today = new Date().toISOString().split("T")[0];
@@ -35,6 +36,23 @@ const ClientProfile = ({
     setDocumentList(profileData?.documents || []);
   }, [profileData]);
 
+  useEffect(() => {
+    if (!activeDocumentMenu) {
+      return undefined;
+    }
+
+    const handleClickAway = (event) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest(".document-actions-menu")) {
+        return;
+      }
+      setActiveDocumentMenu(null);
+    };
+
+    document.addEventListener("mousedown", handleClickAway);
+    return () => document.removeEventListener("mousedown", handleClickAway);
+  }, [activeDocumentMenu]);
+
   // Filter upcoming and past sessions based on status
   const upcomingSessions = profileData?.upcomingSchedule?.filter(
     (session) => session.status !== "Completed"
@@ -45,8 +63,44 @@ const ClientProfile = ({
     .sort((a, b) => new Date(a.plannedDate) - new Date(b.plannedDate));
   
 
+  const resolveClientId = () =>
+    clientId ?? profileData?.clientId ?? profileData?.id ?? profileData?.clientID;
+
+  const openBlobInNewTab = (blob, fileName, contentType) => {
+    if (typeof window === "undefined") {
+      console.error("❌ Unable to open document preview outside browser context");
+      return;
+    }
+
+    const blobWithType = contentType
+      ? blob.slice(0, blob.size, contentType)
+      : blob;
+
+    const blobUrl = window.URL.createObjectURL(blobWithType);
+    const newWindow = window.open(blobUrl, "_blank", "noopener,noreferrer");
+
+    if (!newWindow) {
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.download = fileName;
+      link.click();
+    }
+
+    window.setTimeout(() => {
+      window.URL.revokeObjectURL(blobUrl);
+    }, 60_000);
+  };
+
   const handleDocumentDownload = (fileName) => {
-    const url = `${API_ENDPOINTS.baseurl}/CoachProfile/DownloadFile/${clientId}/${fileName}`;
+    const selectedClientId = resolveClientId();
+    if (!selectedClientId) {
+      console.error("❌ Missing client identifier for download.");
+      return;
+    }
+
+    const url = `${API_ENDPOINTS.baseurl}/CoachProfile/DownloadFile/${selectedClientId}/${fileName}`;
     const link = document.createElement("a");
     link.href = url;
     link.download = fileName;
@@ -59,6 +113,70 @@ const ClientProfile = ({
       fileInputRef.current.click();
     }
   };
+  const handleDocumentAction = async (action, docName) => {
+    const selectedClientId = resolveClientId();
+    if (!selectedClientId) {
+      console.error("❌ Missing client identifier for document action.");
+      setActiveDocumentMenu(null);
+      return;
+    }
+
+    if (action === "view") {
+      try {
+        const response = await fetch(
+          `${API_ENDPOINTS.baseurl}/Client/viewsupportingdocument?clientId=${encodeURIComponent(
+            String(selectedClientId)
+          )}&fileName=${encodeURIComponent(docName)}`
+        );
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+
+        const contentType = response.headers.get("content-type") || "application/octet-stream";
+        const blob = await response.blob();
+        openBlobInNewTab(blob, docName, contentType);
+      } catch (error) {
+        console.error("❌ Failed to load document preview:", error);
+      } finally {
+        setActiveDocumentMenu(null);
+      }
+      return;
+    }
+
+    if (action === "share") {
+      console.info("ℹ️ Share action pending implementation for", docName);
+      setActiveDocumentMenu(null);
+      return;
+    }
+
+    if (action === "delete") {
+      try {
+        const response = await fetch(
+          `${API_ENDPOINTS.baseurl}/Client/deletefile?clientId=${encodeURIComponent(
+            String(selectedClientId)
+          )}&fileName=${encodeURIComponent(docName)}`,
+          {
+            method: "PATCH",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+
+        setDocumentList((prev) => prev.filter((doc) => doc !== docName));
+      } catch (error) {
+        console.error("❌ Failed to delete document:", error);
+      } finally {
+        setActiveDocumentMenu(null);
+      }
+      return;
+    }
+
+    setActiveDocumentMenu(null);
+  };
+
 
   const handleDocumentUpload = async (event) => {
     const [file] = Array.from(event.target.files || []);
@@ -67,8 +185,7 @@ const ClientProfile = ({
       return;
     }
 
-    const selectedClientId =
-      clientId ?? profileData?.clientId ?? profileData?.id ?? profileData?.clientID;
+    const selectedClientId = resolveClientId();
     if (!selectedClientId) {
       console.error("❌ Missing client identifier for upload.");
       return;
@@ -392,13 +509,48 @@ const ClientProfile = ({
               ) : (
                 <ul>
                   {documentList.map((doc, index) => (
-                    <li key={index}>
-                      <button
-                        onClick={() => handleDocumentDownload(doc)}
-                        className="document-link"
-                      >
-                        {index + 1}. {doc}
-                      </button>
+                    <li key={`${doc}-${index}`}>
+                      <div className="document-list-item">
+                        <span className="document-name">{index + 1}. {doc}</span>
+                        <div className="document-actions-menu">
+                          <button
+                            type="button"
+                            className="document-options-btn"
+                            onClick={() =>
+                              setActiveDocumentMenu((current) =>
+                                current === doc ? null : doc
+                              )
+                            }
+                          >
+                            <Icon icon="mdi:dots-vertical" width="20" height="20" />
+                          </button>
+                          {activeDocumentMenu === doc && (
+                            <div className="document-options-dropdown">
+                              <button
+                                type="button"
+                                className="document-option"
+                                onClick={() => handleDocumentAction("view", doc)}
+                              >
+                                View
+                              </button>
+                              <button
+                                type="button"
+                                className="document-option"
+                                onClick={() => handleDocumentAction("share", doc)}
+                              >
+                                Share
+                              </button>
+                              <button
+                                type="button"
+                                className="document-option"
+                                onClick={() => handleDocumentAction("delete", doc)}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </li>
                   ))}
                 </ul>
