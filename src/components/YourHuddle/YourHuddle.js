@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import "./YourHuddle.css";
 import API_ENDPOINTS from "../../apiconfig";
 import UploadPreview from "../TextToSpeech/TextToSpeech/UploadPreview";
+import { UserContext } from "../../Context/UserContext";
 
 const YourHuddle = () => {
   // Assign unique IDs to each huddle item
@@ -24,21 +25,28 @@ const YourHuddle = () => {
 };
 
 const HuddleItem = ({ item }) => {
+  const { user } = useContext(UserContext);
   const [showTooltip, setShowTooltip] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleBellClick = async () => {
+    const coachId = user?.id;
+    if (!coachId) {
+      alert("Coach information unavailable. Please sign in again.");
+      return;
+    }
+
     setShowPopup(true);
     setShowUpload(false); // Reset upload view on each open
     setLoading(true);
+    setErrorMessage("");
 
     try {
-      const coachId = "11631c17-8bc5-49f2-8a10-45238ebf5424";
-
       if (item.id === 1) {
         // Fetch tasks logic remains unchanged
         const response = await fetch(
@@ -46,7 +54,8 @@ const HuddleItem = ({ item }) => {
         );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch tasks");
+          const details = await response.text();
+          throw new Error(details || "Failed to fetch tasks");
         }
 
         const data = await response.json();
@@ -64,7 +73,8 @@ const HuddleItem = ({ item }) => {
         );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch sessions");
+          const details = await response.text();
+          throw new Error(details || "Failed to fetch sessions");
         }
 
         const data = await response.json();
@@ -78,7 +88,7 @@ const HuddleItem = ({ item }) => {
       }
     } catch (error) {
       console.error(error.message);
-      alert("Error fetching data. Please try again later.");
+      setErrorMessage(error.message || "Error fetching data. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -90,13 +100,18 @@ const HuddleItem = ({ item }) => {
 
   const handleSendReminder = async (itemData) => {
     try {
+      const coachId = user?.id || itemData?.coachId;
+      if (!coachId) {
+        throw new Error("Coach information missing. Unable to send reminder.");
+      }
+
       let payload;
 
       if (item.id === 1) {
         // Task reminder payload
         payload = {
           plannedSessionId: itemData.plannedSessionId,
-          coachId: itemData.coachId,
+          coachId,
           clientId: itemData.clientId,
           plannedTaskId: itemData.plannedTaskId,
           taskTitle: itemData.taskTitle,
@@ -107,7 +122,7 @@ const HuddleItem = ({ item }) => {
         // Session reminder payload
         payload = {
           sessionId: itemData.sessionId,
-          coachId: itemData.coachId,
+          coachId,
           clientId: itemData.clientId,
           sessionTitle: itemData.sessionTitle,
           clientName: itemData.clientName,
@@ -195,6 +210,8 @@ const HuddleItem = ({ item }) => {
                 <UploadPreview onContentExtracted={() => {}} />
               ) : loading ? (
                 <p>Loading...</p> 
+              ) : errorMessage ? (
+                <p className="error-message" style={{ color: "#c62828" }}>{errorMessage}</p>
               ) : item.id === 1 ? (
                 tasks.length > 0 ? (
                   <table className="datagrid">

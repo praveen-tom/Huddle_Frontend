@@ -58,6 +58,7 @@ const SchedulePopup = ({ clientName, onClose, profileData }) => {
       CreatedDatetime: new Date().toISOString(), 
       ModifiedBy: "",
       ModifiedDatetime: new Date().toISOString(), 
+      Review: "",
     };
     
     

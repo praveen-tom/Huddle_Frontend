@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Icon } from "@iconify/react";
 import "./ToDo.css";
 import { toast } from "react-toastify";
 import API_ENDPOINTS from "../../apiconfig";
+import { UserContext } from "../../Context/UserContext";
 
 function ToDo() {
   const [tasks, setTasks] = useState([
@@ -20,7 +21,8 @@ function ToDo() {
   const [loading, setLoading] = useState(false);
   const [errorPopup, setErrorPopup] = useState(false);
   const [profiles, setProfiles] = useState([]);
-  const coachId = "11631c17-8bc5-49f2-8a10-45238ebf5424"; // Example coach ID
+  const { user } = useContext(UserContext);
+  const coachId = user?.id;
 
   const handleOpenModal = () => {
     setShowModal(true);
@@ -89,6 +91,11 @@ function ToDo() {
   };
 
   const handleFetchProfiles = async () => {
+    if (!coachId) {
+      alert("Coach info unavailable. Please sign in again.");
+      return;
+    }
+
     setLoading(true);
     try {
       console.log(`Fetching profiles for coachId: ${coachId}`);

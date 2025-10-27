@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './PlanSession.css';
 import { Icon } from '@iconify/react';
 import { v4 as uuidv4 } from 'uuid';
 import API_ENDPOINTS from '../../apiconfig';
+import { UserContext } from '../../Context/UserContext';
 
 const PlanSession = ({ profileData, setCurrentPage }) => {
+  const { user } = useContext(UserContext);
   const [activeTab, setActiveTab] = useState(profileData.tab);
 
   console.log("setcurrentPage", setCurrentPage);
@@ -121,7 +123,20 @@ const handleSubmit = async (e) => {
 };
 
 // Function to handle template submission
-const handleTemplateSubmit = async () => {
+  const coachId = profileData?.coachId || selectedSession?.coachId || profileData?.coach?.id || user?.id || '';
+
+  const ensureCoachId = () => {
+    if (!coachId) {
+      alert('Unable to identify coach. Please refresh and try again.');
+      return false;
+    }
+    return true;
+  };
+
+  const handleTemplateSubmit = async () => {
+    if (!ensureCoachId()) {
+      return;
+    }
   if (!templateTitle.trim()) {
     alert("Template title is required");
     return;
@@ -137,9 +152,10 @@ const handleTemplateSubmit = async () => {
     planneddate: date,
     plannedtime: time,
     status: "Not Completed",
-    CreatedBy: profileData.coachId || uuidv4(),
+  CoachId: coachId,
+  CreatedBy: coachId,
     CreatedDatetime: new Date().toISOString(),
-    ModifiedBy: profileData.coachId || uuidv4(),
+  ModifiedBy: coachId,
     ModifiedDatetime: new Date().toISOString(),
     tasks: plannedTasks,
     objectives: objectives,
@@ -177,6 +193,9 @@ const handleTemplateSubmit = async () => {
 };
 // Function to submit the planned session
 const submitPlannedSession = async () => {
+  if (!ensureCoachId()) {
+    return;
+  }
   const plannedSessionData = {
     Id: uuidv4(),
     schedulesession: selectedSession?.id || uuidv4(),
@@ -185,9 +204,10 @@ const submitPlannedSession = async () => {
     planneddate: date,
     plannedtime: time,
     status: "Not Completed",
-    CreatedBy: profileData.coachId || uuidv4(),
+    CoachId: coachId,
+    CreatedBy: coachId,
     CreatedDatetime: new Date().toISOString(),
-    ModifiedBy: profileData.coachId || uuidv4(),
+    ModifiedBy: coachId,
     ModifiedDatetime: new Date().toISOString(),
     tasks: plannedTasks,
     objectives: objectives,
