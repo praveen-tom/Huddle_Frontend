@@ -5,6 +5,7 @@ import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import addMinutes from 'date-fns/addMinutes';
+import { format as formatDateFns } from 'date-fns';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
@@ -65,6 +66,75 @@ const Calendar = () => {
   const [manualStartTime, setManualStartTime] = useState("05:00");
   const [manualEndTime, setManualEndTime] = useState("06:00");
   const [currentView, setCurrentView] = useState('week');
+  const [isSavingEvent, setIsSavingEvent] = useState(false);
+  const [eventError, setEventError] = useState("");
+
+  const deriveCoachId = () => {
+    return (
+      user?.coachId ||
+      user?.id ||
+      user?.ClientId ||
+      user?.clientId ||
+      user?.coachID ||
+      user?.clientlist?.[0]?.coachId ||
+      null
+    );
+  };
+
+  const buildEventPayload = ({ title, start, end, tag }) => {
+    const coachId = deriveCoachId();
+    if (!coachId) {
+      throw new Error("Coach identifier unavailable. Please re-authenticate.");
+    }
+
+    if (!title?.trim()) {
+      throw new Error("Title is required.");
+    }
+
+    if (!start || !end) {
+      throw new Error("Start and end times are required.");
+    }
+
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      throw new Error("Invalid start or end date.");
+    }
+
+    if (endDate <= startDate) {
+      throw new Error("End time must be after start time.");
+    }
+
+    const formatForApi = (date) => formatDateFns(date, "ddMMyyyy HHmm");
+
+    return {
+      CoachId: coachId,
+      Title: title.trim(),
+      Start: formatForApi(startDate),
+      End: formatForApi(endDate),
+      Tag: tag || "Planning",
+      ClientName: undefined,
+      ProfileImage: undefined,
+    };
+  };
+
+  const saveEventToServer = async (payload) => {
+    const response = await fetch(`${API_ENDPOINTS.baseurl}/Coach/addcoachcalendardata`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const details = await response.text();
+      throw new Error(details || 'Failed to create calendar event.');
+    }
+
+    return response.json().catch(() => null);
+  };
   const calendarMinTime = React.useMemo(() => {
     const start = new Date();
     start.setHours(5, 0, 0, 0);
@@ -83,11 +153,22 @@ const Calendar = () => {
   );
 
   useEffect(() => {
-    if (!user?.id) return;
-  
-    fetch(`${API_ENDPOINTS.baseurl}/SessionScheduling/CoachId?coachid=${user.id}`)
-      .then(response => {
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const coachIdentifier = deriveCoachId();
+    if (!coachIdentifier) {
+      console.warn("Unable to determine coach identifier for calendar events");
+      return;
+    }
+
+    fetch(`${API_ENDPOINTS.baseurl}/SessionScheduling/CoachId?coachid=${coachIdentifier}`)
+      .then(async (response) => {
+        if (response.status === 404) {
+          console.warn("No calendar sessions found for coach", coachIdentifier);
+          return [];
+        }
+        if (!response.ok) {
+          const details = await response.text();
+          throw new Error(details || `HTTP error! status: ${response.status}`);
+        }
         return response.json();
       })
       .then(data => {
@@ -95,7 +176,7 @@ const Calendar = () => {
           ? data
           : (data?.events || data?.data || [data]);
 
-        console.log("Raw API Response:", eventsArray);
+  console.log("Raw API Response:", eventsArray);
 
         // Format events for react-big-calendar
         const formattedEvents = eventsArray.map((event) => {
@@ -149,10 +230,10 @@ const Calendar = () => {
         setEvents(formattedEvents);
       })
       .catch(error => {
-        console.error("Error fetching sessions:", error);
+        console.error("Error fetching sessions for coach", coachIdentifier, error);
         setEvents([]); // Clear events on error
       });
-  }, [user.id]);
+  }, [user]);
 
   const CalendarEvent = ({ event }) => {
     const accent = event.resource?.color || "#4A90E2";
@@ -436,8 +517,16 @@ const Calendar = () => {
                 <button
                   type="button"
                   className="modal-submit"
-                  onClick={() => {
-                    if (newEventInfo.title) {
+                  disabled={isSavingEvent}
+                  onClick={async () => {
+                    if (isSavingEvent) {
+                      return;
+                    }
+
+                    try {
+                      setEventError("");
+                      setIsSavingEvent(true);
+
                       const [startHour, startMinute] = manualStartTime.split(":").map(Number);
                       const [endHour, endMinute] = manualEndTime.split(":").map(Number);
                       const updatedStart = new Date(newEventInfo.start || new Date());
@@ -446,34 +535,50 @@ const Calendar = () => {
                       updatedStart.setHours(startHour, startMinute, 0, 0);
                       updatedEnd.setHours(endHour, endMinute, 0, 0);
 
-                      if (updatedEnd <= updatedStart) {
-                        alert("End time must be after start time.");
-                        return;
-                      }
+                      const payload = buildEventPayload({
+                        title: newEventInfo.title,
+                        start: updatedStart,
+                        end: updatedEnd,
+                        tag: newEventInfo.tag,
+                      });
+
+                      await saveEventToServer(payload);
 
                       const typeColors = {
                         Planning: "#3498DB",
                         Personal: "#9B59B6",
+                        Session: "#4CAF50",
+                        Others: "#795548",
                       };
+
                       const newEvent = {
-                        id: String(events.length + 1),
+                        id: `${Date.now()}`,
                         title: newEventInfo.title,
                         start: updatedStart,
                         end: updatedEnd,
                         color: typeColors[newEventInfo.tag] || "#3498DB",
-                        tag: newEventInfo.tag
+                        tag: newEventInfo.tag,
                       };
-                      setEvents([...events, newEvent]);
+
+                      setEvents((prev) => [...prev, newEvent]);
                       setShowEventModal(false);
+                    } catch (err) {
+                      console.error('Failed to save calendar event:', err);
+                      setEventError(err.message || 'Unable to save event.');
+                    } finally {
+                      setIsSavingEvent(false);
                     }
                   }}
                 >
-                  Save
+                  {isSavingEvent ? 'Saving…' : 'Save'}
                 </button>
                 <button type="button" className="modal-submit" onClick={() => setShowEventModal(false)}>
                   Cancel
                 </button>
               </div>
+              {eventError && (
+                <div style={{ color: '#d32f2f', marginTop: 12, textAlign: 'center' }}>{eventError}</div>
+              )}
             </form>
           </div>
         </>
