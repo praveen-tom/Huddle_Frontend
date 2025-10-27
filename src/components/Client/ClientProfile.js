@@ -1,10 +1,95 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Icon } from "@iconify/react";
 import "./Client.css";
 import SchedulePopup from "./SchedulePopup";
 import GoalPopup from "./GoalPopup";
 import ShareDocumentPopup from "./ShareDocumentPopup";
 import API_ENDPOINTS from "../../apiconfig";
+
+const toSafeString = (value) => {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  return String(value).trim();
+};
+
+const resolvePrimaryClientId = (profile, clientIdProp) => {
+  const candidate =
+    clientIdProp ??
+    profile?.clientId ??
+    profile?.clientID ??
+    profile?.clientid ??
+    profile?.id ??
+    profile?.Id ??
+    profile?.ClientId ??
+    profile?.ClientID ??
+    profile?.Clientid;
+
+  return toSafeString(candidate);
+};
+
+const normalizeDocumentList = (payload, fallbackOwnerId) => {
+  const results = [];
+  const safeFallback = toSafeString(fallbackOwnerId);
+
+  const pushEntry = (entry, overrides = {}) => {
+    if (entry === null || entry === undefined) {
+      return;
+    }
+
+    if (typeof entry === "string") {
+      const documentName = entry.trim();
+      if (!documentName) {
+        return;
+      }
+      results.push({
+        documentName,
+        ownerClientId: overrides.ownerClientId || safeFallback,
+        isOwned: overrides.isOwned ?? true,
+        documentType: overrides.documentType || "",
+        createdAt: overrides.createdAt || "",
+        s3Key: overrides.s3Key || "",
+      });
+      return;
+    }
+
+    const documentName = toSafeString(
+      entry.documentName ?? entry.fileName ?? entry.name ?? entry.FileName
+    );
+
+    if (!documentName) {
+      return;
+    }
+
+    results.push({
+      documentName,
+      ownerClientId: toSafeString(entry.ownerClientId) || overrides.ownerClientId || safeFallback,
+      isOwned:
+        typeof entry.isOwned === "boolean"
+          ? entry.isOwned
+          : overrides.isOwned ?? false,
+      documentType: toSafeString(entry.documentType || overrides.documentType),
+      createdAt: toSafeString(entry.createdAt || overrides.createdAt),
+      s3Key: toSafeString(entry.s3Key || overrides.s3Key),
+    });
+  };
+
+  const appendFromArray = (maybeArray, overrides) => {
+    if (!Array.isArray(maybeArray)) {
+      return;
+    }
+    maybeArray.forEach((entry) => pushEntry(entry, overrides));
+  };
+
+  appendFromArray(payload?.ownedDocuments, { isOwned: true, ownerClientId: safeFallback });
+  appendFromArray(payload?.sharedDocuments, { isOwned: false });
+
+  if (results.length === 0) {
+    appendFromArray(payload?.documents, { isOwned: true, ownerClientId: safeFallback });
+  }
+
+  return results;
+};
 
 const ClientProfile = ({
   profileData,
@@ -19,7 +104,9 @@ const ClientProfile = ({
   const [isSharePopupOpen, setIsSharePopupOpen] = useState(false);
   const [documentToShare, setDocumentToShare] = useState(null);
   const [goals, setGoals] = useState(profileData?.goals || []);
-  const [documentList, setDocumentList] = useState(profileData?.documents || []);
+  const [documentList, setDocumentList] = useState(() =>
+    normalizeDocumentList(profileData, resolvePrimaryClientId(profileData, clientId))
+  );
   const [isUploading, setIsUploading] = useState(false);
   const [activeDocumentMenu, setActiveDocumentMenu] = useState(null);
   const fileInputRef = useRef(null);
@@ -31,13 +118,18 @@ const ClientProfile = ({
   // State to track which session tab (Upcoming/Past) is active
   const [activeSessionTab, setActiveSessionTab] = useState("upcoming");
 
+  const resolvedClientId = useMemo(
+    () => resolvePrimaryClientId(profileData, clientId),
+    [profileData, clientId]
+  );
+
   if (!profileData) {
     return <div>Loading...</div>;
   }
 
   useEffect(() => {
-    setDocumentList(profileData?.documents || []);
-  }, [profileData]);
+    setDocumentList(normalizeDocumentList(profileData, resolvedClientId));
+  }, [profileData, resolvedClientId]);
 
   useEffect(() => {
     if (!activeDocumentMenu) {
@@ -65,10 +157,6 @@ const ClientProfile = ({
     .slice(0, 3)
     .sort((a, b) => new Date(a.plannedDate) - new Date(b.plannedDate));
   
-
-  const resolveClientId = () =>
-    clientId ?? profileData?.clientId ?? profileData?.id ?? profileData?.clientID;
-
   const openBlobInNewTab = (blob, fileName, contentType) => {
     if (typeof window === "undefined") {
       console.error("❌ Unable to open document preview outside browser context");
@@ -96,30 +184,24 @@ const ClientProfile = ({
     }, 60_000);
   };
 
-  const handleDocumentDownload = (fileName) => {
-    const selectedClientId = resolveClientId();
-    if (!selectedClientId) {
-      console.error("❌ Missing client identifier for download.");
-      return;
-    }
-
-    const url = `${API_ENDPOINTS.baseurl}/CoachProfile/DownloadFile/${selectedClientId}/${fileName}`;
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = fileName;
-    link.click();
-  };
-
   const openFilePicker = () => {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
       fileInputRef.current.click();
     }
   };
-  const handleDocumentAction = async (action, docName) => {
-    const selectedClientId = resolveClientId();
-    if (!selectedClientId) {
-      console.error("❌ Missing client identifier for document action.");
+  const handleDocumentAction = async (action, doc) => {
+    const fileName = doc?.documentName ?? (typeof doc === "string" ? doc : "");
+    const ownerClientId = toSafeString(doc?.ownerClientId) || resolvedClientId;
+
+    if (!fileName) {
+      console.error("❌ Missing document name for action.");
+      setActiveDocumentMenu(null);
+      return;
+    }
+
+    if (!ownerClientId) {
+      console.error("❌ Missing owner client identifier for document action.");
       setActiveDocumentMenu(null);
       return;
     }
@@ -128,8 +210,8 @@ const ClientProfile = ({
       try {
         const response = await fetch(
           `${API_ENDPOINTS.baseurl}/Client/viewsupportingdocument?clientId=${encodeURIComponent(
-            String(selectedClientId)
-          )}&fileName=${encodeURIComponent(docName)}`
+            ownerClientId
+          )}&fileName=${encodeURIComponent(fileName)}`
         );
 
         if (!response.ok) {
@@ -138,7 +220,7 @@ const ClientProfile = ({
 
         const contentType = response.headers.get("content-type") || "application/octet-stream";
         const blob = await response.blob();
-        openBlobInNewTab(blob, docName, contentType);
+        openBlobInNewTab(blob, fileName, contentType);
       } catch (error) {
         console.error("❌ Failed to load document preview:", error);
       } finally {
@@ -148,18 +230,28 @@ const ClientProfile = ({
     }
 
     if (action === "share") {
-      setDocumentToShare(docName);
+      if (doc?.isOwned === false) {
+        console.warn("⚠️ Share option is unavailable for shared documents.");
+        setActiveDocumentMenu(null);
+        return;
+      }
+      setDocumentToShare(doc);
       setIsSharePopupOpen(true);
       setActiveDocumentMenu(null);
       return;
     }
 
     if (action === "delete") {
+      if (doc?.isOwned === false) {
+        console.warn("⚠️ Delete option is unavailable for shared documents.");
+        setActiveDocumentMenu(null);
+        return;
+      }
       try {
         const response = await fetch(
           `${API_ENDPOINTS.baseurl}/Client/deletefile?clientId=${encodeURIComponent(
-            String(selectedClientId)
-          )}&fileName=${encodeURIComponent(docName)}`,
+            ownerClientId
+          )}&fileName=${encodeURIComponent(fileName)}`,
           {
             method: "PATCH",
           }
@@ -169,7 +261,11 @@ const ClientProfile = ({
           throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
 
-        setDocumentList((prev) => prev.filter((doc) => doc !== docName));
+        setDocumentList((prev) =>
+          prev.filter(
+            (entry) => entry.documentName !== fileName || entry.ownerClientId !== ownerClientId
+          )
+        );
       } catch (error) {
         console.error("❌ Failed to delete document:", error);
       } finally {
@@ -189,8 +285,7 @@ const ClientProfile = ({
       return;
     }
 
-    const selectedClientId = resolveClientId();
-    if (!selectedClientId) {
+    if (!resolvedClientId) {
       console.error("❌ Missing client identifier for upload.");
       return;
     }
@@ -202,7 +297,7 @@ const ClientProfile = ({
       setIsUploading(true);
       const response = await fetch(
         `${API_ENDPOINTS.baseurl}/Client/upload?clientId=${encodeURIComponent(
-          String(selectedClientId)
+          resolvedClientId
         )}`,
         {
           method: "POST",
@@ -220,10 +315,35 @@ const ClientProfile = ({
         data = await response.json();
       }
 
-      if (Array.isArray(data?.data?.documents)) {
-        setDocumentList(data.data.documents);
+      if (data?.data) {
+        const normalized = normalizeDocumentList(data.data, resolvedClientId);
+        if (normalized.length > 0) {
+          setDocumentList(normalized);
+        } else {
+          setDocumentList((prev) => [
+            ...prev,
+            {
+              documentName: file.name,
+              ownerClientId: resolvedClientId,
+              isOwned: true,
+              documentType: file.type || "",
+              createdAt: new Date().toISOString(),
+              s3Key: "",
+            },
+          ]);
+        }
       } else {
-        setDocumentList((prev) => [...prev, file.name]);
+        setDocumentList((prev) => [
+          ...prev,
+          {
+            documentName: file.name,
+            ownerClientId: resolvedClientId,
+            isOwned: true,
+            documentType: file.type || "",
+            createdAt: new Date().toISOString(),
+            s3Key: "",
+          },
+        ]);
       }
     } catch (error) {
       console.error("❌ Failed to upload documents:", error);
@@ -512,23 +632,32 @@ const ClientProfile = ({
                 <p>No documents available.</p>
               ) : (
                 <ul>
-                  {documentList.map((doc, index) => (
-                    <li key={`${doc}-${index}`}>
+                  {documentList.map((doc, index) => {
+                    const menuKey = `${doc.documentName}|${toSafeString(doc.ownerClientId) || "self"}`;
+                    return (
+                      <li
+                        key={`${doc.documentName}-${doc.ownerClientId || "unknown"}-${index}`}
+                      >
                       <div className="document-list-item">
-                        <span className="document-name">{index + 1}. {doc}</span>
+                        <span className="document-name">
+                          {index + 1}. {doc.documentName}
+                          {doc.isOwned === false && (
+                            <span className="document-shared-label"> (Shared)</span>
+                          )}
+                        </span>
                         <div className="document-actions-menu">
                           <button
                             type="button"
                             className="document-options-btn"
                             onClick={() =>
                               setActiveDocumentMenu((current) =>
-                                current === doc ? null : doc
+                                current === menuKey ? null : menuKey
                               )
                             }
                           >
                             <Icon icon="mdi:dots-vertical" width="20" height="20" />
                           </button>
-                          {activeDocumentMenu === doc && (
+                          {activeDocumentMenu === menuKey && (
                             <div className="document-options-dropdown">
                               <button
                                 type="button"
@@ -537,26 +666,31 @@ const ClientProfile = ({
                               >
                                 View
                               </button>
-                              <button
-                                type="button"
-                                className="document-option"
-                                onClick={() => handleDocumentAction("share", doc)}
-                              >
-                                Share
-                              </button>
-                              <button
-                                type="button"
-                                className="document-option"
-                                onClick={() => handleDocumentAction("delete", doc)}
-                              >
-                                Delete
-                              </button>
+                              {doc.isOwned !== false && (
+                                <button
+                                  type="button"
+                                  className="document-option"
+                                  onClick={() => handleDocumentAction("share", doc)}
+                                >
+                                  Share
+                                </button>
+                              )}
+                              {doc.isOwned !== false && (
+                                <button
+                                  type="button"
+                                  className="document-option"
+                                  onClick={() => handleDocumentAction("delete", doc)}
+                                >
+                                  Delete
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
                       </div>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
@@ -584,9 +718,9 @@ const ClientProfile = ({
 
       {isSharePopupOpen && documentToShare && (
         <ShareDocumentPopup
-          currentClientId={resolveClientId()}
+          currentClientId={resolvedClientId}
           currentClientName={profileData.name}
-          documentName={documentToShare}
+          documentName={documentToShare.documentName}
           onClose={() => {
             setIsSharePopupOpen(false);
             setDocumentToShare(null);
