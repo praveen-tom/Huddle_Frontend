@@ -21,7 +21,7 @@ function YourDay() {
 
   return (
     <div className="your-day">
-      <div className="header left">YOUR DAY</div>
+      <div className="header left"><span className="text-span">YOUR DAY</span></div>
       <ul className="list">
         {schedule.map((item, index) => (
           <li key={index} className="list-item">

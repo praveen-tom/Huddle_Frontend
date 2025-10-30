@@ -13,10 +13,15 @@
   font-weight: bold;
   color: #fff;
   margin-bottom: 0px;
-  writing-mode: tb-rl;
+  writing-mode: sideways-lr;
   text-align: center;
   background-color: #473C5F;
   border-radius: 6px 0px 0px 6px
+}
+
+.text-span {
+  margin-bottom: auto;
+  margin-top: 10px;
 }
 
 .list {

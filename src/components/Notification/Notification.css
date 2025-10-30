@@ -56,10 +56,53 @@
     margin-top: 0px;
   }
   .message-content{
-    position: absolute;
+    width:80%;
   }
   .mark-as-read-icon
   {
     text-align: right;
     cursor: pointer;
+    width: 10%;
   }
+
+  .title
+  {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .client-profileicon
+  {
+    width:25%;
+  }
+
+  .time
+  {
+    margin-top:5px;
+  }
+  .noti-group-label
+  {
+    font-weight:bold;
+    margin-top:15px
+  }
+
+.notification-title
+{
+display: flex;
+align-items: center;
+justify-content: space-between;
+width: 100%;
+}
+.message-content-clientname
+{
+  font-weight: bold;
+  font-size:17px;
+  margin-right: 10px;
+}
+.message-content-clientmessage
+{
+ font-size:13px;
+}
+

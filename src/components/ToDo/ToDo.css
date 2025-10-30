@@ -14,10 +14,15 @@
   font-weight: bold;
   color: #fff;
   margin-bottom: 0px;
-  writing-mode: tb-rl;
+  writing-mode: sideways-lr;
   text-align: center;
   background-color: #0D6A66;
   border-radius: 6px 0px 0px 6px;
+}
+
+.to-do .header span {
+ margin-bottom: auto;
+ margin-top: 10px;
 }
 
 .task-list {

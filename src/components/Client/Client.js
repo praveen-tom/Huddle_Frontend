@@ -27,6 +27,7 @@ const Client = ({ setCurrentPage }) => {
         }
         const responseData = await response.json();
         const clientArray = responseData.data || [];
+        console.log("📥 Fetched clients:", clientArray);
         if (!Array.isArray(clientArray)) {
           console.warn("⚠️ Unexpected API response format. Expected an array in 'data'.");
           throw new Error("Invalid API response format.");
@@ -46,8 +47,11 @@ const Client = ({ setCurrentPage }) => {
   const handleSearch = (event) => {
     const term = event.target.value.toLowerCase();
     setSearchTerm(term);
+    console.log("Search term:", term);
+    console.log("clientList:", clientList);
     const filtered = clientList.filter((client) =>
-      client.name.toLowerCase().includes(term)
+      client.name.toLowerCase().includes(term) ||
+    (client.nextSession && client.nextSession.toLowerCase().includes(term))
     );
     setFilteredClients(filtered);
   };
@@ -59,7 +63,6 @@ const Client = ({ setCurrentPage }) => {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }
       const profileData = await response.json();
-      console.log("Client profile data:", profileData);
       setSelectedClient(profileData?.data || null);
       setIsProfileVisible(true);
     } catch (err) {

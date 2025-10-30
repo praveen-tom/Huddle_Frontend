@@ -39,12 +39,31 @@
   }
   
   .send-btn {
-    background-color: #4CAF50;
+    background-color: #455817;
     color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 17px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size:15px
   }
   
   .close-btn {
-    background-color: #f44336;
-    color: white;
+    color: #455817;
+    padding: 9px 15px;
+    border: 1px solid #455817;
+    border-radius: 17px;
+    cursor: pointer;
+    font-size:14px
   }
   
+  .calendar-red {
+  background: #ffcccc !important;
+}
+.calendar-orange {
+  background: #ffe5b4 !important;
+}
+.calendar-green {
+  background: #d4edda !important;
+}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import "./Client.css";
 import SchedulePopup from "./SchedulePopup";
@@ -20,6 +20,7 @@ const ClientProfile = ({
   const today = new Date().toISOString().split("T")[0];
   const todayIndex = moods.findIndex((mood) => mood.createdDate === today);
   const [currentIndex, setCurrentIndex] = useState(todayIndex !== -1 ? todayIndex : 0);
+  const[profileImage,setProfileImage] = useState(null);
 
   // State to track which session tab (Upcoming/Past) is active
   const [activeSessionTab, setActiveSessionTab] = useState("upcoming");
@@ -28,6 +29,21 @@ const ClientProfile = ({
     return <div>Loading...</div>;
   }
 
+  console.log("Profile Data:", profileData.profilePic);
+
+  useEffect(() => {
+    // Set the profile image if it exists in the API response   
+  //  Set the profile image if it exists in the API response
+  if (profileData.profilePic) {
+      const base64Prefix = "data:image/png;base64," || "data:image/jpeg;base64,";
+      const fullBase64String = profileData.profilePic.startsWith(base64Prefix)
+          ? profileData.profilePic
+          : `${base64Prefix}${profileData.profilePic}`;
+      setProfileImage(fullBase64String);
+      console.log("Profile Image:", fullBase64String);
+  }
+  }, [profileData.profilePic]);
+  const clientName = profileData.name || "Client";  
   const documents = profileData?.documents || [];
 
   // Filter upcoming and past sessions based on status
@@ -39,6 +55,7 @@ const ClientProfile = ({
     .slice(0, 3)
     .sort((a, b) => new Date(a.plannedDate) - new Date(b.plannedDate));
   
+    
 
   const handleDocumentDownload = (fileName) => {
     const url = `${API_ENDPOINTS.baseurl}/CoachProfile/DownloadFile/${clientId}/${fileName}`;
@@ -91,18 +108,14 @@ const ClientProfile = ({
         {/* Section 1: Profile and Sessions */}
         <div className="section1">
           {/* Profile Box */}
-          <div className="profile-box">
-            <div className="profile-header">
+          <div className="client-profile-box">
+            <div className="client-profile-header">
               <h4>PROFILE</h4>
             </div>
             <div className="profile-content">
               <div className="profile-pic-container">
                 <img
-                  src={
-                    profileData.profileImage
-                      ? profileData.profileImage
-                      : "/ProfilePic/default-avatar.png"
-                  }
+                  src={profileImage || "/ProfilePic/default-avatar.png"}
                   alt="Profile"
                   className="profile-image"
                 />

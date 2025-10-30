@@ -34,6 +34,7 @@ export default function CoachProfile({ isOpen, onClose }) {
                 const data = await response.json();
                 const coachData = data.data || {};
                 const timeslots = coachData.timeslots || {};
+                console.log("Coach Data:", coachData);
 
                 // Set the profile image if it exists in the API response
                 if (coachData.profilePic) {
@@ -42,8 +43,9 @@ export default function CoachProfile({ isOpen, onClose }) {
                         ? coachData.profilePic
                         : `${base64Prefix}${coachData.profilePic}`;
                     setProfileImage(fullBase64String);
-                }
-
+                    //console.log("prooofileimage",fullBase64String);
+                } 
+                
                 // Update other states
                 setNotification(coachData);
                 setDefaultTimeslots(timeslots.defaulttiming || []);

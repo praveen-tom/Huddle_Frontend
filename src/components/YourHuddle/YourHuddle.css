@@ -13,10 +13,15 @@
   font-weight: bold;
   color: #fff;
   margin-bottom: 0px;
-  writing-mode: tb-rl;
+  writing-mode: sideways-lr;
   text-align: center;
   background-color: #5C262A;
   border-radius: 6px 0px 0px 6px;
+}
+
+.your-huddle .header span {
+  margin-bottom: auto;
+  margin-top: 10px;
 }
 
 .huddle-list {

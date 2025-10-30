@@ -128,7 +128,7 @@ const Calendar = () => {
 
   return (
     <div className="calendar-layout">
-      <div className="calendar-header-left">Calendar</div>
+      <div className="calendar-header-left"><span className="">Calendar</span></div>
 
       <div
         className="calendar-main"
@@ -155,6 +155,8 @@ const Calendar = () => {
           editable
           selectable
           events={events}
+          slotMinTime="05:00:00"     // <-- ADD HERE
+          slotMaxTime="17:00:00"     // <-- ADD HERE
           select={(selectInfo) => {
             const title = prompt("Enter a title for your event:");
             if (title) {

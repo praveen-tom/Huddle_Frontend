@@ -12,7 +12,7 @@ const YourHuddle = () => {
 
   return (
     <div className="your-huddle">
-      <div className="header">YOUR HUDDLE</div>
+      <div className="header"><span>YOUR HUDDLE</span></div>
       <ul className="huddle-list">
         {huddles.map((item) => (
           <HuddleItem key={item.id} item={item} />

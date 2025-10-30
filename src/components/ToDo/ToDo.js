@@ -176,7 +176,7 @@ function ToDo() {
   return (
     <div className="to-do">
       {/* Header */}
-      <div className="header">TO DO</div>
+      <div className="header"><span>TO DO</span></div>
 
       {/* Task List */}
       <ul className="task-list">

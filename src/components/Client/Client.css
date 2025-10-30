@@ -307,16 +307,41 @@ ul li {
   transform: rotate(180deg);
 }
 
+.client-profile-box {
+  background-color: #f4f5f7;
+  border-radius: 6px;
+  padding: 0px;
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  margin-bottom: 15px;
+  height: 300px;
+  width: 35%;
+}
+
+.client-profile-header {
+  font-size: 1.5rem;
+  color: #BBB2CB;
+  margin-bottom: 0px;
+  writing-mode: tb-rl;
+  text-align: center;
+  background-color: #473C5F;
+  border-radius: 0px 6px 6px 0px;
+  width: 60px;
+  writing-mode: tb-rl;
+  transform: rotate(180deg);
+}
+
 .profile-header h4,
 .session-header h4,
 .personalinfo-header h4,
 .goals-header h4,
 .notes-header h4,
 .moods-header h4,
-.document-header h4 {
+.document-header h4,.client-profile-header h4 {
   margin: 0px;
   padding: 13px;
-  font-size: 25px;
+  font-size: 1.5rem;
   text-transform: uppercase;
 }
 
@@ -530,6 +555,13 @@ ul li {
   transform: rotate(180deg);
 }
 
+.mood-text
+{
+  text-align: center;
+  font-weight:bold;
+  margin-top:-10px;
+}
+
 .document-box {
   background-color: #f4f5f7;
   border-radius: 6px;
@@ -608,6 +640,7 @@ ul li {
 .mood-date{
   text-align: center;
   padding: 8px;
+  font-weight:bold;
 }
 
 .mood-icon img
